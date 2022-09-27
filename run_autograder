@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+for file in /autograder/submission/*
+do
+file=${file##*./}
+pkg=$(head -1 $file | cut -d " " -f 2 | cut -d ";" -f 1)
+mkdir /autograder/source/src/$pkg
+cp -n $file /autograder/source/src/$pkg
+done
+
+cd /autograder/source
+mkdir bin
+
+bash ./run.sh
