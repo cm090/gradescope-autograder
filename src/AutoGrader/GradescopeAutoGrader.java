@@ -6,7 +6,7 @@ package AutoGrader;
 // TODO: Build the class files by modifying in run.sh:
 //       Replace [HWName] with the appropriate file structure
 
-import HW1.*;
+import [HWName].*;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
