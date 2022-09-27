@@ -1,6 +1,6 @@
 package AutoGrader;
 
-import HW1.*;
+import [HWName].*;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
