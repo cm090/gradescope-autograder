@@ -33,6 +33,7 @@ g.addTest(testClassName, numberOfTests);
 g.addResult(testClassName, testsPassed, "");
 ```
 The third argument for addResult can take in an output message that is shown to students.
+
 7. In `RunAllTestsTearDown.java`, add `RunAllTests.g.toJSON();` to the end of the percentagePassed method.
 8. Zip the contents (everything inside the downloaded folder) and upload to the Gradescope assignment.
 
