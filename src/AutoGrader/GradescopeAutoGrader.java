@@ -11,7 +11,7 @@ import java.io.PrintStream;
  * https://github.com/cm090/gradescope-autograder
  * 
  * @author Canon Maranda
- * @version 1.0
+ * @version 2.0
  */
 import java.util.HashMap;
 
@@ -22,11 +22,14 @@ public class GradescopeAutoGrader {
     private HashMap<String, Integer> idList;
     private PrintStream output;
     private int nextId;
+    private boolean customTotal;
+    private double testsPassed, testsTotal, assignmentTotalScore;
 
     public GradescopeAutoGrader() {
         this.data = new HashMap<Integer, TestData>();
         this.idList = new HashMap<String, Integer>();
         this.nextId = 0;
+        this.customTotal = false;
         try {
             this.output = new PrintStream(new FileOutputStream("results.json"));
         } catch (FileNotFoundException e) {
@@ -45,10 +48,25 @@ public class GradescopeAutoGrader {
     public void addResult(String name, double grade, String output) {
         this.data.get(idList.get(name)).setScore(grade, output);
     }
+    
+    // Overrides default scoring to use a maximum points system. Must run after all tests have processed.
+    public void useCustomTotal(double assignmentTotalScore) {
+        this.customTotal = true;
+        this.testsPassed = 0;
+        this.testsTotal = 0;
+        this.assignmentTotalScore = assignmentTotalScore;
+        for (int key : this.data.keySet()) {
+            TestData current = this.data.get(key);
+            this.testsPassed += current.grade;
+            this.testsTotal += current.maxScore;
+        }
+    }
 
     // Converts map of scores to JSON. Exports to file for Gradescope to analyze.
     public void toJSON() {
-        String json = "{ \"tests\":[";
+        String json = "{ ";
+        json += (this.customTotal) ? "\"score\": " + ((this.testsPassed / this.testsTotal) * this.assignmentTotalScore) + ",": "";
+        json += "\"tests\":[";
         for (int key : this.data.keySet()) {
             TestData current = this.data.get(key);
             json += "{\"score\": " + current.grade + ",";
