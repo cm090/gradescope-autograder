@@ -21,6 +21,8 @@
 - Assignment JUnit tests can be graded without intervention
 - Students are not submitting graphics work and are not creating their own JUnit tests
 - The first line of every Java file declares a package
+- `RunAllTests.java` runs all tests (doesn't work with multiple test sessions)
+  - To fix this issue, combine all tests into one file. Submit this to the Autograder but give students the original tests files.
 
 ## Getting started
 1. Download this repository
