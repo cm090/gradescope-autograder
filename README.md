@@ -37,7 +37,7 @@ g.addResult(testClassName, testsPassed, "");
 The third argument for addResult can take in an output message that is shown to students.
 
 7. In `RunAllTestsTearDown.java`, add `RunAllTests.g.toJSON();` to the end of the percentagePassed method.
-8. Optionally, in `RunAllTestsTearDown.java` add `RunAllTests.g.useCustomTotal([TotalScore])` below the line you just added. Replace [TotalScore] with the highest score a student can receive from unit testing. This will override the point values from each test case, instead using `(pointsFromPassedTests / totalPossibleTestPoints) * higestPossibleScore`.
+8. Optionally, in `RunAllTestsTearDown.java` add `RunAllTests.g.useCustomTotal([TotalScore])` above the line you just added. Replace [TotalScore] with the highest score a student can receive from unit testing. This will override the point values from each test case, instead using `(pointsFromPassedTests / totalPossibleTestPoints) * higestPossibleScore`.
 9. Zip the contents (everything inside the downloaded folder) and upload to the Gradescope assignment.
 
 ## Questions
