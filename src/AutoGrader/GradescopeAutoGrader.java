@@ -53,7 +53,7 @@ public class GradescopeAutoGrader {
     public void addResult(String name, double grade) {
         this.testsPassed += grade;
         TestData current = this.data.get(idList.get(name));
-        String output = (current.maxScore == 0) ? "There was an error running this test. Try fixing your " + name.replace("Test", "") + " method and try again." : "";
+        String output = (current.maxScore == 0) ? "There was an error running this test. Fix your " + name.replace("Test", "") + " method and submit again. If this issue persists, contact your instructor." : "";
         current.visible = (output.length() > 0) ? "visible" : current.visible;
         current.setScore(grade, output);
     }
