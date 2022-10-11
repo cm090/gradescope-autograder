@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+cp autograder/source/results_template /autograder/results/results.json
+
 for file in /autograder/submission/*
 do
 file=${file##*./}

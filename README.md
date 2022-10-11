@@ -9,6 +9,8 @@
   - Parses student uploads
 - setup.sh
   - Required for upload, no other use
+- results_template
+  - Displays a message to the student if the autograder fails to run
 - lib/
   - Holds `.jar` files to process code
 - src/
@@ -29,16 +31,21 @@
 2. Open `run.sh` and update [HWName] to the folder `RunAllTests.java` is located in (usually the name of the assignment).
 3. Open `src/AutoGrader/AutoGrader.java` update [HWName] to the same value as above. Example: if the homework name is HW1, then [HWName] = HW1.
 4. Import Java test files to the `src/` directory. Do not upload starter code or anything else a student should modify.
-5. Open `src/[HWName]/RunAllTests.java` and add `import AutoGrader.*;` after the package line. Add an instance of AutoGrader in the RunAllTests class by including `static public GradescopeAutoGrader g = new GradescopeAutoGrader();`. In the outputResults method, add the following code:
+5. Open `src/[HWName]/RunAllTests.java` and add `import AutoGrader.*;` after the package line. Add an instance of AutoGrader in the RunAllTests class by including:
 ```
-g.addTest(testClassName, numberOfTests);
-g.addResult(testClassName, testsPassed, "");
+static public GradescopeAutoGrader g = new GradescopeAutoGrader([numberOfTests], [assignmentTotalScore]);
 ```
-The third argument for addResult can take in an output message that is shown to students.
+Replace [numberOfTests] with the sum of tests executed, and replace [assignmentTotalScore] with the highest number of points a student can receive on the assignment.
+
+6. In the outputResults method, add the following code:
+```
+g.addTest(testClassName, numberOfTests, [visibility]);
+g.addResult(testClassName, testsPassed);
+```
+[visibility] is optional (defaults to after_due_date) and can be set to `hidden`, `after_due_date`, `after_published`, or `visible `. Automatically updates to visible if a subset of tests executed is zero.
 
 7. In `RunAllTestsTearDown.java`, add `RunAllTests.g.toJSON();` to the end of the percentagePassed method.
-8. Optionally, in `RunAllTestsTearDown.java` add `RunAllTests.g.useCustomTotal([TotalScore])` above the line you just added. Replace [TotalScore] with the highest score a student can receive from unit testing. This will override the point values from each test case, instead using `(pointsFromPassedTests / totalPossibleTestPoints) * higestPossibleScore`.
-9. Zip the contents (everything inside the downloaded folder) and upload to the Gradescope assignment.
+8. Zip the contents (everything inside the downloaded folder) and upload to the Gradescope assignment.
 
 ## Questions
 If you need help using this program, contact me [(Canon Maranda)](https://link.canon.click/from/github).

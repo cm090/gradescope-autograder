@@ -11,7 +11,7 @@ import java.io.PrintStream;
  * https://github.com/cm090/gradescope-autograder
  * 
  * @author Canon Maranda
- * @version 2.0
+ * @version 2.5
  */
 import java.util.HashMap;
 
@@ -21,15 +21,16 @@ public class GradescopeAutoGrader {
     private HashMap<Integer, TestData> data;
     private HashMap<String, Integer> idList;
     private PrintStream output;
-    private int nextId;
-    private boolean customTotal;
-    private double testsPassed, testsTotal, assignmentTotalScore;
+    private int nextId, numberOfTests;
+    private double testsPassed, assignmentTotalScore;
 
-    public GradescopeAutoGrader() {
+    public GradescopeAutoGrader(int numberOfTests, double assignmentTotalScore) {
         this.data = new HashMap<Integer, TestData>();
         this.idList = new HashMap<String, Integer>();
         this.nextId = 0;
-        this.customTotal = false;
+        this.testsPassed = 0;
+        this.numberOfTests = numberOfTests;
+        this.assignmentTotalScore = assignmentTotalScore;
         try {
             this.output = new PrintStream(new FileOutputStream("results.json"));
         } catch (FileNotFoundException e) {
@@ -37,35 +38,30 @@ public class GradescopeAutoGrader {
         }
     }
 
-    // Adds a test file to the map of tests. Takes in a name and max score.
-    public void addTest(String name, double maxScore) {
+    // Adds a test file to the map of tests. Takes in a name and max score. Optional third argument sets student visibility (hidden, after_due_date, after_published, visible).
+    public void addTest(String name, double maxScore, String visibility) {
         idList.put(name, nextId);
-        this.data.put(idList.get(name), new TestData(name, maxScore));
+        this.data.put(idList.get(name), new TestData(name, maxScore, visibility));
         nextId++;
     }
-
-    // Adds a result to an already existing test. takes in a name, number of points, and an optional student output.
-    public void addResult(String name, double grade, String output) {
-        this.data.get(idList.get(name)).setScore(grade, output);
+    // Visibility defaults to "after_due_date" if not specified
+    public void addTest(String name, double maxScore) {
+        this.addTest(name, maxScore, "after_due_date");
     }
-    
-    // Overrides default scoring to use a maximum points system. Must run after all tests have processed.
-    public void useCustomTotal(double assignmentTotalScore) {
-        this.customTotal = true;
-        this.testsPassed = 0;
-        this.testsTotal = 0;
-        this.assignmentTotalScore = assignmentTotalScore;
-        for (int key : this.data.keySet()) {
-            TestData current = this.data.get(key);
-            this.testsPassed += current.grade;
-            this.testsTotal += current.maxScore;
-        }
+
+    // Adds a result to an already existing test. takes in a name and number of points.
+    public void addResult(String name, double grade) {
+        this.testsPassed += grade;
+        TestData current = this.data.get(idList.get(name));
+        String output = (current.maxScore == 0) ? "There was an error running this test. Try fixing your " + name.replace("Test", "") + " method and try again." : "";
+        current.visible = (output.length() > 0) ? "visible" : current.visible;
+        current.setScore(grade, output);
     }
 
     // Converts map of scores to JSON. Exports to file for Gradescope to analyze.
     public void toJSON() {
         String json = "{ ";
-        json += (this.customTotal) ? "\"score\": " + ((this.testsPassed / this.testsTotal) * this.assignmentTotalScore) + ",": "";
+        json += "\"score\": " + ((this.testsPassed / this.numberOfTests) * this.assignmentTotalScore) + ",";
         json += "\"tests\":[";
         for (int key : this.data.keySet()) {
             TestData current = this.data.get(key);
@@ -74,7 +70,8 @@ public class GradescopeAutoGrader {
             json += "\"name\": \"" + current.name + "\",";
             json += "\"number\": \"" + key + "\",";
             json += "\"output\": \"" + current.output + "\",";
-            json += "\"visibility\": \"hidden\"},";
+            json += (current.output.length() > 0) ? "\"status\": \"failed\"," : "";
+            json += "\"visibility\": \"" + current.visible + "\"},";
         }
         json = json.substring(0, json.length() - 1) + "]}";
         output.append(json);
@@ -83,11 +80,12 @@ public class GradescopeAutoGrader {
 
     class TestData {
         public double maxScore, grade;
-        public String name, output;
+        public String name, output, visible;
 
-        public TestData(String name, double maxScore) {
+        public TestData(String name, double maxScore, String visibility) {
             this.name = name;
             this.maxScore = maxScore;
+            this.visible = visibility;
         }
 
         public void setScore(double grade, String output) {
