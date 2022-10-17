@@ -1,9 +1,11 @@
 package AutoGrader;
 
-import [HWName].*;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.net.URL;
+import java.util.ArrayList;
 /** 
  * This class is used to output a Gradescope JSON file from JUnit tests.
  * Requires implementation in test files.
@@ -11,25 +13,30 @@ import java.io.PrintStream;
  * https://github.com/cm090/gradescope-autograder
  * 
  * @author Canon Maranda
- * @version 2.5
+ * @version 3.0
  */
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 
-import org.junit.runner.JUnitCore;
+import org.junit.runner.notification.RunNotifier;
+import org.junit.runners.model.InitializationError;
 
 public class GradescopeAutoGrader {
+    // TODO: Update PACKAGE_NAME to the package where all unit tests are located. This is not the location of RunAllTests.java
+    private static final String PACKAGE_NAME = "[HWTestName]";
+    // TODO: Set TOTAL_POINTS to the highest score a student can get
+    private static final double TOTAL_POINTS = 0;
     private HashMap<Integer, TestData> data;
     private HashMap<String, Integer> idList;
     private PrintStream output;
-    private int nextId, numberOfTests;
-    private double testsPassed, assignmentTotalScore;
+    private int nextId;
+    private double assignmentTotalScore;
 
-    public GradescopeAutoGrader(int numberOfTests, double assignmentTotalScore) {
+    public GradescopeAutoGrader(double assignmentTotalScore) {
         this.data = new HashMap<Integer, TestData>();
         this.idList = new HashMap<String, Integer>();
         this.nextId = 0;
-        this.testsPassed = 0;
-        this.numberOfTests = numberOfTests;
         this.assignmentTotalScore = assignmentTotalScore;
         try {
             this.output = new PrintStream(new FileOutputStream("results.json"));
@@ -38,30 +45,32 @@ public class GradescopeAutoGrader {
         }
     }
 
-    // Adds a test file to the map of tests. Takes in a name and max score. Optional third argument sets student visibility (hidden, after_due_date, after_published, visible).
+    // Adds a test file to the map of tests. Takes in a name and max score. Optional
+    // third argument sets student visibility (hidden, after_due_date,
+    // after_published, visible).
     public void addTest(String name, double maxScore, String visibility) {
         idList.put(name, nextId);
         this.data.put(idList.get(name), new TestData(name, maxScore, visibility));
         nextId++;
     }
-    // Visibility defaults to "after_due_date" if not specified
-    public void addTest(String name, double maxScore) {
-        this.addTest(name, maxScore, "after_due_date");
-    }
 
-    // Adds a result to an already existing test. takes in a name and number of points.
+    // Adds a result to an already existing test. takes in a name and number of
+    // points.
     public void addResult(String name, double grade) {
-        this.testsPassed += grade;
         TestData current = this.data.get(idList.get(name));
-        String output = (current.maxScore == 0) ? "There was an error running this test. Fix your " + name.replace("Test", "") + " method and submit again. If this issue persists, contact your instructor." : "";
+        String output = (current.maxScore == 0)
+                ? "There was an error running this test. Fix your " + name.replace("Test", "")
+                        + " method and submit again. If this issue persists, contact your instructor."
+                : "";
         current.visible = (output.length() > 0) ? "visible" : current.visible;
         current.setScore(grade, output);
     }
 
     // Converts map of scores to JSON. Exports to file for Gradescope to analyze.
-    public void toJSON() {
+    public void toJSON(double percentage) {
+        percentage /= 100.0;
         String json = "{ ";
-        json += "\"score\": " + ((this.testsPassed / this.numberOfTests) * this.assignmentTotalScore) + ",";
+        json += "\"score\": " + percentage * this.assignmentTotalScore + ",";
         json += "\"tests\":[";
         for (int key : this.data.keySet()) {
             TestData current = this.data.get(key);
@@ -95,8 +104,59 @@ public class GradescopeAutoGrader {
     }
 
     // Runs all provided JUnit tests
-    public static void main(String[] args) {
-        JUnitCore runner = new JUnitCore();
-        runner.run(RunAllTests.class);
+    public static void main(String[] args) throws InitializationError {
+        List<Class<?>> classes = ClassFinder.find(PACKAGE_NAME);
+        GradescopeAutoGrader g = new GradescopeAutoGrader(TOTAL_POINTS);
+        HashSet<TestRunner> runners = new HashSet<TestRunner>();
+        for (Class<?> c : classes) {
+            if (!c.toString().contains("RunAllTests"))
+                // TODO: If you want to change the visibility of tests, add a String argument to the below TestRunner constructor
+                // Supported inputs: hidden, after_due_date, after_published, visible
+                runners.add(new TestRunner(c, g));
+        }
+        for (TestRunner t : runners) {
+            t.run(new RunNotifier());
+        }
+    }
+
+    // Below code found at https://stackoverflow.com/a/15519745
+    public class ClassFinder {
+        private static final char PKG_SEPARATOR = '.';
+        private static final char DIR_SEPARATOR = '/';
+        private static final String CLASS_FILE_SUFFIX = ".class";
+        private static final String BAD_PACKAGE_ERROR = "Unable to get resources from path '%s'. Are you sure the package '%s' exists?";
+
+        public static List<Class<?>> find(String scannedPackage) {
+            String scannedPath = scannedPackage.replace(PKG_SEPARATOR, DIR_SEPARATOR);
+            URL scannedUrl = Thread.currentThread().getContextClassLoader().getResource(scannedPath);
+            if (scannedUrl == null) {
+                throw new IllegalArgumentException(String.format(BAD_PACKAGE_ERROR, scannedPath, scannedPackage));
+            }
+            File scannedDir = new File(scannedUrl.getFile());
+            List<Class<?>> classes = new ArrayList<Class<?>>();
+            for (File file : scannedDir.listFiles()) {
+                classes.addAll(find(file, scannedPackage));
+            }
+            return classes;
+        }
+
+        private static List<Class<?>> find(File file, String scannedPackage) {
+            List<Class<?>> classes = new ArrayList<Class<?>>();
+            String resource = scannedPackage + PKG_SEPARATOR + file.getName();
+            if (file.isDirectory()) {
+                for (File child : file.listFiles()) {
+                    classes.addAll(find(child, resource));
+                }
+            } else if (resource.endsWith(CLASS_FILE_SUFFIX)) {
+                int endIndex = resource.length() - CLASS_FILE_SUFFIX.length();
+                String className = resource.substring(0, endIndex);
+                try {
+                    classes.add(Class.forName(className));
+                } catch (ClassNotFoundException ignore) {
+                }
+            }
+            return classes;
+        }
+
     }
 }
