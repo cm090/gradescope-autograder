@@ -23,10 +23,6 @@ import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 
 public class GradescopeAutoGrader {
-    // TODO: Update PACKAGE_NAME to the package where all unit tests are located. This is not the location of RunAllTests.java
-    private static final String PACKAGE_NAME = "[HWTestName]";
-    // TODO: Set TOTAL_POINTS to the highest score a student can get
-    private static final double TOTAL_POINTS = 0;
     private HashMap<Integer, TestData> data;
     private HashMap<String, Integer> idList;
     private PrintStream output;
@@ -105,22 +101,32 @@ public class GradescopeAutoGrader {
 
     // Runs all provided JUnit tests
     public static void main(String[] args) throws InitializationError {
-        List<Class<?>> classes = ClassFinder.find(PACKAGE_NAME);
-        GradescopeAutoGrader g = new GradescopeAutoGrader(TOTAL_POINTS);
-        HashSet<TestRunner> runners = new HashSet<TestRunner>();
-        for (Class<?> c : classes) {
-            if (!c.toString().contains("RunAllTests"))
-                // TODO: If you want to change the visibility of tests, add a String argument to the below TestRunner constructor
-                // Supported inputs: hidden, after_due_date, after_published, visible
-                runners.add(new TestRunner(c, g));
-        }
-        for (TestRunner t : runners) {
-            t.run(new RunNotifier());
+        try {
+            if (args.length < 2)
+                throw new IndexOutOfBoundsException();
+            List<Class<?>> classes = new ArrayList<Class<?>>();
+            GradescopeAutoGrader g = new GradescopeAutoGrader(Integer.parseInt(args[0]));
+            for (int i = 1; i < args.length; i++)
+                classes.addAll(ClassFinder.find(args[i]));
+            HashSet<TestRunner> runners = new HashSet<TestRunner>();
+            for (Class<?> c : classes) {
+                if (!c.toString().contains("RunAllTests"))
+                    // If you want to change the visibility of tests, add a String argument to the
+                    // below TestRunner constructor. Supported inputs: hidden, after_due_date,
+                    // after_published, visible
+                    runners.add(new TestRunner(c, g));
+            }
+            for (TestRunner t : runners) {
+                t.run(new RunNotifier());
+            }
+        } catch (IndexOutOfBoundsException e) {
+            System.err.println("Incorrect command line arguments\nUsage: java -cp bin/:lib/* AutoGrader.GradescopeAutoGrader [maxScore] [testPackages]");
+            System.exit(1);
         }
     }
 
     // Below code found at https://stackoverflow.com/a/15519745
-    public class ClassFinder {
+    private static class ClassFinder {
         private static final char PKG_SEPARATOR = '.';
         private static final char DIR_SEPARATOR = '/';
         private static final String CLASS_FILE_SUFFIX = ".class";

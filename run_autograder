@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cp autograder/source/results_template /autograder/results/results.json
+cp /autograder/source/results_template /autograder/results/results.json
 
 for file in /autograder/submission/*
 do

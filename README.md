@@ -18,17 +18,18 @@
   - AutoGrader/
     - AutoGrader.java
       - Stores JUnit results into `results.json`
+    - TestRunner.java
+      - Runs all unit test files
 
 ## Prerequisites
 - Assignment JUnit tests can be graded without intervention
 - Students are not submitting graphics work and are not creating their own JUnit tests
 - The first line of every Java file declares a package
-- All tests must be part of the same Java package
 
 ## Getting started
 1. Download this repository
-2. Open `run.sh` and update [HWName] to the folder `RunAllTests.java` is located in (usually the name of the assignment).
-3. Open `src/AutoGrader/AutoGrader.java` update PACKAGE_NAME and TOTAL_POINTS to the values requested by the TODO comments. Also read the comment in the main method.
+2. Open `run.sh` and update lines 3 and 4. This requires listing the packages that contain the unit tests and providing the maximum score.
+3. Read the comment in the main method of `src/AutoGrader/AutoGrader.java`.
 4. Import Java test files to the `src/` directory. Do not upload starter code or anything else a student should modify.
 5. Zip the contents (everything inside the downloaded folder) and upload to the Gradescope assignment.
 

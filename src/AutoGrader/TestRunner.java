@@ -126,7 +126,7 @@ public class TestRunner extends BlockJUnit4ClassRunner {
 
         super.run(decorator);
 
-        g.addTest(getName(), allTestsExecutedCount, visibility);
+        g.addTest(getName(), testCount, visibility);
         g.addResult(getName(), testCount - testFailure);
 
         double percentagePassed = (double) (testCount - testFailure) / (double) testCount * 100.0;
