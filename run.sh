@@ -12,5 +12,5 @@ java -cp bin/:lib/* AutoGrader.GradescopeAutoGrader $SCORE $TESTS
 cp results.json /autograder/results
 else
 echo "There was a problem compiling the student's submission"
-cat $OUT
+echo java.out
 fi
