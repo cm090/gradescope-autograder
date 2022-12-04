@@ -13,4 +13,5 @@ done
 cd /autograder/source
 mkdir bin
 
+dos2unix ./run.sh &> output_ignored
 bash ./run.sh
