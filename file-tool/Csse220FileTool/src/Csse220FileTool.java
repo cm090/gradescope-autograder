@@ -63,7 +63,7 @@ public class Csse220FileTool {
             Map<String, Object> submission = (Map<String, Object>) o.get(s);
             Map<String, Object> userData = ((Map<String, Object>) ((ArrayList<Object>) submission.get(":submitters")).get(0));
             String name = (String) userData.get(":name");
-            String sid = ((String) userData.get(":sid")).split("@")[0];
+            String sid = ((String) userData.get(":email")).split("@")[0];
             int id = Integer.parseInt(s.split("_")[1]);
             File toRename = new File(dir, "submission_" + id);
             toRename.renameTo(new File(dir, sid + " " + name + "_" + id));
