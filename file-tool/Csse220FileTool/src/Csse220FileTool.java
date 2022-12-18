@@ -8,6 +8,8 @@ import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.Normalizer;
+import java.text.Normalizer.Form;
 import java.util.EnumSet;
 import java.util.Map;
 import java.util.ArrayList;
@@ -52,6 +54,10 @@ public class Csse220FileTool {
 		return source.resolve(Paths.get(addition));
 	}
 
+	/**
+	 * Adapted file tool for Gradescope exports
+	 * Reads the submission_metadata.yml file and renames the folders to the student's name and id
+	 */
 	public static void renameFolders(File dir, PrintStream output) throws FileNotFoundException {
 		output.println("Found Gradescope data file. Renaming folders...");
 
@@ -62,7 +68,7 @@ public class Csse220FileTool {
         for (String s : o.keySet()) {
             Map<String, Object> submission = (Map<String, Object>) o.get(s);
             Map<String, Object> userData = ((Map<String, Object>) ((ArrayList<Object>) submission.get(":submitters")).get(0));
-            String name = (String) userData.get(":name");
+            String name = Normalizer.normalize((String) userData.get(":name"), Form.NFD).replaceAll("\\p{M}", "");
             String sid = ((String) userData.get(":email")).split("@")[0];
             int id = Integer.parseInt(s.split("_")[1]);
             File toRename = new File(dir, "submission_" + id);
