@@ -61,6 +61,7 @@ public class Csse220FileTool {
 	public static void renameFolders(File dir, PrintStream output) throws FileNotFoundException {
 		output.println("Found Gradescope data file. Renaming folders...");
 
+		boolean isAnonymous = false;
 		Yaml yaml = new Yaml();
         File file = new File(dir, "submission_metadata.yml");
         Map<String, Object> o = yaml.load(new FileInputStream(file));
@@ -69,11 +70,19 @@ public class Csse220FileTool {
             Map<String, Object> submission = (Map<String, Object>) o.get(s);
             Map<String, Object> userData = ((Map<String, Object>) ((ArrayList<Object>) submission.get(":submitters")).get(0));
             String name = Normalizer.normalize((String) userData.get(":name"), Form.NFD).replaceAll("\\p{M}", "");
-            String sid = ((String) userData.get(":email")).split("@")[0];
+            String sid = "";
+            if (!isAnonymous)
+	            try {
+	            	sid = ((String) userData.get(":email")).split("@")[0];
+	            } catch (Exception e) {
+	            	output.printf("Grading is anonymous, ignoring student ID\n");
+	            	isAnonymous = true;
+	            }
             int id = Integer.parseInt(s.split("_")[1]);
             File toRename = new File(dir, "submission_" + id);
-            toRename.renameTo(new File(dir, sid + " " + name + "_" + id));
-			output.printf("Renamed submission_%d to %s %s_%d\n", id, sid, name, id);
+            String renameTo = (sid.equals("")) ? name + "_" + id : sid + " " + name + "_" + id;
+            toRename.renameTo(new File(dir, renameTo));
+			output.printf("Renamed submission_%d to %s\n", id, renameTo);
         }
 	}
 	

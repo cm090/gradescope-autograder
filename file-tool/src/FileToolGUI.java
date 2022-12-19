@@ -40,7 +40,7 @@ public class FileToolGUI implements ActionListener, Runnable {
 		outputButton = new JButton();
 		
 		addConfigButton("Original assignment project directory, from 220 repo", masterButton);
-		addConfigButton("Student submission directory, unzipped from moodle", studentButton);
+		addConfigButton("Student submission directory, unzipped from Moodle or Gradescope", studentButton);
 		addConfigButton("Workspace output directory", outputButton);
 		outputButton.setText(DEFAULT_OUTPUT_TEXT);
 		
