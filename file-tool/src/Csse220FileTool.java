@@ -67,7 +67,9 @@ public class Csse220FileTool {
         Map<String, Object> o = yaml.load(new FileInputStream(file));
 
         for (String s : o.keySet()) {
+			@SuppressWarnings("unchecked")
             Map<String, Object> submission = (Map<String, Object>) o.get(s);
+			@SuppressWarnings("unchecked")
             Map<String, Object> userData = ((Map<String, Object>) ((ArrayList<Object>) submission.get(":submitters")).get(0));
             String name = Normalizer.normalize((String) userData.get(":name"), Form.NFD).replaceAll("\\p{M}", "");
             String sid = "";
@@ -80,7 +82,7 @@ public class Csse220FileTool {
 	            }
             int id = Integer.parseInt(s.split("_")[1]);
             File toRename = new File(dir, "submission_" + id);
-            String renameTo = (sid.equals("")) ? name + "_" + id : sid + " " + name + "_" + id;
+            String renameTo = (sid.equals("")) ? id + " " + name + "_original" : id + " " + sid + " " + name + "_original";
             toRename.renameTo(new File(dir, renameTo));
 			output.printf("Renamed submission_%d to %s\n", id, renameTo);
         }
@@ -154,6 +156,7 @@ public class Csse220FileTool {
 		if(!masterProjectFile.exists()) {
 			throw new IOException("Can't find master project file: " + masterProjectFile.getAbsolutePath());
 		}
+		@SuppressWarnings("resource")
 		String fullProjectFile = new Scanner(masterProjectFile).useDelimiter("\\Z").next();
 		output.println("Read project file: " + masterProjectFile.getAbsolutePath());
 		return fullProjectFile;
