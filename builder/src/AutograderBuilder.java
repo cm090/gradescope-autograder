@@ -212,7 +212,7 @@ public class AutograderBuilder implements ActionListener {
 					public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
 						if (file.toString().contains("autograder.zip"))
 							return FileVisitResult.CONTINUE;
-						zos.putNextEntry(new ZipEntry(folder.relativize(file).toString()));
+						zos.putNextEntry(new ZipEntry(folder.relativize(file).toString().replace("\\", "/")));
 						Files.copy(file, zos);
 						zos.closeEntry();
 						return FileVisitResult.CONTINUE;
