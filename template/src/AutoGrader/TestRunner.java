@@ -8,6 +8,10 @@ import org.junit.runner.notification.RunNotifier;
 import org.junit.runner.notification.StoppedByUserException;
 import org.junit.runners.BlockJUnit4ClassRunner;
 
+/**
+ * Interfaces with JUnit tests
+ * Provided by RHIT CSSE Department
+ */
 public class TestRunner extends BlockJUnit4ClassRunner {
 
     private static boolean firstRun = true;

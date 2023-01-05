@@ -6,22 +6,21 @@ import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.net.URL;
 import java.util.ArrayList;
-/** 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import org.junit.runner.notification.RunNotifier;
+import org.junit.runners.model.InitializationError;
+
+/**
  * This class is used to output a Gradescope JSON file from JUnit tests.
  * Requires implementation in test files.
  *
  * https://github.com/cm090/gradescope-autograder
  * 
  * @author Canon Maranda
- * @version 3.0
+ * @version 3.1
  */
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-
-import org.junit.runner.notification.RunNotifier;
-import org.junit.runners.model.InitializationError;
-
 public class GradescopeAutoGrader {
     private HashMap<Integer, TestData> data;
     private HashMap<String, Integer> idList;
@@ -32,7 +31,7 @@ public class GradescopeAutoGrader {
     public GradescopeAutoGrader(double assignmentTotalScore) {
         this.data = new HashMap<Integer, TestData>();
         this.idList = new HashMap<String, Integer>();
-        this.nextId = 0;
+        this.nextId = 1;
         this.assignmentTotalScore = assignmentTotalScore;
         try {
             this.output = new PrintStream(new FileOutputStream("results.json"));
@@ -54,9 +53,10 @@ public class GradescopeAutoGrader {
     // points.
     public void addResult(String name, double grade) {
         TestData current = this.data.get(idList.get(name));
+        // If the tests did not run properly, notify the student
         String output = (current.maxScore == 0)
-                ? "There was an error running this test. Fix your " + name.replace("Test", "")
-                        + " method and submit again. If this issue persists, contact your instructor."
+                ? "There was an error running this test. Fix any methods called by " + name
+                        + " and submit again. If this issue persists, contact your instructor."
                 : "";
         current.visible = (output.length() > 0) ? "visible" : current.visible;
         current.setScore(grade, output);
@@ -65,24 +65,26 @@ public class GradescopeAutoGrader {
     // Converts map of scores to JSON. Exports to file for Gradescope to analyze.
     public void toJSON(double percentage) {
         percentage /= 100.0;
-        String json = "{ ";
-        json += "\"score\": " + percentage * this.assignmentTotalScore + ",";
-        json += "\"tests\":[";
+        StringBuilder json = new StringBuilder("{ ");
+        json.append("\"score\": ").append(percentage * this.assignmentTotalScore).append(",")
+                .append("\"tests\":[");
         for (int key : this.data.keySet()) {
             TestData current = this.data.get(key);
-            json += "{\"score\": " + current.grade + ",";
-            json += "\"max_score\": " + current.maxScore + ",";
-            json += "\"name\": \"" + current.name + "\",";
-            json += "\"number\": \"" + key + "\",";
-            json += "\"output\": \"" + current.output + "\",";
-            json += (current.output.length() > 0) ? "\"status\": \"failed\"," : "";
-            json += "\"visibility\": \"" + current.visible + "\"},";
+            json.append("{\"score\": ").append(current.grade).append(",")
+                    .append("\"max_score\": ").append(current.maxScore).append(",")
+                    .append("\"name\": \"").append(current.name).append("\",")
+                    .append("\"number\": \"").append(key).append("\",")
+                    .append("\"output\": \"").append(current.output).append("\",")
+                    .append((current.output.length() > 0) ? "\"status\": \"failed\"," : "")
+                    .append("\"visibility\": \"").append(current.visible).append("\"},");
         }
-        json = json.substring(0, json.length() - 1) + "]}";
-        output.append(json);
+        json.setLength(json.length() - 1);
+        json.append("]}");
+        output.append(json.toString());
         output.close();
     }
 
+    // This class helps store information about each test
     class TestData {
         public double maxScore, grade;
         public String name, output, visible;
@@ -120,7 +122,8 @@ public class GradescopeAutoGrader {
                 t.run(new RunNotifier());
             }
         } catch (IndexOutOfBoundsException e) {
-            System.err.println("Incorrect command line arguments\nUsage: java -cp bin/:lib/* AutoGrader.GradescopeAutoGrader [maxScore] [testPackages]");
+            System.err.println(
+                    "Incorrect command line arguments\nUsage: java -cp bin/:lib/* AutoGrader.GradescopeAutoGrader [maxScore] [testPackages]");
             System.exit(1);
         }
     }
@@ -163,6 +166,5 @@ public class GradescopeAutoGrader {
             }
             return classes;
         }
-
     }
 }
