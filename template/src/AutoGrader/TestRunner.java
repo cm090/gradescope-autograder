@@ -1,5 +1,8 @@
 package AutoGrader;
 
+import java.io.FileWriter;
+import java.io.PrintWriter;
+
 import org.junit.runner.Description;
 import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
@@ -25,13 +28,21 @@ public class TestRunner extends BlockJUnit4ClassRunner {
     private String visibility;
 
     private GradescopeAutoGrader g;
+    private static PrintWriter output;
 
-    public TestRunner(Class<?> testClass, GradescopeAutoGrader g, String visibility) throws org.junit.runners.model.InitializationError {
+    public TestRunner(Class<?> testClass, GradescopeAutoGrader g, String visibility)
+            throws org.junit.runners.model.InitializationError {
         super(testClass);
         this.g = g;
         this.visibility = visibility;
         synchronized (TestRunner.class) {
             runners++;
+        }
+        try {
+            if (firstRun)
+                output = new PrintWriter(new FileWriter("results.out"));
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -44,10 +55,10 @@ public class TestRunner extends BlockJUnit4ClassRunner {
         synchronized (TestRunner.class) {
             if (firstRun) {
                 firstRun = false;
-                System.out.println("------------------------------------------------------------------");
-                System.out.println("                   Gradescope Autograder Output");
-                System.out.println("                      Running all unit tests");
-                System.out.println("------------------------------------------------------------------");
+                output.println("------------------------------------------------------------------");
+                output.println("                   Gradescope Autograder Output");
+                output.println("                      Running all unit tests");
+                output.println("------------------------------------------------------------------");
             }
         }
 
@@ -134,9 +145,8 @@ public class TestRunner extends BlockJUnit4ClassRunner {
         g.addResult(getName(), testCount - testFailure);
 
         double percentagePassed = (double) (testCount - testFailure) / (double) testCount * 100.0;
-        if (!this.getTestClass().getName().contains("."))
-            System.out.printf("%5d   %8d   %10.1f%%   %-15s\n", testCount, (testCount - testFailure), percentagePassed,
-                    this.getTestClass().getName());
+        output.printf("%5d   %8d   %10.1f%%   %-15s\n", testCount, (testCount - testFailure), percentagePassed,
+                this.getTestClass().getName().substring(this.getTestClass().getName().lastIndexOf(".") + 1));
 
         synchronized (TestRunner.class) {
             completed++;
@@ -144,9 +154,10 @@ public class TestRunner extends BlockJUnit4ClassRunner {
                 int allTestsPassedCount = allTestsExecutedCount - allTestsFailedCount;
                 double allPercentagePassed = (double) allTestsPassedCount / (double) allTestsExecutedCount
                         * 100.0;
-                System.out.println("------------------------------------------------------------------");
-                System.out.printf("%5d   %8d   %10.1f%%   %-15s\n", allTestsExecutedCount, allTestsPassedCount,
+                output.println("------------------------------------------------------------------");
+                output.printf("%5d   %8d   %10.1f%%   %-15s\n", allTestsExecutedCount, allTestsPassedCount,
                         allPercentagePassed, "<-- Grand Totals");
+                output.close();
                 g.toJSON(allPercentagePassed);
             }
         }
