@@ -8,7 +8,7 @@ javac -cp src/:lib/* -d bin/ src/**/*.java -Xlint &> java.out
 OUT=`cat java.out`
 if [ -z "$OUT" ]
 then
-java -cp bin/:lib/* AutoGrader.GradescopeAutoGrader $SCORE $TESTS
+java -cp bin/:lib/* AutoGrader.GradescopeAutoGrader $SCORE $TESTS &> java.stdout
 cp results.json /autograder/results
 cat results.out
 else
