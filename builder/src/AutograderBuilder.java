@@ -3,6 +3,7 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.Desktop;
+import java.awt.GridLayout;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileOutputStream;
@@ -13,15 +14,19 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Objects;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -39,6 +44,8 @@ public class AutograderBuilder implements ActionListener {
 	JButton homeworkDirButton, templateDirButton, compileDirButton, startButton;
 	JTextField pointsInput;
 	JTextArea outputArea;
+	ArrayList<String> testClasses;
+	File[] homeworkSubDirectories;
 
 	public AutograderBuilder() {
 		frame = new JFrame("Autograder Builder");
@@ -48,8 +55,10 @@ public class AutograderBuilder implements ActionListener {
 		addConfigButton("Original assignment project directory, from 220 repo", homeworkDirButton);
 		templateDirButton = new JButton();
 		addConfigButton("Template folder inside the gradescope-autograder repo", templateDirButton);
+		templateDirButton.setEnabled(false);
 		compileDirButton = new JButton();
 		addConfigButton("Output directory", compileDirButton);
+		compileDirButton.setEnabled(false);
 		pointsInput = new JTextField(10);
 		addConfigInput("Point value", pointsInput);
 
@@ -125,21 +134,12 @@ public class AutograderBuilder implements ActionListener {
 	}
 
 	private void copyFiles() {
-		File homeworkDir = new File(homeworkDirButton.getText() + "/src");
 		File templateDir = new File(templateDirButton.getText());
 		File compileDir = new File(compileDirButton.getText());
 
 		copyTemplateDir(templateDir, compileDir);
 
-		File[] homeworkSubDirectories = homeworkDir.listFiles(new FileFilter() {
-			@Override
-			public boolean accept(File pathname) {
-				return pathname.isDirectory();
-			}
-		});
-		ArrayList<String> testClasses = new ArrayList<String>();
-
-		copyHomeworkTestFiles(homeworkSubDirectories, compileDir, testClasses);
+		copyHomeworkTestFiles(homeworkSubDirectories, compileDir);
 
 		updateRunnerFile(compileDir, testClasses);
 
@@ -165,10 +165,9 @@ public class AutograderBuilder implements ActionListener {
 	}
 
 	// Copies the test files from the homework directory to the output directory
-	private void copyHomeworkTestFiles(File[] homeworkSubDirectories, File compileDir, ArrayList<String> testClasses) {
+	private void copyHomeworkTestFiles(File[] homeworkSubDirectories, File compileDir) {
+		homeworkSubDirectories = Arrays.stream(homeworkSubDirectories).filter(Objects::nonNull).toArray(File[]::new);
 		for (File dir : homeworkSubDirectories) {
-			if (dir.isDirectory() && dir.getName().toLowerCase().contains("test"))
-				testClasses.add(dir.getName());
 			for (File f : dir.listFiles()) {
 				if (f.toString().toLowerCase().contains("test") && !f.isDirectory()) {
 					File out = new File(compileDir, "src/" + dir.getName() + '/' + f.getName());
@@ -229,9 +228,48 @@ public class AutograderBuilder implements ActionListener {
 		outputArea.append("Compressed output to autograder.zip\n");
 	}
 
+	// Prompts the user to select which test classes to include in the autograder
+	public void prepareTestClassesList() {
+		testClasses = new ArrayList<String>();
+		File homeworkDir = new File(homeworkDirButton.getText() + "/src");
+		homeworkSubDirectories = homeworkDir.listFiles((FileFilter) pathname -> pathname.isDirectory());
+		for (File dir : homeworkSubDirectories)
+			if (dir.isDirectory() && dir.getName().toLowerCase().contains("test"))
+				testClasses.add(dir.getName());
+		if (testClasses.size() == 0) {
+			JOptionPane.showMessageDialog(null,
+					"No test classes were found in the homework directory. Please make sure that the homework directory is correct.",
+					"No Test Classes Found", JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+		JFrame classSelect = new JFrame("Select Test Classes");
+		classSelect.setLayout(new GridLayout(testClasses.size() + 1, 1));
+		JCheckBox[] boxes = new JCheckBox[testClasses.size()];
+		for (int i = 0; i < testClasses.size(); i++) {
+			boxes[i] = new JCheckBox(testClasses.get(i));
+			boxes[i].setSelected(true);
+			classSelect.add(boxes[i]);
+		}
+		JButton submit = new JButton("Submit");
+		submit.addActionListener(e -> {
+			for (int i = 0; i < boxes.length; i++)
+				if (!boxes[i].isSelected()) {
+					testClasses.remove(boxes[i].getText());
+					homeworkSubDirectories[i] = null;
+				}
+			classSelect.dispose();
+			templateDirButton.setEnabled(true);
+			compileDirButton.setEnabled(true);
+		});
+		classSelect.add(submit);
+		classSelect.pack();
+		classSelect.setMinimumSize(new Dimension(200, 100));
+		classSelect.setLocationRelativeTo(frame);
+		classSelect.setVisible(true);
+	}
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
-
 		JFileChooser chooser = new JFileChooser();
 		chooser.setCurrentDirectory(new java.io.File("."));
 		chooser.setDialogTitle("Choose a directory");
@@ -239,6 +277,8 @@ public class AutograderBuilder implements ActionListener {
 		chooser.setAcceptAllFileFilterUsed(false);
 		if (chooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
 			((JButton) e.getSource()).setText(chooser.getSelectedFile().getAbsolutePath());
+			if (e.getSource().equals(homeworkDirButton))
+				prepareTestClassesList();
 		}
 	}
 }

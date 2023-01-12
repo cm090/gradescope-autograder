@@ -4,9 +4,9 @@ TESTS="" # List of test packages, separated by spaces
 SCORE=0 # Maximum total score
 
 shopt -s globstar
-javac -cp src/:lib/* -d bin/ src/**/*.java -Xlint &> java.out
+javac -cp src/:lib/* -d bin/ src/**/*.java -Xlint -nowarn &> java.out
 OUT=`cat java.out`
-if [ -z "$OUT" ]
+if [[ "$OUT" != *"error"* ]]
 then
 java -cp bin/:lib/* AutoGrader.GradescopeAutoGrader $SCORE $TESTS &> java.stdout
 cp results.json /autograder/results
