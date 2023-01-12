@@ -1,9 +1,9 @@
 import java.awt.BorderLayout;
+import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.Desktop;
-import java.awt.GridLayout;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileOutputStream;
@@ -39,13 +39,13 @@ public class AutograderBuilder implements ActionListener {
 		new AutograderBuilder();
 	}
 
-	JFrame frame;
-	JPanel configPanes;
-	JButton homeworkDirButton, templateDirButton, compileDirButton, startButton;
-	JTextField pointsInput;
-	JTextArea outputArea;
-	ArrayList<String> testClasses;
-	File[] homeworkSubDirectories;
+	private JFrame frame;
+	private JPanel configPanes;
+	private JButton homeworkDirButton, templateDirButton, compileDirButton, startButton;
+	private JTextField pointsInput;
+	private JTextArea outputArea;
+	private ArrayList<String> testClasses;
+	private File[] homeworkSubDirectories;
 
 	public AutograderBuilder() {
 		frame = new JFrame("Autograder Builder");
@@ -167,6 +167,7 @@ public class AutograderBuilder implements ActionListener {
 	// Copies the test files from the homework directory to the output directory
 	private void copyHomeworkTestFiles(File[] homeworkSubDirectories, File compileDir) {
 		homeworkSubDirectories = Arrays.stream(homeworkSubDirectories).filter(Objects::nonNull).toArray(File[]::new);
+		System.out.println(Arrays.toString(homeworkSubDirectories));
 		for (File dir : homeworkSubDirectories) {
 			for (File f : dir.listFiles()) {
 				if (f.toString().toLowerCase().contains("test") && !f.isDirectory()) {
@@ -229,7 +230,7 @@ public class AutograderBuilder implements ActionListener {
 	}
 
 	// Prompts the user to select which test classes to include in the autograder
-	public void prepareTestClassesList() {
+	private void prepareTestClassesList() {
 		testClasses = new ArrayList<String>();
 		File homeworkDir = new File(homeworkDirButton.getText() + "/src");
 		homeworkSubDirectories = homeworkDir.listFiles((FileFilter) pathname -> pathname.isDirectory());
@@ -255,7 +256,9 @@ public class AutograderBuilder implements ActionListener {
 			for (int i = 0; i < boxes.length; i++)
 				if (!boxes[i].isSelected()) {
 					testClasses.remove(boxes[i].getText());
-					homeworkSubDirectories[i] = null;
+					for (int j = 0; j < homeworkSubDirectories.length; j++)
+						if (homeworkSubDirectories[j].getName().contains(boxes[i].getText().replace("Test", "")))
+							homeworkSubDirectories[j] = null;
 				}
 			classSelect.dispose();
 			templateDirButton.setEnabled(true);
