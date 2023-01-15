@@ -62,13 +62,7 @@ public class GradescopeAutoGrader {
      */
     public void addResult(String name, double grade) {
         TestData current = this.data.get(idList.get(name));
-        // If the tests did not run properly, notify the student
-        String output = (current.maxScore == 0 && current.output.length() == 0)
-                ? "There was an error running this test. Fix any methods called by " + name
-                        + " and submit again. If this issue persists, contact your instructor."
-                : current.output;
-        current.visible = (output.length() > 0) ? "visible" : current.visible;
-        current.setScore(grade, output);
+        current.setScore(grade);
     }
 
     /**
@@ -81,6 +75,7 @@ public class GradescopeAutoGrader {
     public void addFailure(String name, String output) {
         TestData current = this.data.get(idList.get(name));
         current.output += output + "\\n";
+        current.visible = "visible";
     }
 
     /**
@@ -121,9 +116,8 @@ public class GradescopeAutoGrader {
             this.output = "";
         }
 
-        public void setScore(double grade, String output) {
+        public void setScore(double grade) {
             this.grade = grade;
-            this.output = output;
         }
     }
 
