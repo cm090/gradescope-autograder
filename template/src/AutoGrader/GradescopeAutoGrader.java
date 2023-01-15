@@ -19,7 +19,7 @@ import org.junit.runners.model.InitializationError;
  * https://github.com/cm090/gradescope-autograder
  * 
  * @author Canon Maranda
- * @version 3.1
+ * @version 3.2
  */
 public class GradescopeAutoGrader {
     private HashMap<Integer, TestData> data;
@@ -40,29 +40,55 @@ public class GradescopeAutoGrader {
         }
     }
 
-    // Adds a test file to the map of tests. Takes in a name and max score. Optional
-    // third argument sets student visibility (hidden, after_due_date,
-    // after_published, visible).
+    /**
+     * Adds a test file to the map of tests.
+     * 
+     * @param name       The name of the test
+     * @param maxScore   The maximum score a student can get on the test
+     * @param visibility "hidden", "after_due_date", "after_published", or "visible"
+     */
     public void addTest(String name, double maxScore, String visibility) {
         idList.put(name, nextId);
         this.data.put(idList.get(name), new TestData(name, maxScore, visibility));
         nextId++;
     }
 
-    // Adds a result to an already existing test. takes in a name and number of
-    // points.
+    /**
+     * Adds a result to an already existing test. takes in a name and number of
+     * points.
+     * 
+     * @param name  The name of the test
+     * @param grade The grade the student received on the test
+     */
     public void addResult(String name, double grade) {
         TestData current = this.data.get(idList.get(name));
         // If the tests did not run properly, notify the student
-        String output = (current.maxScore == 0)
+        String output = (current.maxScore == 0 && current.output.length() == 0)
                 ? "There was an error running this test. Fix any methods called by " + name
                         + " and submit again. If this issue persists, contact your instructor."
-                : "";
+                : current.output;
         current.visible = (output.length() > 0) ? "visible" : current.visible;
         current.setScore(grade, output);
     }
 
-    // Converts map of scores to JSON. Exports to file for Gradescope to analyze.
+    /**
+     * This function takes in a name and output, and adds the output to that of the
+     * test with the given name
+     * 
+     * @param name   The name of the test
+     * @param output The output of the test
+     */
+    public void addFailure(String name, String output) {
+        TestData current = this.data.get(idList.get(name));
+        current.output += output + "\\n";
+    }
+
+    /**
+     * Converts map of scores to JSON. Exports to file for Gradescope to analyze.
+     * 
+     * @param percentage The percentage of the assignment that the student has
+     *                   completed.
+     */
     public void toJSON(double percentage) {
         percentage /= 100.0;
         StringBuilder json = new StringBuilder("{ ");
@@ -70,13 +96,10 @@ public class GradescopeAutoGrader {
                 .append("\"tests\":[");
         for (int key : this.data.keySet()) {
             TestData current = this.data.get(key);
-            json.append("{\"score\": ").append(current.grade).append(",")
-                    .append("\"max_score\": ").append(current.maxScore).append(",")
-                    .append("\"name\": \"").append(current.name).append("\",")
-                    .append("\"number\": \"").append(key).append("\",")
-                    .append("\"output\": \"").append(current.output).append("\",")
-                    .append((current.output.length() > 0) ? "\"status\": \"failed\"," : "")
-                    .append("\"visibility\": \"").append(current.visible).append("\"},");
+            json.append(String.format(
+                    "{\"score\": %f, \"max_score\": %f, \"name\": \"%s\", \"number\": \"%d\", \"output\": \"%s\", %s \"visibility\": \"%s\"},",
+                    current.grade, current.maxScore, current.name, key, current.output,
+                    (current.output.length() > 0) ? "\"status\": \"failed\"," : "", current.visible));
         }
         json.setLength(json.length() - 1);
         json.append("]}");
@@ -84,7 +107,9 @@ public class GradescopeAutoGrader {
         output.close();
     }
 
-    // This class helps store information about each test
+    /**
+     * Stores information about each test
+     */
     class TestData {
         public double maxScore, grade;
         public String name, output, visible;
@@ -93,6 +118,7 @@ public class GradescopeAutoGrader {
             this.name = name;
             this.maxScore = maxScore;
             this.visible = visibility;
+            this.output = "";
         }
 
         public void setScore(double grade, String output) {
@@ -101,7 +127,10 @@ public class GradescopeAutoGrader {
         }
     }
 
-    // Runs all provided JUnit tests
+    /**
+     * Takes in a list of packages, finds all the classes in those packages, and
+     * runs all the tests in those classes
+     */
     public static void main(String[] args) throws InitializationError {
         try {
             if (args.length < 2)
