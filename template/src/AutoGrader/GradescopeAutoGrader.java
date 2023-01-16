@@ -47,9 +47,9 @@ public class GradescopeAutoGrader {
      * @param maxScore   The maximum score a student can get on the test
      * @param visibility "hidden", "after_due_date", "after_published", or "visible"
      */
-    public void addTest(String name, double maxScore, String visibility) {
+    public void addTest(String name, String visibility) {
         idList.put(name, nextId);
-        this.data.put(idList.get(name), new TestData(name, maxScore, visibility));
+        this.data.put(idList.get(name), new TestData(name, visibility));
         nextId++;
     }
 
@@ -60,9 +60,10 @@ public class GradescopeAutoGrader {
      * @param name  The name of the test
      * @param grade The grade the student received on the test
      */
-    public void addResult(String name, double grade) {
+    public void addResult(String name, double numTests, double numFailed) {
         TestData current = this.data.get(idList.get(name));
-        current.setScore(grade);
+        current.maxScore = numTests;
+        current.setScore(numTests - numFailed);
     }
 
     /**
@@ -109,9 +110,10 @@ public class GradescopeAutoGrader {
         public double maxScore, grade;
         public String name, output, visible;
 
-        public TestData(String name, double maxScore, String visibility) {
+        public TestData(String name, String visibility) {
             this.name = name;
-            this.maxScore = maxScore;
+            this.maxScore = 0;
+            this.grade = 0;
             this.visible = visibility;
             this.output = "";
         }

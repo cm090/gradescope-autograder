@@ -62,7 +62,7 @@ public class TestRunner extends BlockJUnit4ClassRunner {
             }
         }
 
-        g.addTest(getName(), testCount, visibility);
+        g.addTest(getName(), visibility);
 
         // count tests with Decorator Pattern
         RunNotifier decorator = new RunNotifier() {
@@ -147,7 +147,7 @@ public class TestRunner extends BlockJUnit4ClassRunner {
 
         super.run(decorator);
 
-        g.addResult(getName(), testCount - testFailure);
+        g.addResult(getName(), testCount, testFailure);
 
         double percentagePassed = (double) (testCount - testFailure) / (double) testCount * 100.0;
         output.printf("%5d   %8d   %10.1f%%   %-15s\n", testCount, (testCount - testFailure), percentagePassed,
