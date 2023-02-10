@@ -4,7 +4,6 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 
 import org.junit.runner.Description;
-import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
@@ -82,7 +81,7 @@ public class TestRunner extends BlockJUnit4ClassRunner {
                     allTestsFailedCount++;
                 }
                 if (failure.getMessage() != null)
-                    g.addFailure(getName(), failure.toString());
+                    g.addFailure(getName(), failure.toString().replace("\"", "'"));
                 else
                     g.addFailure(getName(), failure.getTestHeader() + ": Test failed");
                 ideJUnitRunner.fireTestFailure(failure);
