@@ -6,8 +6,11 @@ for file in /autograder/submission/*
 do
 file=${file##*./}
 pkg=$(head -1 $file | cut -d " " -f 2 | cut -d ";" -f 1)
+if [ "$OUT" != *"Test"* ]
+then
 mkdir /autograder/source/src/$pkg &> output_ignored
 cp -n $file /autograder/source/src/$pkg
+fi
 done
 
 cd /autograder/source
