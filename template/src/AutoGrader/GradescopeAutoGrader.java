@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 
@@ -19,9 +20,11 @@ import org.junit.runners.model.InitializationError;
  * https://github.com/cm090/gradescope-autograder
  * 
  * @author Canon Maranda
- * @version 3.2
+ * @version 3.3
  */
 public class GradescopeAutoGrader {
+    private static final String OUTPUT_MESSAGE = "Your submission has been successfully graded.";
+
     private HashMap<Integer, TestData> data;
     private HashMap<String, Integer> idList;
     private PrintStream output;
@@ -88,8 +91,8 @@ public class GradescopeAutoGrader {
     public void toJSON(double percentage) {
         percentage /= 100.0;
         StringBuilder json = new StringBuilder("{ ");
-        json.append("\"score\": ").append(percentage * this.assignmentTotalScore).append(",")
-                .append("\"tests\":[");
+        json.append("\"score\": ").append(percentage * this.assignmentTotalScore).append(", \"output\": \"")
+                .append(OUTPUT_MESSAGE).append("\", \"visibility\": \"visible\", ").append("\"tests\":[");
         for (int key : this.data.keySet()) {
             TestData current = this.data.get(key);
             json.append(String.format(
