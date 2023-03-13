@@ -20,7 +20,7 @@ import org.junit.runners.model.InitializationError;
  * https://github.com/cm090/gradescope-autograder
  * 
  * @author Canon Maranda
- * @version 3.3
+ * @version 4.0
  */
 public class GradescopeAutoGrader {
     private static final String OUTPUT_MESSAGE = "Your submission has been successfully graded.";
@@ -97,7 +97,8 @@ public class GradescopeAutoGrader {
             TestData current = this.data.get(key);
             json.append(String.format(
                     "{\"score\": %f, \"max_score\": %f, \"name\": \"%s\", \"number\": \"%d\", \"output\": \"%s\", %s \"visibility\": \"%s\"},",
-                    current.grade, current.maxScore, current.name, key, current.output,
+                    current.grade, current.maxScore, current.name, key,
+                    current.output.replace("\n", " ").replace("\t", " "),
                     (current.output.length() > 0) ? "\"status\": \"failed\"," : "", current.visible));
         }
         json.setLength(json.length() - 1);
