@@ -4,7 +4,6 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 
 import org.junit.runner.Description;
-import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
@@ -16,6 +15,8 @@ import org.junit.runners.BlockJUnit4ClassRunner;
  * Provided by RHIT CSSE Department
  */
 public class TestRunner extends BlockJUnit4ClassRunner {
+    // Change this to the number of extra credit tests you have, if any
+    private static final int EXTRA_CREDIT_TESTS = 0;
 
     private static boolean firstRun = true;
     private static int runners = 0;
@@ -157,7 +158,8 @@ public class TestRunner extends BlockJUnit4ClassRunner {
             completed++;
             if (completed == runners) {
                 int allTestsPassedCount = allTestsExecutedCount - allTestsFailedCount;
-                double allPercentagePassed = (double) allTestsPassedCount / (double) allTestsExecutedCount
+                double allPercentagePassed = (double) allTestsPassedCount
+                        / ((double) allTestsExecutedCount - EXTRA_CREDIT_TESTS)
                         * 100.0;
                 output.println("------------------------------------------------------------------");
                 output.printf("%5d   %8d   %10.1f%%   %-15s\n", allTestsExecutedCount, allTestsPassedCount,
