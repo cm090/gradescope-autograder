@@ -24,12 +24,14 @@ import org.junit.runners.model.InitializationError;
  */
 public class GradescopeAutoGrader {
     private static final String OUTPUT_MESSAGE = "Your submission has been successfully graded.";
+    private static final String MISSING_FILE_ERROR = "Your submission is missing one or more required files.Please make sure you have uploaded all required .java files.";
 
     private HashMap<Integer, TestData> data;
     private HashMap<String, Integer> idList;
     private PrintStream output;
     private int nextId;
     private double assignmentTotalScore;
+    private boolean validSubmission = true;
 
     public GradescopeAutoGrader(double assignmentTotalScore) {
         this.data = new HashMap<Integer, TestData>();
@@ -77,6 +79,8 @@ public class GradescopeAutoGrader {
      * @param output The output of the test
      */
     public void addFailure(String name, String output) {
+        if (output.contains("cannot be resolved"))
+            validSubmission = false;
         TestData current = this.data.get(idList.get(name));
         current.output += output + "\\n";
         current.visible = "visible";
@@ -92,7 +96,8 @@ public class GradescopeAutoGrader {
         percentage /= 100.0;
         StringBuilder json = new StringBuilder("{ ");
         json.append("\"score\": ").append(percentage * this.assignmentTotalScore).append(", \"output\": \"")
-                .append(OUTPUT_MESSAGE).append("\", \"visibility\": \"visible\", ").append("\"tests\":[");
+                .append((validSubmission) ? OUTPUT_MESSAGE : MISSING_FILE_ERROR)
+                .append("\", \"visibility\": \"visible\", ").append("\"tests\":[");
         for (int key : this.data.keySet()) {
             TestData current = this.data.get(key);
             json.append(String.format(
