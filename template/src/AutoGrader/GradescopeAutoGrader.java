@@ -20,11 +20,11 @@ import org.junit.runners.model.InitializationError;
  * https://github.com/cm090/gradescope-autograder
  * 
  * @author Canon Maranda
- * @version 4.0
+ * @version 4.1
  */
 public class GradescopeAutoGrader {
     private static final String OUTPUT_MESSAGE = "Your submission has been successfully graded.";
-    private static final String MISSING_FILE_ERROR = "Your submission is missing one or more required files.Please make sure you have uploaded all required .java files.";
+    private static final String MISSING_FILE_ERROR = "Your submission is missing one or more required files. Please make sure you have uploaded all required .java files.";
 
     private HashMap<Integer, TestData> data;
     private HashMap<String, Integer> idList;
@@ -95,7 +95,7 @@ public class GradescopeAutoGrader {
     public void toJSON(double percentage) {
         percentage /= 100.0;
         StringBuilder json = new StringBuilder("{ ");
-        json.append("\"score\": ").append(percentage * this.assignmentTotalScore).append(", \"output\": \"")
+        json.append(String.format("\"score\": %.2f, \"output\": \"", percentage * this.assignmentTotalScore))
                 .append((validSubmission) ? OUTPUT_MESSAGE : MISSING_FILE_ERROR)
                 .append("\", \"visibility\": \"visible\", ").append("\"tests\":[");
         for (int key : this.data.keySet()) {

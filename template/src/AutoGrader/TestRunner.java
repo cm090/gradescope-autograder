@@ -2,13 +2,18 @@ package AutoGrader;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.concurrent.TimeUnit;
 
+import org.junit.internal.runners.statements.FailOnTimeout;
 import org.junit.runner.Description;
+import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
 import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runner.notification.StoppedByUserException;
 import org.junit.runners.BlockJUnit4ClassRunner;
+import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.Statement;
 
 /**
  * Interfaces with JUnit tests
@@ -17,6 +22,7 @@ import org.junit.runners.BlockJUnit4ClassRunner;
 public class TestRunner extends BlockJUnit4ClassRunner {
     // Change this to the number of extra credit tests you have, if any
     private static final int EXTRA_CREDIT_TESTS = 0;
+    private static final int TEST_TIMEOUT_SECONDS = 30;
 
     private static boolean firstRun = true;
     private static int runners = 0;
@@ -49,6 +55,12 @@ public class TestRunner extends BlockJUnit4ClassRunner {
 
     public TestRunner(Class<?> testClass, GradescopeAutoGrader g) throws org.junit.runners.model.InitializationError {
         this(testClass, g, "after_due_date");
+    }
+
+    @Override
+    protected Statement methodBlock(FrameworkMethod method) {
+        Statement statement = super.methodBlock(method);
+        return FailOnTimeout.builder().withTimeout(TEST_TIMEOUT_SECONDS, TimeUnit.SECONDS).build(statement);
     }
 
     @Override
@@ -147,7 +159,6 @@ public class TestRunner extends BlockJUnit4ClassRunner {
         };
 
         super.run(decorator);
-
         g.addResult(getName(), testCount, testFailure);
 
         double percentagePassed = (double) (testCount - testFailure) / (double) testCount * 100.0;
