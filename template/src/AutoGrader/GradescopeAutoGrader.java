@@ -82,7 +82,7 @@ public class GradescopeAutoGrader {
         if (output.contains("cannot be resolved"))
             validSubmission = false;
         TestData current = this.data.get(idList.get(name));
-        current.output += output + "\\n";
+        current.output += output.split("\\(")[0] + output.split("\\):")[1] + "\\n";
         current.visible = "visible";
     }
 
