@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+apt update &> output_ignored
+apt install ecj java-wrappers -y &> output_ignored
+
 cp /autograder/source/results_template /autograder/results/results.json
 
 for file in /autograder/submission/*
