@@ -1,1 +1,1 @@
-# Nothing to set up
+# Nothing to set up but Gradescope will complain if this file is missing

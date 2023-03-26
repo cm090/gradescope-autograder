@@ -1,4 +1,6 @@
 # Gradescope Autograder
+Copyright &copy; 2022-2023 [Canon Maranda](https://link.canon.click/from/github)<br>
+Developed alongside the [Rose-Hulman](https://rose-hulman.edu) CSSE Department
 
 ### Folder Structure
 - `/resources` Documentation for managing assignments in Gradescope
