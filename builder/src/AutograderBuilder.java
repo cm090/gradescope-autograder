@@ -257,8 +257,9 @@ public class AutograderBuilder implements ActionListener {
 				if (!boxes[i].isSelected()) {
 					testClasses.remove(boxes[i].getText());
 					for (int j = 0; j < homeworkSubDirectories.length; j++)
-						if (homeworkSubDirectories[j].getName().contains(boxes[i].getText().replace("Test", "")))
-							homeworkSubDirectories[j] = null;
+						if (homeworkSubDirectories[j] != null)
+							if (homeworkSubDirectories[j].getName().contains(boxes[i].getText().replace("Test", "")))
+								homeworkSubDirectories[j] = null;
 				}
 			classSelect.dispose();
 			templateDirButton.setEnabled(true);
