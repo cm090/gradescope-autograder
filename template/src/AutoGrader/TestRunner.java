@@ -22,6 +22,7 @@ import org.junit.runners.model.Statement;
 public class TestRunner extends BlockJUnit4ClassRunner {
     // Change this to the number of extra credit tests you have, if any
     private static final int EXTRA_CREDIT_TESTS = 0;
+    // Individual tests will fail if they take longer than the time set below
     private static final int TEST_TIMEOUT_SECONDS = 30;
 
     private static boolean firstRun = true;
@@ -99,62 +100,6 @@ public class TestRunner extends BlockJUnit4ClassRunner {
                 else
                     g.addFailure(getName(), failure.getTestHeader() + ": Test failed");
                 ideJUnitRunner.fireTestFailure(failure);
-            }
-
-            @Override
-            public void fireTestFinished(Description description) {
-                // Executes regardless whether the test passed.
-                ideJUnitRunner.fireTestFinished(description);
-            }
-
-            @Override
-            public void fireTestSuiteStarted(Description description) {
-                ideJUnitRunner.fireTestSuiteStarted(description);
-            }
-
-            @Override
-            public void fireTestSuiteFinished(Description description) {
-                ideJUnitRunner.fireTestSuiteFinished(description);
-            }
-
-            @Override
-            public void fireTestRunStarted(Description description) {
-                ideJUnitRunner.fireTestRunStarted(description);
-            }
-
-            @Override
-            public void fireTestRunFinished(Result result) {
-                ideJUnitRunner.fireTestRunFinished(result);
-            }
-
-            @Override
-            public void pleaseStop() {
-                ideJUnitRunner.pleaseStop();
-            }
-
-            @Override
-            public void addFirstListener(RunListener listener) {
-                ideJUnitRunner.addFirstListener(listener);
-            }
-
-            @Override
-            public void addListener(RunListener listener) {
-                ideJUnitRunner.addListener(listener);
-            }
-
-            @Override
-            public void fireTestAssumptionFailed(Failure failure) {
-                ideJUnitRunner.fireTestAssumptionFailed(failure);
-            }
-
-            @Override
-            public void fireTestIgnored(Description description) {
-                ideJUnitRunner.fireTestIgnored(description);
-            }
-
-            @Override
-            public void removeListener(RunListener listener) {
-                ideJUnitRunner.removeListener(listener);
             }
         };
 

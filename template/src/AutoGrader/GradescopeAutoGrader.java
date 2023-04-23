@@ -4,11 +4,17 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.StringJoiner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
@@ -20,7 +26,7 @@ import org.junit.runners.model.InitializationError;
  * https://github.com/cm090/gradescope-autograder
  * 
  * @author Canon Maranda
- * @version 4.1
+ * @version 4.2
  */
 public class GradescopeAutoGrader {
     private static final String OUTPUT_MESSAGE = "Your submission has been successfully graded.";
@@ -79,10 +85,15 @@ public class GradescopeAutoGrader {
      * @param output The output of the test
      */
     public void addFailure(String name, String output) {
-        if (output.contains("cannot be resolved"))
+        if (output.contains("cannot be resolved")) {
             validSubmission = false;
-        TestData current = this.data.get(idList.get(name));
-        current.output += output.split("\\(")[0] + output.split("\\):")[1] + "\\n";
+            return;
+        }
+        TestData current = data.get(idList.get(name));
+        StringBuilder sb = new StringBuilder(current.output);
+        sb.append(output.replaceAll("\\(.*\\):", ""))
+                .append("\\n");
+        current.output = sb.toString();
         current.visible = "visible";
     }
 
@@ -94,21 +105,19 @@ public class GradescopeAutoGrader {
      */
     public void toJSON(double percentage) {
         percentage /= 100.0;
-        StringBuilder json = new StringBuilder("{ ");
-        json.append(String.format("\"score\": %.2f, \"output\": \"", percentage * this.assignmentTotalScore))
-                .append((validSubmission) ? OUTPUT_MESSAGE : MISSING_FILE_ERROR)
-                .append("\", \"visibility\": \"visible\", ").append("\"tests\":[");
+        StringJoiner tests = new StringJoiner(",");
         for (int key : this.data.keySet()) {
             TestData current = this.data.get(key);
-            json.append(String.format(
-                    "{\"score\": %f, \"max_score\": %f, \"name\": \"%s\", \"number\": \"%d\", \"output\": \"%s\", %s \"visibility\": \"%s\"},",
+            tests.add(String.format(
+                    "{\"score\": %f, \"max_score\": %f, \"name\": \"%s\", \"number\": \"%d\", \"output\": \"%s\", %s \"visibility\": \"%s\"}",
                     current.grade, current.maxScore, current.name, key,
                     current.output.replace("\n", " ").replace("\t", " "),
                     (current.output.length() > 0) ? "\"status\": \"failed\"," : "", current.visible));
         }
-        json.setLength(json.length() - 1);
-        json.append("]}");
-        output.append(json.toString());
+        String json = String.format(
+                "{ \"score\": %.2f, \"output\": \"%s\", \"visibility\": \"visible\", \"tests\":[%s]}",
+                percentage * this.assignmentTotalScore, (validSubmission) ? OUTPUT_MESSAGE : MISSING_FILE_ERROR, tests);
+        output.append(json);
         output.close();
     }
 
@@ -138,14 +147,20 @@ public class GradescopeAutoGrader {
      */
     public static void main(String[] args) throws InitializationError {
         try {
-            if (args.length < 2)
+            if (args.length == 0)
                 throw new IndexOutOfBoundsException();
-            List<Class<?>> classes = new ArrayList<Class<?>>();
-            GradescopeAutoGrader g = new GradescopeAutoGrader(Integer.parseInt(args[0]));
-            for (int i = 1; i < args.length; i++)
-                classes.addAll(ClassFinder.find(args[i]));
+            BufferedReader reader = new BufferedReader(new FileReader("../submission_metadata.json"));
+            String submissionData = reader.readLine();
+            Pattern pattern = Pattern.compile(
+                    "\"type\":\\s*\"ProgrammingQuestion\",\\s*\"title\":\\s*\"Autograder\".*?\"weight\":\\s*\"([^\"]+)\"");
+            Matcher matcher = pattern.matcher(submissionData);
+            double score = matcher.find() ? Double.parseDouble(matcher.group(1)) : 0.0;
+            GradescopeAutoGrader g = new GradescopeAutoGrader(score);
+            HashSet<Class<?>> allClasses = new HashSet<Class<?>>();
+            for (int i = 0; i < args.length; i++)
+                allClasses.addAll(ClassFinder.find(args[i]));
             HashSet<TestRunner> runners = new HashSet<TestRunner>();
-            for (Class<?> c : classes) {
+            for (Class<?> c : allClasses) {
                 if (!c.toString().contains("RunAllTests"))
                     // If you want to change the visibility of tests, add a String argument to the
                     // below TestRunner constructor. Supported inputs: hidden, after_due_date,
@@ -155,9 +170,13 @@ public class GradescopeAutoGrader {
             for (TestRunner t : runners) {
                 t.run(new RunNotifier());
             }
+            reader.close();
         } catch (IndexOutOfBoundsException e) {
             System.err.println(
                     "Incorrect command line arguments\nUsage: java -cp bin/:lib/* AutoGrader.GradescopeAutoGrader [maxScore] [testPackages]");
+            System.exit(1);
+        } catch (IOException e) {
+            System.err.println("Error reading file submission_metadata.json");
             System.exit(1);
         }
     }

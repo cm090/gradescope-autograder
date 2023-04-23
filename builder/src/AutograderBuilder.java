@@ -30,7 +30,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.JTextField;
 
 import org.apache.commons.io.FileUtils;
 
@@ -42,7 +41,6 @@ public class AutograderBuilder implements ActionListener {
 	private JFrame frame;
 	private JPanel configPanes;
 	private JButton homeworkDirButton, templateDirButton, compileDirButton, startButton;
-	private JTextField pointsInput;
 	private JTextArea outputArea;
 	private ArrayList<String> testClasses;
 	private File[] homeworkSubDirectories;
@@ -59,8 +57,6 @@ public class AutograderBuilder implements ActionListener {
 		compileDirButton = new JButton();
 		addConfigButton("Output directory", compileDirButton);
 		compileDirButton.setEnabled(false);
-		pointsInput = new JTextField(10);
-		addConfigInput("Point value", pointsInput);
 
 		JPanel bigButtonPanel = new JPanel();
 		bigButtonPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -97,18 +93,6 @@ public class AutograderBuilder implements ActionListener {
 		configPanes.add(panel);
 	}
 
-	private void addConfigInput(String description, JTextField input) {
-		JPanel panel = new JPanel();
-		panel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-		panel.setLayout(new BorderLayout());
-		JLabel label = new JLabel(description);
-		int labelHeight = label.getPreferredSize().height;
-		label.setPreferredSize(new Dimension(400, labelHeight));
-		panel.add(label, BorderLayout.WEST);
-		panel.add(input);
-		configPanes.add(panel);
-	}
-
 	private void startGenerate() {
 		if (homeworkDirButton.getText().equals("Select a directory")) {
 			outputArea.setText("You must choose a homework directory");
@@ -120,10 +104,6 @@ public class AutograderBuilder implements ActionListener {
 		}
 		if (compileDirButton.getText().equals("Select a directory")) {
 			outputArea.setText("You must choose the output directory");
-			return;
-		}
-		if (pointsInput.getText().equals("") || !pointsInput.getText().matches("[0-9]+")) {
-			outputArea.setText("You must specify a numeric point value");
 			return;
 		}
 
@@ -191,7 +171,6 @@ public class AutograderBuilder implements ActionListener {
 			ArrayList<String> fileContent = new ArrayList<>(Files.readAllLines(runnerFile.toPath()));
 			String testClassesString = testClasses.toString().replace("[", "").replace("]", "").replace(",", "");
 			fileContent.set(2, fileContent.get(2).replace("\"\"", "\"" + testClassesString + "\""));
-			fileContent.set(3, fileContent.get(3).replace("0", pointsInput.getText()));
 			Files.write(runnerFile.toPath(), fileContent);
 		} catch (Exception e) {
 			outputArea.append("Error updating run.sh: " + e.getMessage());
