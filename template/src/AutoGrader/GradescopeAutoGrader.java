@@ -30,14 +30,12 @@ import org.junit.runners.model.InitializationError;
  */
 public class GradescopeAutoGrader {
     private static final String OUTPUT_MESSAGE = "Your submission has been successfully graded.";
-    private static final String MISSING_FILE_ERROR = "Your submission is missing one or more required files. Please make sure you have uploaded all required .java files.";
 
     private HashMap<Integer, TestData> data;
     private HashMap<String, Integer> idList;
     private PrintStream output;
     private int nextId;
     private double assignmentTotalScore;
-    private boolean validSubmission = true;
 
     public GradescopeAutoGrader(double assignmentTotalScore) {
         this.data = new HashMap<Integer, TestData>();
@@ -85,10 +83,6 @@ public class GradescopeAutoGrader {
      * @param output The output of the test
      */
     public void addFailure(String name, String output) {
-        if (output.contains("cannot be resolved")) {
-            validSubmission = false;
-            return;
-        }
         TestData current = data.get(idList.get(name));
         StringBuilder sb = new StringBuilder(current.output);
         sb.append(output.replaceAll("\\(.*\\):", ""))
@@ -116,7 +110,7 @@ public class GradescopeAutoGrader {
         }
         String json = String.format(
                 "{ \"score\": %.2f, \"output\": \"%s\", \"visibility\": \"visible\", \"tests\":[%s]}",
-                percentage * this.assignmentTotalScore, (validSubmission) ? OUTPUT_MESSAGE : MISSING_FILE_ERROR, tests);
+                percentage * this.assignmentTotalScore, OUTPUT_MESSAGE, tests);
         output.append(json);
         output.close();
     }
