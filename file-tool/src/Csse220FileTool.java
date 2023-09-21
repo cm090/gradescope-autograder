@@ -6,11 +6,13 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
 import java.util.EnumSet;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -108,6 +110,7 @@ public class Csse220FileTool {
 		}
 
 		String fullProjectFile = getProjectFileContents(masterDir, output);
+		HashSet<String> failed = new HashSet<>();
 
 		for (File submissionDir : studentSubmissionDir.listFiles()) {
 			String dirName = submissionDir.getName();
@@ -129,18 +132,33 @@ public class Csse220FileTool {
 						+ "already exists, are there extra folders included that should not be?");
 			}
 
-			int numMasterCopied = copyDirTree(masterDir.toPath(), studentOutputDir);
+			try {
+				int numMasterCopied = copyDirTree(masterDir.toPath(), studentOutputDir);
 
-			// copy the student's submissions into the src dir of master
-			Path studentOutputDirSrc = pathAppend(studentOutputDir, "src");
-			int numStudentCopied = copyDirWithProjectTree(submissionDir.toPath(), studentOutputDirSrc);
+				// copy the student's submissions into the src dir of master
+				Path studentOutputDirSrc = pathAppend(studentOutputDir, "src");
+				int numStudentCopied = copyDirWithProjectTree(submissionDir.toPath(), studentOutputDirSrc);
 
-			// change the name in the project file
-			updateProjectFileWithNewName(fullProjectFile, studentName, studentOutputDir);
-			output.printf("Copied %d master %d student to %s\n", numMasterCopied, numStudentCopied,
-					studentOutputDir.toString());
+				// change the name in the project file
+				updateProjectFileWithNewName(fullProjectFile, studentName, studentOutputDir);
+				output.printf("Copied %d master %d student to %s\n", numMasterCopied, numStudentCopied,
+						studentOutputDir.toString());
+			} catch (InvalidPathException e) {
+				output.printf("Unable to copy files for student %s. Did they submit the correct files?\n", studentName);
+				failed.add(studentName);
+				continue;
+			}
 		}
-		output.printf("Generate completed successfully.\n");
+
+		output.println("-------------------------------------------");
+		output.println("Generate completed successfully.");
+		if (failed.size() > 0) {
+			output.printf("The following students could not be copied:\n");
+			for (String s : failed) {
+				output.println(s);
+			}
+		}
+		output.println("-------------------------------------------");
 	}
 
 	private static void updateProjectFileWithNewName(String fullProjectFile, String studentName, Path studentOutputDir)
