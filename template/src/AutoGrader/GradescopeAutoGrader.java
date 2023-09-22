@@ -29,19 +29,19 @@ import org.junit.runners.model.InitializationError;
  * @version 4.2
  */
 public class GradescopeAutoGrader {
-    private static final String OUTPUT_MESSAGE = "Your submission has been successfully graded.";
-
     private HashMap<Integer, TestData> data;
     private HashMap<String, Integer> idList;
     private PrintStream output;
     private int nextId;
     private double assignmentTotalScore;
+    private OutputMessage resultMessage;
 
     public GradescopeAutoGrader(double assignmentTotalScore) {
         this.data = new HashMap<Integer, TestData>();
         this.idList = new HashMap<String, Integer>();
         this.nextId = 1;
         this.assignmentTotalScore = assignmentTotalScore;
+        this.resultMessage = OutputMessage.DEFAULT;
         try {
             this.output = new PrintStream(new FileOutputStream("results.json"));
         } catch (FileNotFoundException e) {
@@ -73,6 +73,9 @@ public class GradescopeAutoGrader {
         TestData current = this.data.get(idList.get(name));
         current.maxScore = numTests;
         current.setScore(numTests - numFailed);
+        if (numTests == 0) {
+            resultMessage = OutputMessage.TEST_RUNNER_FAILED;
+        }
     }
 
     /**
@@ -110,7 +113,7 @@ public class GradescopeAutoGrader {
         }
         String json = String.format(
                 "{ \"score\": %.2f, \"output\": \"%s\", \"visibility\": \"visible\", \"tests\":[%s]}",
-                percentage * this.assignmentTotalScore, OUTPUT_MESSAGE, tests);
+                percentage * this.assignmentTotalScore, resultMessage.getMessage(), tests);
         output.append(json);
         output.close();
     }
@@ -132,6 +135,22 @@ public class GradescopeAutoGrader {
 
         public void setScore(double grade) {
             this.grade = grade;
+        }
+    }
+
+    enum OutputMessage {
+        DEFAULT("Your submission has been successfully graded. Failed test cases are shown below."),
+        TEST_RUNNER_FAILED(
+                "There was a problem with your code that caused some tests to unexpectedly fail. Please see the output below and resubmit.");
+
+        private String message;
+
+        OutputMessage(String message) {
+            this.message = message;
+        }
+
+        public String getMessage() {
+            return message;
         }
     }
 
