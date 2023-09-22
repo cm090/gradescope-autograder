@@ -104,9 +104,15 @@ public class TestRunner extends BlockJUnit4ClassRunner {
         };
 
         super.run(decorator);
+        if (testFailure > testCount) {
+            synchronized (TestRunner.class) {
+                allTestsFailedCount -= testFailure - testCount;
+            }
+            testFailure = testCount;
+        }
         g.addResult(getName(), testCount, testFailure);
 
-        double percentagePassed = (double) (testCount - testFailure) / (double) testCount * 100.0;
+        double percentagePassed = (testCount == 0) ? 0 : (double) (testCount - testFailure) / (double) testCount * 100.0;
         output.printf("%5d   %8d   %10.1f%%   %-15s\n", testCount, (testCount - testFailure), percentagePassed,
                 this.getTestClass().getName().substring(this.getTestClass().getName().lastIndexOf(".") + 1));
 
