@@ -13,7 +13,7 @@ do
 file=${file##*./}
 pkg=$(head -1 $file | cut -d " " -f 2 | cut -d ";" -f 1)
 pkg=$(echo "$pkg" | sed 's/\./\//g')
-if [ "$pkg" != *"Test"* ]
+if [[ "$pkg" != *"Test"* ]]
 then
 mkdir /autograder/source/src/$pkg &> /dev/null
 cp -n $file /autograder/source/src/$pkg
