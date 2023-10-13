@@ -1,0 +1,19 @@
+{
+  "score": 0,
+  "tests": [
+    {
+      "status": "passed",
+      "name": "Starter code download",
+      "output": "Visit this link:",
+      "output_format": "md",
+      "visibility": "visible"
+    },
+    {
+      "status": "passed",
+      "name": "Instructions",
+      "output": "**IMPORTANT: Use the resubmit button to upload your solution. Wait for the autograder to finish running before leaving this page.**\n1. Download and import the starter code from the link above\n2. Write your code and follow the submission instructions provided in the starter code\nIf you have any issues, please let an instructor or TA know before leaving the exam room",
+      "output_format": "md",
+      "visibility": "visible"
+    }
+  ]
+}
