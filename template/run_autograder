@@ -5,19 +5,19 @@ apt update &> /dev/null
 apt install ecj java-wrappers jq -y &> /dev/null
 
 # Copy the general failure results file just in case
-cp /autograder/source/results_template /autograder/results/results.json
+cp /autograder/source/results_error_template /autograder/results/results.json
 
 # Copy student code to source directory. Ignores all files with "Test" in the name
 for file in /autograder/submission/*
 do
-file=${file##*./}
-pkg=$(head -1 $file | cut -d " " -f 2 | cut -d ";" -f 1)
-pkg=$(echo "$pkg" | sed 's/\./\//g')
-if [[ "$pkg" != *"Test"* ]]
-then
-mkdir /autograder/source/src/$pkg &> /dev/null
-cp -n $file /autograder/source/src/$pkg
-fi
+    file=${file##*./}
+    pkg=$(head -1 $file | cut -d " " -f 2 | cut -d ";" -f 1)
+    pkg=$(echo "$pkg" | sed 's/\./\//g')
+    if [[ "$pkg" != *"Test"* ]] && [[ "$file" != *"RunAllTests"* ]]
+    then
+        mkdir /autograder/source/src/$pkg &> /dev/null
+        cp -n $file /autograder/source/src/$pkg
+    fi
 done
 
 # Prep for compilation
