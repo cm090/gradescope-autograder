@@ -1,12 +1,12 @@
 package AutoGrader;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.PrintStream;
-import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -24,13 +24,12 @@ import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 
 /**
- * This class is used to output a Gradescope JSON file from JUnit tests. Requires implementation in
- * test files.
+ * Given an input configuration file (config.json), run all the JUnit test in the provided
+ * package(s) and output the results to results.json
  *
- * https://github.com/cm090/gradescope-autograder
- * 
  * @author Canon Maranda
  * @version 5.0
+ * @see https://github.com/cm090/gradescope-autograder
  */
 public class GradescopeAutoGrader {
     private Map<Integer, TestData> data;
@@ -59,7 +58,7 @@ public class GradescopeAutoGrader {
 
     /**
      * Adds a test file to the map of tests.
-     * 
+     *
      * @param name The name of the test
      * @param maxScore The maximum score a student can get on the test
      * @param visibility "hidden", "after_due_date", "after_published", or "visible"
@@ -67,30 +66,31 @@ public class GradescopeAutoGrader {
     void addTest(String name, String visibility) {
         idList.put(name, nextId);
         this.data.put(idList.get(name), new TestData(name, visibility));
-        String packageName = name.indexOf(".") == -1 ? name : name.substring(0, name.indexOf("."));
-        this.testsCount.put(name, testsCount.getOrDefault(packageName, 0) + 1);
         nextId++;
     }
 
     /**
      * Adds a result to an already existing test. takes in a name and number of points.
-     * 
+     *
      * @param name The name of the test
      * @param grade The grade the student received on the test
      */
-    void addResult(String name, double numTests, double numFailed) {
+    void addResult(String name, int numTests, int numFailed) {
         TestData current = this.data.get(idList.get(name));
         current.maxScore = numTests;
-        current.setScore(numTests - numFailed);
+        current.grade = numTests - numFailed;
         if (numTests == 0) {
             resultMessage = OutputMessage.TEST_RUNNER_FAILED;
         }
+        String packageName =
+                name.indexOf(".") == -1 ? name : name.substring(0, name.lastIndexOf("."));
+        this.testsCount.put(packageName, testsCount.getOrDefault(packageName, 0) + numTests);
     }
 
     /**
      * This function takes in a name and output, and adds the output to that of the test with the
      * given name
-     * 
+     *
      * @param name The name of the test
      * @param output The output of the test
      */
@@ -104,7 +104,7 @@ public class GradescopeAutoGrader {
 
     /**
      * Converts map of scores to JSON. Exports to file for Gradescope to analyze.
-     * 
+     *
      * @param percentage The percentage of the assignment that the student has completed.
      */
     void toJSON(double percentage) {
@@ -122,14 +122,16 @@ public class GradescopeAutoGrader {
                     (current.output.length() > 0) ? "\"status\": \"failed\"," : "",
                     current.visible));
             if (!bypassScoreCalculation) {
+                // Calculate score based on test weight
                 String currentName = current.name.indexOf(".") == -1 ? current.name
-                        : current.name.substring(0, current.name.indexOf("."));
+                        : current.name.substring(0, current.name.lastIndexOf("."));
                 double currentWeight = testWeights.get(currentName);
                 if (currentWeight < 0) {
+                    // Calculate score based on number of tests
                     bypassScoreCalculation = true;
                 }
-                totalScore += (current.grade / current.maxScore)
-                        * (currentWeight / this.testsCount.getOrDefault(currentName, 1));
+                totalScore += (current.grade / current.maxScore) * (currentWeight * current.maxScore
+                        / this.testsCount.getOrDefault(currentName, 1));
             }
         }
 
@@ -142,27 +144,27 @@ public class GradescopeAutoGrader {
     }
 
     /**
-     * Stores information about each test
+     * Stores information about each test, including its name, visibility, output, maximum score,
+     * and grade
      */
-    class TestData {
-        public double maxScore, grade;
-        public String name, output, visible;
+    private class TestData {
+        private double maxScore, grade;
+        private String name, output, visible;
 
-        public TestData(String name, String visibility) {
+        private TestData(String name, String visibility) {
             this.name = name;
             this.maxScore = 0;
             this.grade = 0;
             this.visible = visibility;
             this.output = "";
         }
-
-        public void setScore(double grade) {
-            this.grade = grade;
-        }
     }
 
-    enum OutputMessage {
-        DEFAULT("Your submission has been successfully graded. Failed test cases are shown below."), TEST_RUNNER_FAILED(
+    /**
+     * Stores success and failure output messages
+     */
+    private enum OutputMessage {
+        DEFAULT("Your submission has been successfully graded."), TEST_RUNNER_FAILED(
                 "There was a problem with your code that caused some tests to unexpectedly fail. Please see the output below and resubmit.");
 
         private String message;
@@ -178,15 +180,19 @@ public class GradescopeAutoGrader {
 
     /**
      * Takes in a configuration file and prepares the grading process
+     *
+     * @param args The location of the configuration file
      */
     public static void main(String[] args) throws InitializationError {
         try {
+            // Check if config file was specified and convert to JSON object
             if (args.length == 0) {
                 throw new IndexOutOfBoundsException(
                         "Configuration file location must be specified.");
             }
             JSONObject config = new JSONObject(new String(Files.readAllBytes(Paths.get(args[0]))));
 
+            // Read the Gradescope submission metadata and get the maximum score
             BufferedReader reader =
                     new BufferedReader(new FileReader("../submission_metadata.json"));
             String submissionData = reader.readLine();
@@ -195,11 +201,13 @@ public class GradescopeAutoGrader {
             Matcher matcher = pattern.matcher(submissionData);
             double score = matcher.find() ? Double.parseDouble(matcher.group(1)) : 0.0;
 
+            // Read the config file for additional options
             TestRunner.extraCreditTests =
                     config.getJSONObject("additional_options").getInt("extra_credit_amount");
             TestRunner.testTimeoutSeconds =
                     config.getJSONObject("additional_options").getInt("timeout_seconds");
 
+            // Parse the classes in the config file
             HashSet<Class<?>> allClasses = new HashSet<Class<?>>();
             JSONArray classes = config.getJSONArray("classes");
             Map<String, Double> testWeights = new HashMap<>();
@@ -209,6 +217,7 @@ public class GradescopeAutoGrader {
                         classes.getJSONObject(i).getDouble("weight"));
             }
 
+            // Run the tests
             GradescopeAutoGrader g = new GradescopeAutoGrader(score, testWeights);
             HashSet<TestRunner> runners = new HashSet<TestRunner>();
             String testVisibility =
@@ -235,7 +244,7 @@ public class GradescopeAutoGrader {
         private static final String BAD_PACKAGE_ERROR =
                 "Unable to get resources from path '%s'. Are you sure the package '%s' exists?";
 
-        public static List<Class<?>> find(String scannedPackage) {
+        private static List<Class<?>> find(String scannedPackage) {
             String scannedPath = scannedPackage.replace(PKG_SEPARATOR, DIR_SEPARATOR);
             URL scannedUrl =
                     Thread.currentThread().getContextClassLoader().getResource(scannedPath);
