@@ -1,14 +1,25 @@
 {
-    "score": 0,
-    "tests": [
-        {
-          "status": "failed",
-          "name": "# Submission error",
-          "name_format": "md",
-          "output": "There was an error processing your code. Please check the above output for errors and make sure you uploaded all required files. Use the resubmit button at the bottom right corner of the page to try again. If you see this message again, contact your instructor.",
-          "output_format": "md",
-          "visibility": "visible"
-        }
-      ],
-    "stdout_visibility": "visible"
+  "score": 0,
+  "output": "# ERROR: Upload Failed\n**There was an error processing your code.** Please check the output for errors and make sure you uploaded all required files. Use the *resubmit* button at the bottom right corner of the page to rerun the autograder. If you see this message again, contact your instructor.",
+  "output_format": "md",
+  "visibility": "visible",
+  "tests": [
+    {
+      "score": 0,
+      "max_score": 1,
+      "status": "passed",
+      "name": "Starter code download",
+      "output": "Visit this link:",
+      "output_format": "md",
+      "visibility": "visible"
+    },
+    {
+      "status": "passed",
+      "name": "Import instructions",
+      "output": "![Import to Eclipse](https://raw.githubusercontent.com/cm090/gradescope-autograder/main/exam-template/import-instructions.png)",
+      "output_format": "md",
+      "visibility": "visible"
+    }
+  ],
+  "stdout_visibility": "visible"
 }

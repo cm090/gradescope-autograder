@@ -20,7 +20,8 @@ fi
 apt install ecj java-wrappers -y &> /dev/null
 
 # Copy the general failure results file just in case
-cp /autograder/source/results_error_template /autograder/results/results.json
+output=$(jq -r '.tests[0].output' /autograder/source/results_error_template)
+jq --arg data "$output [$DOWNLOAD_LINK]($DOWNLOAD_LINK)" '.tests[0].output = $data' /autograder/source/results_error_template > /autograder/results/results.json
 
 # Copy student code to source directory. Ignores all files with "Test" in the name
 for file in /autograder/submission/*
