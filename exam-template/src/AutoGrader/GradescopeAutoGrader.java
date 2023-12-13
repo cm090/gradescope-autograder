@@ -32,6 +32,8 @@ import org.junit.runners.model.InitializationError;
  * @see https://github.com/cm090/gradescope-autograder
  */
 public class GradescopeAutoGrader {
+    private static String downloadLink;
+
     private Map<Integer, TestData> data;
     private Map<String, Integer> idList;
     private Map<String, Double> testWeights;
@@ -112,6 +114,10 @@ public class GradescopeAutoGrader {
         StringJoiner tests = new StringJoiner(",");
         double totalScore = 0.0;
         boolean bypassScoreCalculation = false;
+
+        tests.add(String.format(
+                "{\"score\": 1, \"max_score\": 1, \"status\": \"passed\", \"name\": \"Starter code download\", \"output\": \"Visit this link: [%s](%s)\", \"output_format\": \"md\", \"visibility\": \"visible\"}",
+                downloadLink, downloadLink));
 
         for (int key : this.data.keySet()) {
             TestData current = this.data.get(key);
@@ -206,6 +212,8 @@ public class GradescopeAutoGrader {
                     config.getJSONObject("additional_options").getInt("extra_credit_amount");
             TestRunner.testTimeoutSeconds =
                     config.getJSONObject("additional_options").getInt("timeout_seconds");
+            downloadLink =
+                    config.getJSONObject("additional_options").getString("starter_code_download");
 
             // Parse the classes in the config file
             HashSet<Class<?>> allClasses = new HashSet<Class<?>>();
