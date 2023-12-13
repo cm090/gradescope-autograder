@@ -164,8 +164,8 @@ public class GradescopeAutoGrader {
      * Stores success and failure output messages
      */
     private enum OutputMessage {
-        DEFAULT("# Your submission has been successfully graded \\n Your estimated grade is shown to the right under *\\\"Autograder Score\\\"*"), TEST_RUNNER_FAILED(
-                "# ERROR: Grading Failed \\n **There was a problem with your code** that caused some tests to unexpectedly fail. Please see the output below and resubmit. Contact an instructor or TA for more help.");
+        DEFAULT("# Your submission has been successfully graded \\nYour estimated grade is shown to the right under *\\\"Autograder Score\\\"*"), TEST_RUNNER_FAILED(
+                "# ERROR: Grading Failed \\n**There was a problem with your code** that caused some tests to unexpectedly fail. Please see the output below and resubmit. Contact an instructor or TA for more help.");
 
         private String message;
 
