@@ -1,0 +1,8 @@
+{
+  "classes": [{ "name": "testPackage", "weight": -1.0 }],
+  "additional_options": {
+    "test_visibility": "visible",
+    "timeout_seconds": 30,
+    "extra_credit_amount": 0
+  }
+}

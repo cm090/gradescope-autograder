@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# This is what Gradescope runs first. Start by updating the system and installing ECJ
+# This is what Gradescope runs first. Start by updating the system and installing required packages
 apt update &> /dev/null
 apt install ecj java-wrappers jq -y &> /dev/null
 
 # Copy the general failure results file just in case
 cp /autograder/source/results_error_template /autograder/results/results.json
 
-# Copy student code to source directory. Ignores all files with "Test" in the name
+# Copy student code to source directory. Ignores all files with "Test" or "RunAllTests" in the name
 for file in /autograder/submission/*
 do
     file=${file##*./}
@@ -20,9 +20,10 @@ do
     fi
 done
 
-# Prep for compilation
+# Prepare for compilation
 cd /autograder/source
 mkdir bin &> /dev/null
 
+# Run compilation script
 dos2unix ./run.sh &> /dev/null
 bash ./run.sh

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DOWNLOAD_LINK="https://link.canon.click/autograder/startercode" # Provide the link for students to download starter code
+DOWNLOAD_LINK=$(jq -r '.additional_options.starter_code_download' config.json)
 
 # This is what Gradescope runs first. Start by updating system packages and installing jq
 apt update &> /dev/null

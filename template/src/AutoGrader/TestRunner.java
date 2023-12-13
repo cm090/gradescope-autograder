@@ -6,9 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.junit.internal.runners.statements.FailOnTimeout;
 import org.junit.runner.Description;
-import org.junit.runner.Result;
 import org.junit.runner.notification.Failure;
-import org.junit.runner.notification.RunListener;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runner.notification.StoppedByUserException;
 import org.junit.runners.BlockJUnit4ClassRunner;
@@ -16,29 +14,27 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 /**
- * Interfaces with JUnit tests
- * Provided by RHIT CSSE Department
+ * Interfaces with JUnit tests. Provided by RHIT CSSE Department.
  */
-public class TestRunner extends BlockJUnit4ClassRunner {
-    // Change this to the number of extra credit tests you have, if any
-    private static final int EXTRA_CREDIT_TESTS = 0;
-    // Individual tests will fail if they take longer than the time set below
-    private static final int TEST_TIMEOUT_SECONDS = 30;
+class TestRunner extends BlockJUnit4ClassRunner {
+    // Updated in the configuration file
+    static int extraCreditTests = 0;
+    static int testTimeoutSeconds = 30;
 
     private static boolean firstRun = true;
+    private static long startTime;
     private static int runners = 0;
     private static int completed = 0;
     private static int allTestsFailedCount = 0;
     private static int allTestsExecutedCount = 0;
+    private static PrintWriter output;
 
     private int testCount = 0;
     private int testFailure = 0;
     private String visibility;
-
     private GradescopeAutoGrader g;
-    private static PrintWriter output;
 
-    public TestRunner(Class<?> testClass, GradescopeAutoGrader g, String visibility)
+    TestRunner(Class<?> testClass, GradescopeAutoGrader g, String visibility)
             throws org.junit.runners.model.InitializationError {
         super(testClass);
         this.g = g;
@@ -47,21 +43,22 @@ public class TestRunner extends BlockJUnit4ClassRunner {
             runners++;
         }
         try {
-            if (firstRun)
+            if (firstRun) {
+                // Scores will be written to this file to avoid mixing with print statements from
+                // the student's code
                 output = new PrintWriter(new FileWriter("results.out"));
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public TestRunner(Class<?> testClass, GradescopeAutoGrader g) throws org.junit.runners.model.InitializationError {
-        this(testClass, g, "after_due_date");
-    }
-
     @Override
     protected Statement methodBlock(FrameworkMethod method) {
+        // Sets the timeout for each test
         Statement statement = super.methodBlock(method);
-        return FailOnTimeout.builder().withTimeout(TEST_TIMEOUT_SECONDS, TimeUnit.SECONDS).build(statement);
+        return FailOnTimeout.builder().withTimeout(testTimeoutSeconds, TimeUnit.SECONDS)
+                .build(statement);
     }
 
     @Override
@@ -69,16 +66,19 @@ public class TestRunner extends BlockJUnit4ClassRunner {
         synchronized (TestRunner.class) {
             if (firstRun) {
                 firstRun = false;
-                output.println("------------------------------------------------------------------");
+                startTime = System.currentTimeMillis();
+                output.println(
+                        "------------------------------------------------------------------");
                 output.println("                   Gradescope Autograder Output");
                 output.println("                      Running all unit tests");
-                output.println("------------------------------------------------------------------");
+                output.println(
+                        "------------------------------------------------------------------");
             }
         }
 
-        g.addTest(getName(), visibility);
+        this.g.addTest(getName(), visibility);
 
-        // count tests with Decorator Pattern
+        // Count tests with Decorator Pattern
         RunNotifier decorator = new RunNotifier() {
             @Override
             public void fireTestStarted(Description description) throws StoppedByUserException {
@@ -104,30 +104,37 @@ public class TestRunner extends BlockJUnit4ClassRunner {
         };
 
         super.run(decorator);
-        if (testFailure > testCount) {
+        if (this.testFailure > this.testCount) {
+            // Error in test, prevent over-counting
             synchronized (TestRunner.class) {
-                allTestsFailedCount -= testFailure - testCount;
+                allTestsFailedCount -= this.testFailure - this.testCount;
             }
-            testFailure = testCount;
+            this.testFailure = this.testCount;
         }
-        g.addResult(getName(), testCount, testFailure);
+        this.g.addResult(getName(), this.testCount, this.testFailure);
 
-        double percentagePassed = (testCount == 0) ? 0 : (double) (testCount - testFailure) / (double) testCount * 100.0;
-        output.printf("%5d   %8d   %10.1f%%   %-15s\n", testCount, (testCount - testFailure), percentagePassed,
-                this.getTestClass().getName().substring(this.getTestClass().getName().lastIndexOf(".") + 1));
+        double percentagePassed = (this.testCount == 0) ? 0
+                : (double) (this.testCount - this.testFailure) / (double) this.testCount * 100.0;
+        output.printf("%5d   %8d   %10.1f%%   %-15s\n", this.testCount,
+                (this.testCount - this.testFailure), percentagePassed, this.getTestClass().getName()
+                        .substring(this.getTestClass().getName().lastIndexOf(".") + 1));
 
         synchronized (TestRunner.class) {
             completed++;
             if (completed == runners) {
+                long timeTaken = System.currentTimeMillis() - startTime;
                 int allTestsPassedCount = allTestsExecutedCount - allTestsFailedCount;
                 double allPercentagePassed = (double) allTestsPassedCount
-                        / ((double) allTestsExecutedCount - EXTRA_CREDIT_TESTS)
-                        * 100.0;
-                output.println("------------------------------------------------------------------");
-                output.printf("%5d   %8d   %10.1f%%   %-15s\n", allTestsExecutedCount, allTestsPassedCount,
-                        allPercentagePassed, "<-- Grand Totals");
+                        / ((double) allTestsExecutedCount - extraCreditTests) * 100.0;
+                output.println(
+                        "------------------------------------------------------------------");
+                output.printf("%5d   %8d   %10.1f%%   %-15s\n", allTestsExecutedCount,
+                        allTestsPassedCount, allPercentagePassed, "<-- Grand Totals");
+                output.println(
+                        "------------------------------------------------------------------");
+                output.printf("Time taken: ~%d seconds\n", timeTaken / 1000);
                 output.close();
-                g.toJSON(allPercentagePassed);
+                this.g.toJSON(allPercentagePassed);
             }
         }
     }
