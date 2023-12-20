@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-DOWNLOAD_LINK=$(jq -r '.additional_options.starter_code_download' config.json)
-
 # This is what Gradescope runs first. Start by updating system packages and installing jq
 apt update &> /dev/null
 apt install jq -y &> /dev/null
+
+DOWNLOAD_LINK=$(jq -r '.additional_options.starter_code_download' /autograder/source/config.json)
 
 # If this is the first submission, provide the download link
 prev=$(jq '.previous_submissions' submission_metadata.json)
