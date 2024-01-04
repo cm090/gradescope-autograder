@@ -99,7 +99,8 @@ public class GradescopeAutoGrader {
     void addFailure(String name, String output) {
         TestData current = data.get(idList.get(name));
         StringBuilder sb = new StringBuilder(current.output);
-        sb.append(output.replaceAll("\\(.*\\):", "")).append("\\n");
+        sb.append(output.replaceAll("\\(.*\\):", "").replaceAll("\n", " ").replaceAll("\\P{Print}",
+                "")).append("\\n");
         current.output = sb.toString();
         current.visible = "visible";
     }
@@ -124,7 +125,7 @@ public class GradescopeAutoGrader {
             tests.add(String.format(
                     "{\"score\": %f, \"max_score\": %f, \"name\": \"%s\", \"number\": \"%d\", \"output\": \"%s\", %s \"visibility\": \"%s\"}",
                     current.grade, current.maxScore, current.name, key,
-                    current.output.replace("\n", " ").replace("\t", " "),
+                    current.output.replaceAll("\t", " "),
                     (current.output.length() > 0) ? "\"status\": \"failed\"," : "",
                     current.visible));
             if (!bypassScoreCalculation) {
