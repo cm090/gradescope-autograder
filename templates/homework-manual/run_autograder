@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+apt update &> /dev/null
+apt install jq -y &> /dev/null
+
+# Check if any Java files were submitted
+file_count=$(find submission -type f -name "*.java" | wc -l)
+if ([ $file_count -eq 0 ]); then
+    cp /autograder/source/results_template_no_java_files /autograder/results/results.json
+    exit 1
+fi
+
+# Check if file names match config
+missing_files=()
+while read required_file; do
+    if [ ! -f "submission/$required_file" ]; then
+        missing_files+=("$required_file")
+    fi
+done < <(jq -r '.["required-files"][]' /autograder/source/config.json)
+if ([ ${#missing_files[@]} -gt 0 ]); then
+    cp /autograder/source/results_template_missing_files /autograder/results/results.json
+    missing_files_out=""
+    for missing_file in "${missing_files[@]}"; do
+        missing_files_out+="- $missing_file\\\\n"
+    done
+    sed -i "s/\[list\]/$missing_files_out/g" /autograder/results/results.json
+    exit 1
+fi
+
+# Print success message
+cp /autograder/source/results_template_success /autograder/results/results.json

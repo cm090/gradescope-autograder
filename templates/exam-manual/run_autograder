@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+DOWNLOAD_LINK="https://link.canon.click/autograder/startercode" # Provide the link for students to download starter code
+
+# This is what Gradescope runs first. Start by updating system packages and installing jq
+apt update &> /dev/null
+apt install jq -y &> /dev/null
+
+# Default to success template
+RESULTS_TEMPLATE="results_template_success"
+
+# First submission
+prev=$(jq '.previous_submissions' submission_metadata.json)
+if [ "$prev" == "[]" ]
+then
+    RESULTS_TEMPLATE="download_starter_code_template"
+else
+    # Not the first submission and missing .java files
+    file_count=$(find submission -type f -name "*.java" | wc -l)
+    if ([ $file_count -eq 0 ])
+    then
+        RESULTS_TEMPLATE="results_template_fail"
+    fi
+fi
+
+cd /autograder/source
+output=$(jq -r '.tests[0].output' $RESULTS_TEMPLATE)
+jq --arg data "$output [$DOWNLOAD_LINK]($DOWNLOAD_LINK)" '.tests[0].output = $data' $RESULTS_TEMPLATE > /autograder/results/results.json
