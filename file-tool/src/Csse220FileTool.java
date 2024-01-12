@@ -20,6 +20,9 @@ import java.util.Scanner;
 import org.yaml.snakeyaml.Yaml;
 
 public class Csse220FileTool {
+	interface Lambda {
+		String op(String name, int id, String uid);
+	}
 
 	public static void main(String[] args) throws IOException {
 		if (args.length > 0) {
@@ -61,7 +64,7 @@ public class Csse220FileTool {
 	 * Reads the submission_metadata.yml file and renames the folders to the
 	 * student's name and id
 	 */
-	public static void renameFolders(File dir, PrintStream output) throws FileNotFoundException {
+	public static void renameFolders(File dir, PrintStream output, Lambda renamer) throws FileNotFoundException {
 		output.println("Found Gradescope data file. Renaming folders...");
 
 		boolean isAnonymous = false;
@@ -86,10 +89,22 @@ public class Csse220FileTool {
 				}
 			int id = Integer.parseInt(s.split("_")[1]);
 			File toRename = new File(dir, "submission_" + id);
-			String renameTo = (sid.equals("")) ? id + " " + name + "_original"
-					: id + " " + sid + " " + name + "_original";
+			String renameTo = renamer.op(name, id, sid);
+			// (sid.equals("")) ? id + " " + name + "_original"
+			// : id + " " + sid + " " + name + "_original";
 			toRename.renameTo(new File(dir, renameTo));
 			output.printf("Renamed submission_%d to %s\n", id, renameTo);
+		}
+	}
+
+	public static void doRename(File studentSubmissionDir, PrintStream output)
+			throws IOException, FileNotFoundException {
+		if (!studentSubmissionDir.exists()) {
+			throw new IOException("Student submission dir" + studentSubmissionDir.getName() + "does not exist");
+		}
+
+		if (Files.exists(pathAppend(studentSubmissionDir.toPath(), "submission_metadata.yml"))) {
+			renameFolders(studentSubmissionDir, output, (name, id, uid) -> String.format("%s_%s_%s", name, uid, id));
 		}
 	}
 
@@ -106,7 +121,9 @@ public class Csse220FileTool {
 		}
 
 		if (Files.exists(pathAppend(studentSubmissionDir.toPath(), "submission_metadata.yml"))) {
-			renameFolders(studentSubmissionDir, output);
+			renameFolders(studentSubmissionDir, output,
+					(name, id, sid) -> (sid.equals("")) ? id + " " + name + "_original"
+							: id + " " + sid + " " + name + "_original");
 		}
 
 		String fullProjectFile = getProjectFileContents(masterDir, output);
