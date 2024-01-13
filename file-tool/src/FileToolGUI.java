@@ -5,6 +5,8 @@ import java.awt.event.ActionListener;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
@@ -19,7 +21,7 @@ import javax.swing.JTextArea;
 
 public class FileToolGUI implements ActionListener, Runnable {
 	private static final String DEFAULT_TEXT = "Select a directory...";
-	private static final String DEFAULT_OUTPUT_TEXT = "Defaults to submission directory";
+	private static final String DEFAULT_OUTPUT_TEXT = "<html>Defaults to <code>(submissions)/projects</code>.</html>";
 	private JPanel configPanes;
 	private JFrame frame;
 	private JButton masterButton;
@@ -27,7 +29,6 @@ public class FileToolGUI implements ActionListener, Runnable {
 	private JButton outputButton;
 	private JTextArea outputArea;
 	private JButton startButton;
-	private Selector selector;
 
 	public FileToolGUI() {
 		frame = new JFrame("CSSE220 File Tool");
@@ -38,9 +39,10 @@ public class FileToolGUI implements ActionListener, Runnable {
 		masterButton = new JButton();
 		studentButton = new JButton();
 		outputButton = new JButton();
-		selector = new Selector(configPanes, this);
 
-		addConfigButton("Original assignment project directory, from 220 repo", masterButton);
+		addConfigButton(
+				"<html>Original assignment project directory, from 220 repo.<br>If not provided, will only rename folders.</html>",
+				masterButton);
 		addConfigButton("Student submission directory, unzipped from Moodle or Gradescope", studentButton);
 		addConfigButton("Workspace output directory", outputButton);
 		outputButton.setText(DEFAULT_OUTPUT_TEXT);
@@ -88,11 +90,6 @@ public class FileToolGUI implements ActionListener, Runnable {
 		frame.setVisible(true);
 	}
 
-	public void toggleRenameTool() {
-		masterButton.setEnabled(!selector.isRenameTool());
-		outputButton.setEnabled(!selector.isRenameTool());
-	}
-
 	@Override
 	public void actionPerformed(ActionEvent e) {
 
@@ -111,11 +108,8 @@ public class FileToolGUI implements ActionListener, Runnable {
 	}
 
 	private void startGenerate() {
-		boolean useRenameTool = selector.isRenameTool();
-
-		if (masterButton.getText().equals(DEFAULT_TEXT) && !useRenameTool) {
-			outputArea.setText("You must choose a master directory");
-			return;
+		if (masterButton.getText().equals(DEFAULT_TEXT)) {
+			outputArea.setText("Starting to generate files without using an assignment directory...");
 		}
 		if (studentButton.getText().equals(DEFAULT_TEXT)) {
 			outputArea.setText("You must choose a student submission directory");
@@ -129,32 +123,34 @@ public class FileToolGUI implements ActionListener, Runnable {
 
 	@Override
 	public void run() {
-
 		ByteArrayOutputStream os = new ByteArrayOutputStream();
 		PrintStream ps = new PrintStream(os);
 
 		File master = new File(masterButton.getText());
 		File student = new File(studentButton.getText());
-		boolean useRenameTool = selector.isRenameTool();
 
-		if (useRenameTool) {
+		String outputText;
+
+		if (outputButton.getText().equals(DEFAULT_OUTPUT_TEXT)) {
+			outputText = Paths.get(studentButton.getText(), "projects").toString();
+			ps.println("using " + outputText + " as output dir");
+		} else {
+			outputText = outputButton.getText();
+		}
+
+		File output = new File(outputText);
+
+		if (!Files.exists(output.toPath())) {
+			output.mkdirs();
+		}
+
+		if (masterButton.getText().equals(DEFAULT_TEXT)) {
 			try {
-				Csse220FileTool.doRename(student, ps);
+				Csse220FileTool.doRename(student, ps, output);
 			} catch (Exception e) {
 				e.printStackTrace(ps);
 			}
 		} else {
-			String outputText;
-
-			if (outputButton.getText().equals(DEFAULT_OUTPUT_TEXT)) {
-				outputText = studentButton.getText();
-				ps.println("using " + outputText + " as output dir");
-			} else {
-				outputText = outputButton.getText();
-			}
-
-			File output = new File(outputText);
-
 			try {
 				Csse220FileTool.doGenerate(master, student, output, ps);
 			} catch (Exception e) {

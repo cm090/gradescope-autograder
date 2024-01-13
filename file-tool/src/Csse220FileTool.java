@@ -6,7 +6,6 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.nio.file.FileVisitOption;
 import java.nio.file.Files;
-import java.nio.file.InvalidPathException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.Normalizer;
@@ -21,7 +20,7 @@ import org.yaml.snakeyaml.Yaml;
 
 public class Csse220FileTool {
 	interface Lambda {
-		String op(String name, int id, String uid);
+		boolean op(Path outputDir) throws IOException;
 	}
 
 	public static void main(String[] args) throws IOException {
@@ -64,13 +63,16 @@ public class Csse220FileTool {
 	 * Reads the submission_metadata.yml file and renames the folders to the
 	 * student's name and id
 	 */
-	public static void renameFolders(File dir, PrintStream output, Lambda renamer) throws FileNotFoundException {
-		output.println("Found Gradescope data file. Renaming folders...");
+	public static HashSet<String> copyFolders(File dir, File ouputDir, PrintStream output, Lambda copier)
+			throws FileNotFoundException {
+		output.println("Found Gradescope data file. Copying folders...");
 
 		boolean isAnonymous = false;
 		Yaml yaml = new Yaml();
 		File file = new File(dir, "submission_metadata.yml");
 		Map<String, Object> o = yaml.load(new FileInputStream(file));
+
+		HashSet<String> failed = new HashSet<>();
 
 		for (String s : o.keySet()) {
 			@SuppressWarnings("unchecked")
@@ -88,23 +90,36 @@ public class Csse220FileTool {
 					isAnonymous = true;
 				}
 			int id = Integer.parseInt(s.split("_")[1]);
-			File toRename = new File(dir, "submission_" + id);
-			String renameTo = renamer.op(name, id, sid);
-			// (sid.equals("")) ? id + " " + name + "_original"
-			// : id + " " + sid + " " + name + "_original";
-			toRename.renameTo(new File(dir, renameTo));
-			output.printf("Renamed submission_%d to %s\n", id, renameTo);
+			Path inputDir = new File(dir, "submission_" + id).toPath();
+			String outputDirRelative = String.format("%s_%s_%s", id, sid, name);
+			Path outputDir = new File(ouputDir, outputDirRelative).toPath();
+			try {
+				boolean useSrc = copier.op(outputDir);
+				Path trueOutputDir = outputDir;
+				if (useSrc) {
+					trueOutputDir = pathAppend(outputDir, "src");
+				}
+				Csse220FileTool.copyDirTree(inputDir, trueOutputDir);
+			} catch (IOException e) {
+				output.printf("Unable to copy files for student %s. Did they submit the correct files?\n", name);
+				failed.add(name);
+				continue;
+			}
+			output.printf("Copied submission_%d to %s\n", id, outputDirRelative);
 		}
+
+		return failed;
 	}
 
-	public static void doRename(File studentSubmissionDir, PrintStream output)
+	public static void doRename(File studentSubmissionDir, PrintStream output, File outputDir)
 			throws IOException, FileNotFoundException {
 		if (!studentSubmissionDir.exists()) {
 			throw new IOException("Student submission dir" + studentSubmissionDir.getName() + "does not exist");
 		}
 
 		if (Files.exists(pathAppend(studentSubmissionDir.toPath(), "submission_metadata.yml"))) {
-			renameFolders(studentSubmissionDir, output, (name, id, uid) -> String.format("%s_%s_%s", name, uid, id));
+			copyFolders(studentSubmissionDir, outputDir, output,
+					(o) -> false);
 		}
 	}
 
@@ -120,52 +135,62 @@ public class Csse220FileTool {
 			throw new IOException("Output dir" + outputDir.getName() + "does not exist");
 		}
 
-		if (Files.exists(pathAppend(studentSubmissionDir.toPath(), "submission_metadata.yml"))) {
-			renameFolders(studentSubmissionDir, output,
-					(name, id, sid) -> (sid.equals("")) ? id + " " + name + "_original"
-							: id + " " + sid + " " + name + "_original");
-		}
-
-		String fullProjectFile = getProjectFileContents(masterDir, output);
 		HashSet<String> failed = new HashSet<>();
-
-		for (File submissionDir : studentSubmissionDir.listFiles()) {
-			String dirName = submissionDir.getName();
-			// if there is no "_" in the filenames it could be the question text
-			if (dirName.startsWith(".") || dirName.indexOf('_') == -1 || dirName.contains("onlinetext")
-					|| dirName.contains("submission_metadata")) {
-				output.printf("Skipping dir %s as probably not a student code submission folder\n", dirName);
-				continue;
-			}
-			String studentName = dirName.substring(0, dirName.indexOf('_'));
-			studentName = studentName.replace(' ', '_');
-
-			// copy everything from the master dir to student dir
-			Path studentOutputDir = pathAppend(outputDir.toPath(), studentName);
-
-			// check to see if the master has been added already
-			if (Files.exists(studentOutputDir)) {
-				throw new IOException("Student submission dir" + studentSubmissionDir.getName()
-						+ "already exists, are there extra folders included that should not be?");
-			}
-
-			try {
-				int numMasterCopied = copyDirTree(masterDir.toPath(), studentOutputDir);
-
-				// copy the student's submissions into the src dir of master
-				Path studentOutputDirSrc = pathAppend(studentOutputDir, "src");
-				int numStudentCopied = copyDirWithProjectTree(submissionDir.toPath(), studentOutputDirSrc);
-
-				// change the name in the project file
-				updateProjectFileWithNewName(fullProjectFile, studentName, studentOutputDir);
-				output.printf("Copied %d master %d student to %s\n", numMasterCopied, numStudentCopied,
-						studentOutputDir.toString());
-			} catch (InvalidPathException e) {
-				output.printf("Unable to copy files for student %s. Did they submit the correct files?\n", studentName);
-				failed.add(studentName);
-				continue;
-			}
+		if (Files.exists(pathAppend(studentSubmissionDir.toPath(),
+				"submission_metadata.yml"))) {
+			failed = copyFolders(studentSubmissionDir, outputDir, output,
+					(oDir) -> {
+						copyDirTree(masterDir.toPath(), oDir);
+						return true;
+					});
 		}
+		// String fullProjectFile = getProjectFileContents(masterDir, output);
+		// failed = new HashSet<>();
+
+		// for (File submissionDir : studentSubmissionDir.listFiles()) {
+		// String dirName = outputDir.getName();
+		// // if there is no "_" in the filenames it could be the question text
+		// if (dirName.startsWith(".") || dirName.indexOf('_') == -1 ||
+		// dirName.contains("onlinetext")
+		// || dirName.contains("submission_metadata")) {
+		// output.printf("Skipping dir %s as probably not a student code submission
+		// folder\n", dirName);
+		// continue;
+		// }
+		// String studentName = dirName.substring(0, dirName.indexOf('_'));
+		// studentName = studentName.replace(' ', '_');
+
+		// // copy everything from the master dir to student dir
+		// Path studentOutputDir = pathAppend(outputDir.toPath(), studentName);
+
+		// // check to see if the master has been added already
+		// if (Files.exists(studentOutputDir)) {
+		// throw new IOException("Student submission dir" +
+		// studentSubmissionDir.getName()
+		// + "already exists, are there extra folders included that should not be?");
+		// }
+
+		// try {
+		// int numMasterCopied = copyDirTree(masterDir.toPath(), studentOutputDir);
+
+		// // copy the student's submissions into the src dir of master
+		// Path studentOutputDirSrc = pathAppend(studentOutputDir, "src");
+		// int numStudentCopied = copyDirWithProjectTree(submissionDir.toPath(),
+		// studentOutputDirSrc);
+
+		// // change the name in the project file
+		// updateProjectFileWithNewName(fullProjectFile, studentName, studentOutputDir);
+		// output.printf("Copied %d master %d student to %s\n", numMasterCopied,
+		// numStudentCopied,
+		// studentOutputDir.toString());
+		// } catch (InvalidPathException e) {
+		// output.printf("Unable to copy files for student %s. Did they submit the
+		// correct files?\n",
+		// studentName);
+		// failed.add(studentName);
+		// continue;
+		// }
+		// }
 
 		output.println("-------------------------------------------");
 		output.println("Generate completed successfully.");
