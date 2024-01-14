@@ -4,7 +4,7 @@
 ## File structure
 - config.json
   - Provides the autograder with the following information:
-    - `classes`: List of test packages and score weights (-1 for no weight)
+    - `classes`: List of test packages, score weights (-1 for no weight), and toggles for dropping the lowest score
     - `additional_options.test_visibility`: Whether to show the test results to students (hidden, after_due_date, after_published, visible)
     - `additional_options.timeout_seconds`: How long to run a test before timing out
     - `additional_options.extra_credit_tests`: Number of extra credit tests (works best when all package weights are -1)

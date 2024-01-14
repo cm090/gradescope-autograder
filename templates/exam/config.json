@@ -1,5 +1,5 @@
 {
-  "classes": [{ "name": "testPackage", "weight": -1.0 }],
+  "classes": [{ "name": "testPackage", "weight": -1.0, "drop_lowest": false }],
   "additional_options": {
     "test_visibility": "visible",
     "timeout_seconds": 30,

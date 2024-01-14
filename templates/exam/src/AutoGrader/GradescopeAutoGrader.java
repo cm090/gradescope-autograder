@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -38,16 +39,19 @@ public class GradescopeAutoGrader {
     private Map<String, Integer> idList;
     private Map<String, Double> testWeights;
     private Map<String, Integer> testsCount;
+    private Set<String> dropLowest;
     private PrintStream output;
     private int nextId;
     private double assignmentTotalScore;
     private OutputMessage resultMessage;
 
-    public GradescopeAutoGrader(double assignmentTotalScore, Map<String, Double> testWeights) {
+    public GradescopeAutoGrader(double assignmentTotalScore, Map<String, Double> testWeights,
+            Set<String> dropLowest) {
         this.data = new HashMap<Integer, TestData>();
         this.idList = new HashMap<String, Integer>();
         this.testWeights = testWeights;
         this.testsCount = new HashMap<String, Integer>();
+        this.dropLowest = dropLowest;
         this.nextId = 1;
         this.assignmentTotalScore = assignmentTotalScore;
         this.resultMessage = OutputMessage.DEFAULT;
@@ -142,6 +146,24 @@ public class GradescopeAutoGrader {
             }
         }
 
+        // Drop the lowest score in a set of tests. Requires all weights to be specified in the
+        // config file (not -1).
+        if (this.dropLowest.size() > 1) {
+            String lowestTest = this.dropLowest.iterator().next();
+            double lowestScore = this.data.get(idList.get(lowestTest)).grade;
+            while (this.dropLowest.iterator().hasNext()) {
+                String currentTest = this.dropLowest.iterator().next();
+                double currentScore = this.data.get(idList.get(currentTest)).grade;
+                if (currentScore < lowestScore) {
+                    lowestScore = currentScore;
+                    lowestTest = currentTest;
+                }
+            }
+            double maxScore = this.data.get(idList.get(lowestTest)).maxScore;
+            totalScore -= (lowestScore / maxScore) * (testWeights.get(lowestTest) * maxScore
+                    / this.testsCount.getOrDefault(lowestTest, 1));
+        }
+
         String json = String.format(
                 "{ \"score\": %.2f, \"output\": \"%s\", \"output_format\": \"md\", \"visibility\": \"visible\", \"tests\":[%s]}",
                 bypassScoreCalculation ? percentage * this.assignmentTotalScore : totalScore,
@@ -220,14 +242,19 @@ public class GradescopeAutoGrader {
             HashSet<Class<?>> allClasses = new HashSet<Class<?>>();
             JSONArray classes = config.getJSONArray("classes");
             Map<String, Double> testWeights = new HashMap<>();
+            Set<String> dropLowest = new HashSet<>();
             for (int i = 0; i < classes.length(); i++) {
-                allClasses.addAll(ClassFinder.find(classes.getJSONObject(i).getString("name")));
-                testWeights.put(classes.getJSONObject(i).getString("name"),
-                        classes.getJSONObject(i).getDouble("weight"));
+                JSONObject currentClass = classes.getJSONObject(i);
+                String className = currentClass.getString("name");
+                allClasses.addAll(ClassFinder.find(className));
+                testWeights.put(className, currentClass.getDouble("weight"));
+                if (currentClass.getBoolean("drop_lowest")) {
+                    dropLowest.add(className);
+                }
             }
 
             // Run the tests
-            GradescopeAutoGrader g = new GradescopeAutoGrader(score, testWeights);
+            GradescopeAutoGrader g = new GradescopeAutoGrader(score, testWeights, dropLowest);
             HashSet<TestRunner> runners = new HashSet<TestRunner>();
             String testVisibility =
                     config.getJSONObject("additional_options").getString("test_visibility");
