@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.nio.file.attribute.*;
 import static java.nio.file.FileVisitResult.*;
 
-// Taken from java example.  So verbose!
-class TreeCopier implements FileVisitor<Path> {
+// Taken from java example. So verbose!
+class TreeCopier implements TreeVisitor {
     private final Path source;
     private final Path target;
     private int numFilesCopied;
@@ -17,12 +17,13 @@ class TreeCopier implements FileVisitor<Path> {
     }
 
     @Override
-    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+            throws IOException {
         // before visiting entries in a directory we copy the directory
         // (okay if directory already exists).
-        Path newdir = target.resolve(source.relativize(dir));
+        Path newDir = target.resolve(source.relativize(dir));
         try {
-            Files.copy(dir, newdir);
+            Files.copy(dir, newDir);
         } catch (FileAlreadyExistsException x) {
             // ignore
         }
@@ -31,9 +32,8 @@ class TreeCopier implements FileVisitor<Path> {
 
     @Override
     public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-        // System.out.println("Attempting to copy " + file.toString() + " to " +
-        // target.resolve(source.relativize(file)));
-        Files.copy(file, target.resolve(source.relativize(file)), StandardCopyOption.REPLACE_EXISTING);
+        Files.copy(file, target.resolve(source.relativize(file)),
+                StandardCopyOption.REPLACE_EXISTING);
         numFilesCopied++;
         return CONTINUE;
     }
@@ -52,5 +52,4 @@ class TreeCopier implements FileVisitor<Path> {
     public int getNumFilesCopied() {
         return numFilesCopied;
     }
-
 }

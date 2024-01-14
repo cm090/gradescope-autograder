@@ -7,8 +7,8 @@ import java.io.InputStreamReader;
 import java.nio.file.attribute.*;
 import static java.nio.file.FileVisitResult.*;
 
-// Taken from java example.  So verbose!
-class TreeWithDirCopier implements FileVisitor<Path> {
+// Taken from java example. So verbose!
+class TreeWithDirCopier implements TreeVisitor {
 	private final Path source;
 	private final Path target;
 	private int numFilesCopied;
@@ -23,9 +23,9 @@ class TreeWithDirCopier implements FileVisitor<Path> {
 	public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
 		// before visiting entries in a directory we copy the directory
 		// (okay if directory already exists).
-		Path newdir = target.resolve(source.relativize(dir));
+		Path newDir = target.resolve(source.relativize(dir));
 		try {
-			Files.copy(dir, newdir);
+			Files.copy(dir, newDir);
 		} catch (FileAlreadyExistsException x) {
 			// ignore
 		}
@@ -66,9 +66,6 @@ class TreeWithDirCopier implements FileVisitor<Path> {
 			// add the name of the package to the end of that path
 			p = preamble.resolve(Paths.get(packageName));
 
-			// p = pathAppend(target.resolve(source.relativize(file)).getParent(),
-			// packageName);
-
 			// if the directory does not exist, make it
 			if (!(p.toFile()).exists()) {
 				p.toFile().mkdirs();
@@ -81,8 +78,6 @@ class TreeWithDirCopier implements FileVisitor<Path> {
 			// otherwise, set p to the absolute path to the src directory
 			p = target.resolve(source.relativize(file));
 		}
-		// System.out.println("-----Attempting to copy " + file.toString() + " to " +
-		// p);
 
 		Files.copy(file, p, StandardCopyOption.REPLACE_EXISTING);
 		numFilesCopied++;
@@ -103,5 +98,4 @@ class TreeWithDirCopier implements FileVisitor<Path> {
 	public int getNumFilesCopied() {
 		return numFilesCopied;
 	}
-
 }
