@@ -22,7 +22,6 @@ class TestRunner extends BlockJUnit4ClassRunner {
     static int testTimeoutSeconds = 30;
 
     private static boolean firstRun = true;
-    private static long startTime;
     private static int runners = 0;
     private static int completed = 0;
     private static int allTestsFailedCount = 0;
@@ -66,7 +65,6 @@ class TestRunner extends BlockJUnit4ClassRunner {
         synchronized (TestRunner.class) {
             if (firstRun) {
                 firstRun = false;
-                startTime = System.currentTimeMillis();
                 output.println(
                         "------------------------------------------------------------------");
                 output.println("                   Gradescope Autograder Output");
@@ -122,7 +120,6 @@ class TestRunner extends BlockJUnit4ClassRunner {
         synchronized (TestRunner.class) {
             completed++;
             if (completed == runners) {
-                long timeTaken = System.currentTimeMillis() - startTime;
                 int allTestsPassedCount = allTestsExecutedCount - allTestsFailedCount;
                 double allPercentagePassed = (double) allTestsPassedCount
                         / ((double) allTestsExecutedCount - extraCreditTests) * 100.0;
@@ -132,7 +129,6 @@ class TestRunner extends BlockJUnit4ClassRunner {
                         allTestsPassedCount, allPercentagePassed, "<-- Grand Totals");
                 output.println(
                         "------------------------------------------------------------------");
-                output.printf("Time taken: ~%d seconds\n", timeTaken / 1000);
                 output.close();
                 this.g.toJSON(allPercentagePassed);
             }
