@@ -1,9 +1,10 @@
 {
-  "classes": [{ "name": "testPackage", "weight": -1.0, "drop_lowest": false }],
+  "classes": [{ "name": "testPackage", "weight": -1.0 }],
   "additional_options": {
     "test_visibility": "visible",
     "timeout_seconds": 30,
     "extra_credit_amount": 0,
-    "starter_code_download": "https://link.canon.click/autograder/startercode"
+    "starter_code_download": "https://link.canon.click/autograder/startercode",
+    "drop_lowest": false
   }
 }

@@ -39,14 +39,14 @@ public class GradescopeAutoGrader {
     private Map<String, Integer> idList;
     private Map<String, Double> testWeights;
     private Map<String, Integer> testsCount;
-    private Set<String> dropLowest;
+    private boolean dropLowest;
     private PrintStream output;
     private int nextId;
     private double assignmentTotalScore;
     private OutputMessage resultMessage;
 
     public GradescopeAutoGrader(double assignmentTotalScore, Map<String, Double> testWeights,
-            Set<String> dropLowest) {
+            boolean dropLowest) {
         this.data = new HashMap<Integer, TestData>();
         this.idList = new HashMap<String, Integer>();
         this.testWeights = testWeights;
@@ -124,6 +124,22 @@ public class GradescopeAutoGrader {
                 "{\"score\": 1, \"max_score\": 1, \"status\": \"passed\", \"name\": \"Starter code download\", \"output\": \"Visit this link: [%s](%s)\", \"output_format\": \"md\", \"visibility\": \"visible\"}",
                 downloadLink, downloadLink));
 
+        // Drop the lowest score in a set of tests
+        String lowestTest = null;
+        if (this.dropLowest) {
+            double lowestScore = Integer.MAX_VALUE;
+            for (int key : this.data.keySet()) {
+                TestData current = this.data.get(key);
+                String currentName = current.name.indexOf(".") == -1 ? current.name
+                        : current.name.substring(0, current.name.lastIndexOf("."));
+                double currentScore = this.data.get(idList.get(currentName)).grade;
+                if (currentScore < lowestScore) {
+                    lowestScore = currentScore;
+                    lowestTest = currentName;
+                }
+            }
+        }
+
         for (int key : this.data.keySet()) {
             TestData current = this.data.get(key);
             tests.add(String.format(
@@ -132,7 +148,10 @@ public class GradescopeAutoGrader {
                     current.output.replaceAll("\t", " "),
                     (current.output.length() > 0) ? "\"status\": \"failed\"," : "",
                     current.visible));
-            if (!bypassScoreCalculation) {
+            if (this.dropLowest && !current.name.equals(lowestTest)) {
+                totalScore += (current.grade / current.maxScore)
+                        * (this.assignmentTotalScore / (this.data.size() - 1));
+            } else if (!bypassScoreCalculation) {
                 // Calculate score based on test weight
                 String currentName = current.name.indexOf(".") == -1 ? current.name
                         : current.name.substring(0, current.name.lastIndexOf("."));
@@ -141,27 +160,9 @@ public class GradescopeAutoGrader {
                     // Calculate score based on number of tests
                     bypassScoreCalculation = true;
                 }
-                totalScore += (current.grade / current.maxScore) * (currentWeight * current.maxScore
-                        / this.testsCount.getOrDefault(currentName, 1));
+                totalScore += (current.grade * currentWeight)
+                        / this.testsCount.getOrDefault(currentName, 1);
             }
-        }
-
-        // Drop the lowest score in a set of tests. Requires all weights to be specified in the
-        // config file (not -1).
-        if (this.dropLowest.size() > 1) {
-            String lowestTest = this.dropLowest.iterator().next();
-            double lowestScore = this.data.get(idList.get(lowestTest)).grade;
-            while (this.dropLowest.iterator().hasNext()) {
-                String currentTest = this.dropLowest.iterator().next();
-                double currentScore = this.data.get(idList.get(currentTest)).grade;
-                if (currentScore < lowestScore) {
-                    lowestScore = currentScore;
-                    lowestTest = currentTest;
-                }
-            }
-            double maxScore = this.data.get(idList.get(lowestTest)).maxScore;
-            totalScore -= (lowestScore / maxScore) * (testWeights.get(lowestTest) * maxScore
-                    / this.testsCount.getOrDefault(lowestTest, 1));
         }
 
         String json = String.format(
@@ -237,30 +238,28 @@ public class GradescopeAutoGrader {
                     config.getJSONObject("additional_options").getInt("timeout_seconds");
             downloadLink =
                     config.getJSONObject("additional_options").getString("starter_code_download");
+            String testVisibility =
+                    config.getJSONObject("additional_options").getString("test_visibility");
+            boolean dropLowest =
+                    config.getJSONObject("additional_options").getBoolean("drop_lowest");
 
             // Parse the classes in the config file
             HashSet<Class<?>> allClasses = new HashSet<Class<?>>();
             JSONArray classes = config.getJSONArray("classes");
             Map<String, Double> testWeights = new HashMap<>();
-            Set<String> dropLowest = new HashSet<>();
             for (int i = 0; i < classes.length(); i++) {
                 JSONObject currentClass = classes.getJSONObject(i);
                 String className = currentClass.getString("name");
                 allClasses.addAll(ClassFinder.find(className));
                 testWeights.put(className, currentClass.getDouble("weight"));
-                if (currentClass.getBoolean("drop_lowest")) {
-                    dropLowest.add(className);
-                }
             }
 
             // Run the tests
-            GradescopeAutoGrader g = new GradescopeAutoGrader(score, testWeights, dropLowest);
+            GradescopeAutoGrader g = new GradescopeAutoGrader(score, testWeights);
             HashSet<TestRunner> runners = new HashSet<TestRunner>();
-            String testVisibility =
-                    config.getJSONObject("additional_options").getString("test_visibility");
             for (Class<?> c : allClasses) {
                 if (!c.toString().contains("RunAllTests")) {
-                    runners.add(new TestRunner(c, g, testVisibility));
+                    runners.add(new TestRunner(c, g, testVisibility, dropLowest));
                 }
             }
             for (TestRunner t : runners) {
