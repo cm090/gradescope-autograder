@@ -128,14 +128,10 @@ public class GradescopeAutoGrader {
         String lowestTest = null;
         if (this.dropLowest) {
             double lowestScore = Integer.MAX_VALUE;
-            for (int key : this.data.keySet()) {
-                TestData current = this.data.get(key);
-                String currentName = current.name.indexOf(".") == -1 ? current.name
-                        : current.name.substring(0, current.name.lastIndexOf("."));
-                double currentScore = this.data.get(idList.get(currentName)).grade;
-                if (currentScore < lowestScore) {
-                    lowestScore = currentScore;
-                    lowestTest = currentName;
+            for (TestData current : this.data.values()) {
+                if (current.grade < lowestScore) {
+                    lowestScore = current.grade;
+                    lowestTest = current.name;
                 }
             }
         }
@@ -148,9 +144,11 @@ public class GradescopeAutoGrader {
                     current.output.replaceAll("\t", " "),
                     (current.output.length() > 0) ? "\"status\": \"failed\"," : "",
                     current.visible));
-            if (this.dropLowest && !current.name.equals(lowestTest)) {
-                totalScore += (current.grade / current.maxScore)
-                        * (this.assignmentTotalScore / (this.data.size() - 1));
+            if (this.dropLowest) {
+                if (!current.name.equals(lowestTest)) {
+                    totalScore += (current.grade / current.maxScore)
+                            * (this.assignmentTotalScore / (this.data.size() - 1));
+                }
             } else if (!bypassScoreCalculation) {
                 // Calculate score based on test weight
                 String currentName = current.name.indexOf(".") == -1 ? current.name
@@ -255,11 +253,11 @@ public class GradescopeAutoGrader {
             }
 
             // Run the tests
-            GradescopeAutoGrader g = new GradescopeAutoGrader(score, testWeights);
+            GradescopeAutoGrader g = new GradescopeAutoGrader(score, testWeights, dropLowest);
             HashSet<TestRunner> runners = new HashSet<TestRunner>();
             for (Class<?> c : allClasses) {
                 if (!c.toString().contains("RunAllTests")) {
-                    runners.add(new TestRunner(c, g, testVisibility, dropLowest));
+                    runners.add(new TestRunner(c, g, testVisibility));
                 }
             }
             for (TestRunner t : runners) {

@@ -131,8 +131,8 @@ public class GradescopeAutoGrader {
                     // Calculate score based on number of tests
                     bypassScoreCalculation = true;
                 }
-                totalScore += (current.grade / current.maxScore) * (currentWeight * current.maxScore
-                        / this.testsCount.getOrDefault(currentName, 1));
+                totalScore += (current.grade * currentWeight)
+                        / this.testsCount.getOrDefault(currentName, 1);
             }
         }
 
