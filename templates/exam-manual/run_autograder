@@ -9,23 +9,25 @@ RESULTS_TEMPLATE="results_template_success" # Default to success template
 
 # Check if file names match config
 missing_files=()
-while read required_file; do
-    if [ ! -f "submission/$required_file" ]; then
+while read -r required_file; do
+    if [ ! -f "submission/$required_file" ]
+    then
         missing_files+=("$required_file")
     fi
 done < <(jq -r '.["required-files"][]' /autograder/source/config.json)
 
-if ([ ${#missing_files[@]} -gt 0 ]); then
+if [ ${#missing_files[@]} -gt 0 ]
+then
     # Missing .java files
     prev=$(jq '.previous_submissions' submission_metadata.json)
-    if [ "$prev" == "[]" ] && ([ ${#missing_files[@]} -eq $(jq -r '.["required-files"] | length' /autograder/source/config.json) ])
+    if [ "$prev" == "[]" ] && [ ${#missing_files[@]} -eq $(jq -r '.["required-files"] | length' /autograder/source/config.json) ]
     then
         # First submission and no required files submitted
         RESULTS_TEMPLATE="download_starter_code_template"
     else
         # Not the first submission
         file_count=$(find submission -type f -name "*.java" | wc -l)
-        if ([ $file_count -eq 0 ])
+        if [ $file_count -eq 0 ]
         then
             RESULTS_TEMPLATE="results_template_no_java_files"
         else
