@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.StringJoiner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,24 +29,29 @@ import org.junit.runners.model.InitializationError;
  * package(s) and output the results to results.json
  *
  * @author Canon Maranda
- * @version 5.0
+ * @version 5.1
  * @see https://github.com/cm090/gradescope-autograder
  */
 public class GradescopeAutoGrader {
+    private static String downloadLink;
+
     private Map<Integer, TestData> data;
     private Map<String, Integer> idList;
     private Map<String, Double> testWeights;
     private Map<String, Integer> testsCount;
+    private boolean dropLowest;
     private PrintStream output;
     private int nextId;
     private double assignmentTotalScore;
     private OutputMessage resultMessage;
 
-    public GradescopeAutoGrader(double assignmentTotalScore, Map<String, Double> testWeights) {
+    public GradescopeAutoGrader(double assignmentTotalScore, Map<String, Double> testWeights,
+            boolean dropLowest) {
         this.data = new HashMap<Integer, TestData>();
         this.idList = new HashMap<String, Integer>();
         this.testWeights = testWeights;
         this.testsCount = new HashMap<String, Integer>();
+        this.dropLowest = dropLowest;
         this.nextId = 1;
         this.assignmentTotalScore = assignmentTotalScore;
         this.resultMessage = OutputMessage.DEFAULT;
@@ -114,6 +120,31 @@ public class GradescopeAutoGrader {
         double totalScore = 0.0;
         boolean bypassScoreCalculation = false;
 
+        tests.add(String.format(
+                "{\"score\": 1, \"max_score\": 1, \"status\": \"passed\", \"name\": \"Starter code download\", \"output\": \"Visit this link: [%s](%s)\", \"output_format\": \"md\", \"visibility\": \"visible\"}",
+                downloadLink, downloadLink));
+
+        // Drop the lowest score in a set of tests
+        String lowestTest = null;
+        int nonZeroTestClassCount = 0;
+        Set<String> classesToIgnore = new HashSet<String>();
+        if (this.dropLowest) {
+            double lowestScore = Integer.MAX_VALUE;
+            for (TestData current : this.data.values()) {
+                String className = current.name.substring(0, current.name.lastIndexOf("."));
+                if (this.testWeights.get(className) == 0) {
+                    classesToIgnore.add(current.name);
+                    continue;
+                }
+                nonZeroTestClassCount++;
+                if (current.grade < lowestScore) {
+                    lowestScore = current.grade;
+                    lowestTest = current.name;
+                }
+            }
+        }
+
+        double pointsPerProblem = this.assignmentTotalScore / (nonZeroTestClassCount - 1);
         for (int key : this.data.keySet()) {
             TestData current = this.data.get(key);
             tests.add(String.format(
@@ -122,7 +153,11 @@ public class GradescopeAutoGrader {
                     current.output.replaceAll("\t", " "),
                     (current.output.length() > 0) ? "\"status\": \"failed\"," : "",
                     current.visible));
-            if (!bypassScoreCalculation) {
+            if (this.dropLowest) {
+                if (!(current.name.equals(lowestTest) || classesToIgnore.contains(current.name))) {
+                    totalScore += (current.grade / current.maxScore) * pointsPerProblem;
+                }
+            } else if (!bypassScoreCalculation) {
                 // Calculate score based on test weight
                 String currentName = current.name.indexOf(".") == -1 ? current.name
                         : current.name.substring(0, current.name.lastIndexOf("."));
@@ -131,8 +166,8 @@ public class GradescopeAutoGrader {
                     // Calculate score based on number of tests
                     bypassScoreCalculation = true;
                 }
-                totalScore += (current.grade / current.maxScore) * (currentWeight * current.maxScore
-                        / this.testsCount.getOrDefault(currentName, 1));
+                totalScore += (current.grade * currentWeight)
+                        / this.testsCount.getOrDefault(currentName, 1);
             }
         }
 
@@ -207,25 +242,36 @@ public class GradescopeAutoGrader {
                     config.getJSONObject("additional_options").getInt("extra_credit_amount");
             TestRunner.testTimeoutSeconds =
                     config.getJSONObject("additional_options").getInt("timeout_seconds");
+            downloadLink =
+                    config.getJSONObject("additional_options").getString("starter_code_download");
+            String testVisibility =
+                    config.getJSONObject("additional_options").getString("test_visibility");
+            boolean dropLowest =
+                    config.getJSONObject("additional_options").getBoolean("drop_lowest");
 
             // Parse the classes in the config file
             HashSet<Class<?>> allClasses = new HashSet<Class<?>>();
             JSONArray classes = config.getJSONArray("classes");
             Map<String, Double> testWeights = new HashMap<>();
             for (int i = 0; i < classes.length(); i++) {
-                allClasses.addAll(ClassFinder.find(classes.getJSONObject(i).getString("name")));
-                testWeights.put(classes.getJSONObject(i).getString("name"),
-                        classes.getJSONObject(i).getDouble("weight"));
+                JSONObject currentClass = classes.getJSONObject(i);
+                String className = currentClass.getString("name");
+                allClasses.addAll(ClassFinder.find(className));
+                testWeights.put(className, currentClass.getDouble("weight"));
             }
 
             // Run the tests
-            GradescopeAutoGrader g = new GradescopeAutoGrader(score, testWeights);
+            GradescopeAutoGrader g = new GradescopeAutoGrader(score, testWeights, dropLowest);
             HashSet<TestRunner> runners = new HashSet<TestRunner>();
-            String testVisibility =
-                    config.getJSONObject("additional_options").getString("test_visibility");
             for (Class<?> c : allClasses) {
-                if (!c.toString().contains("RunAllTests")) {
-                    runners.add(new TestRunner(c, g, testVisibility));
+                if (!(c.toString().contains("RunAllTests")
+                        || c.toString().contains("TestRunner"))) {
+                    try {
+                        TestRunner runner = new TestRunner(c, g, testVisibility);
+                        runners.add(runner);
+                    } catch (NoClassDefFoundError e) {
+                        continue;
+                    }
                 }
             }
             for (TestRunner t : runners) {

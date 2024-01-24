@@ -1,0 +1,31 @@
+{
+  "score": 0,
+  "output": "# Your submission has been successfully uploaded",
+  "output_format": "md",
+  "visibility": "visible",
+  "tests": [
+    {
+      "score": 1,
+      "max_score": 1,
+      "status": "passed",
+      "name": "Starter code download",
+      "output": "Visit this link:",
+      "output_format": "md",
+      "visibility": "visible"
+    },
+    {
+      "status": "passed",
+      "name": "Import instructions",
+      "output": "![Import to Eclipse](https://raw.githubusercontent.com/cm090/gradescope-autograder/main/exam-template/import-instructions.png)",
+      "output_format": "md",
+      "visibility": "visible"
+    },
+    {
+      "status": "passed",
+      "name": "File tool download",
+      "output": "(Grader) Visit this link to download the file tool: [https://link.canon.click/autograder/filetool](https://link.canon.click/autograder/filetool)",
+      "output_format": "md",
+      "visibility": "hidden"
+    }
+  ]
+}

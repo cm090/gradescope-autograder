@@ -1,5 +1,5 @@
 # Gradescope Autograder
-### Template for Rose-Hulman CSSE220
+### Exam Template for Rose-Hulman CSSE220
 
 ## File structure
 - config.json
@@ -7,7 +7,11 @@
     - `classes`: List of test packages and score weights (-1 for no weight)
     - `additional_options.test_visibility`: Whether to show the test results to students (hidden, after_due_date, after_published, visible)
     - `additional_options.timeout_seconds`: How long to run a test before timing out
-    - `additional_options.extra_credit_tests`: Number of extra credit tests (works best when all package weights are -1)
+    - `additional_options.extra_credit_tests`: Number of extra credit tests (all score weights must equal -1)
+    - `additional_options.starter_code_download`: Link for students to download starter code
+    - `additional_options.drop_lowest`: Drops the lowest set of tests (all score weights must equal 0 or -1)
+- download_starter_code_template
+  - Displays instructions and a link to download the starter code
 - results_error_template
   - Displays a message to the student if the autograder fails to run
 - run_autograder
@@ -34,14 +38,12 @@
 
 ## Getting started
 1. Download this repository
-2. Use the [file tool](../file-tool/Csse220FileTool.jar) to automatically generate the autograder zip file. Use the advanced process below if you need to make additional changes.
-3. Open `config.json` and update the contents.
+2. Use the [file tool](../../file-tool/Csse220FileTool.jar) to automatically generate the autograder zip file. Use the advanced process below if you need to make additional changes.
+3. Open `config.json` and update line the contents.
 4. Import Java test files to the `src/` directory. Do not upload starter code or anything else a student should modify.
 5. Zip the contents (everything inside the downloaded folder) and upload to the Gradescope assignment.
 
 ## Questions
-Check out the [resources folder](../resources)
-
-[Example zip files](https://rosehulman-my.sharepoint.com/:f:/g/personal/marandcp_rose-hulman_edu/EgpfrnhiyzJBr26-3P3l8SUBEiQPOKfskVu1R7ZGRhlObQ?e=wIfnKL)
+Check out the [resources folder](../../resources/)
 
 If you need help using this program, contact me [(Canon Maranda)](https://link.canon.click/from/github).

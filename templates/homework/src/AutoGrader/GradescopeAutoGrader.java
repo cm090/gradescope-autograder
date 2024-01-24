@@ -28,12 +28,10 @@ import org.junit.runners.model.InitializationError;
  * package(s) and output the results to results.json
  *
  * @author Canon Maranda
- * @version 5.0
+ * @version 5.1
  * @see https://github.com/cm090/gradescope-autograder
  */
 public class GradescopeAutoGrader {
-    private static String downloadLink;
-
     private Map<Integer, TestData> data;
     private Map<String, Integer> idList;
     private Map<String, Double> testWeights;
@@ -116,10 +114,6 @@ public class GradescopeAutoGrader {
         double totalScore = 0.0;
         boolean bypassScoreCalculation = false;
 
-        tests.add(String.format(
-                "{\"score\": 1, \"max_score\": 1, \"status\": \"passed\", \"name\": \"Starter code download\", \"output\": \"Visit this link: [%s](%s)\", \"output_format\": \"md\", \"visibility\": \"visible\"}",
-                downloadLink, downloadLink));
-
         for (int key : this.data.keySet()) {
             TestData current = this.data.get(key);
             tests.add(String.format(
@@ -137,8 +131,8 @@ public class GradescopeAutoGrader {
                     // Calculate score based on number of tests
                     bypassScoreCalculation = true;
                 }
-                totalScore += (current.grade / current.maxScore) * (currentWeight * current.maxScore
-                        / this.testsCount.getOrDefault(currentName, 1));
+                totalScore += (current.grade * currentWeight)
+                        / this.testsCount.getOrDefault(currentName, 1);
             }
         }
 
@@ -213,8 +207,6 @@ public class GradescopeAutoGrader {
                     config.getJSONObject("additional_options").getInt("extra_credit_amount");
             TestRunner.testTimeoutSeconds =
                     config.getJSONObject("additional_options").getInt("timeout_seconds");
-            downloadLink =
-                    config.getJSONObject("additional_options").getString("starter_code_download");
 
             // Parse the classes in the config file
             HashSet<Class<?>> allClasses = new HashSet<Class<?>>();
@@ -232,8 +224,14 @@ public class GradescopeAutoGrader {
             String testVisibility =
                     config.getJSONObject("additional_options").getString("test_visibility");
             for (Class<?> c : allClasses) {
-                if (!c.toString().contains("RunAllTests")) {
-                    runners.add(new TestRunner(c, g, testVisibility));
+                if (!(c.toString().contains("RunAllTests")
+                        || c.toString().contains("TestRunner"))) {
+                    try {
+                        TestRunner runner = new TestRunner(c, g, testVisibility);
+                        runners.add(runner);
+                    } catch (NoClassDefFoundError e) {
+                        continue;
+                    }
                 }
             }
             for (TestRunner t : runners) {
