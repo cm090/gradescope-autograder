@@ -9,7 +9,7 @@
     - `additional_options.timeout_seconds`: How long to run a test before timing out
     - `additional_options.extra_credit_tests`: Number of extra credit tests (all score weights must equal -1)
     - `additional_options.starter_code_download`: Link for students to download starter code
-    - `additional_options.drop_lowest`: Drops the lowest set of tests (all score weights must equal -1)
+    - `additional_options.drop_lowest`: Drops the lowest set of tests (all score weights must equal 0 or -1)
 - download_starter_code_template
   - Displays instructions and a link to download the starter code
 - results_error_template

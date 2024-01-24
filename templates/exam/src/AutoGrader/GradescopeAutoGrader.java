@@ -29,7 +29,7 @@ import org.junit.runners.model.InitializationError;
  * package(s) and output the results to results.json
  *
  * @author Canon Maranda
- * @version 5.0
+ * @version 5.1
  * @see https://github.com/cm090/gradescope-autograder
  */
 public class GradescopeAutoGrader {
@@ -126,9 +126,17 @@ public class GradescopeAutoGrader {
 
         // Drop the lowest score in a set of tests
         String lowestTest = null;
+        int nonZeroTestClassCount = 0;
+        Set<String> classesToIgnore = new HashSet<String>();
         if (this.dropLowest) {
             double lowestScore = Integer.MAX_VALUE;
             for (TestData current : this.data.values()) {
+                String className = current.name.substring(0, current.name.lastIndexOf("."));
+                if (this.testWeights.get(className) == 0) {
+                    classesToIgnore.add(current.name);
+                    continue;
+                }
+                nonZeroTestClassCount++;
                 if (current.grade < lowestScore) {
                     lowestScore = current.grade;
                     lowestTest = current.name;
@@ -136,6 +144,7 @@ public class GradescopeAutoGrader {
             }
         }
 
+        double pointsPerProblem = this.assignmentTotalScore / (nonZeroTestClassCount - 1);
         for (int key : this.data.keySet()) {
             TestData current = this.data.get(key);
             tests.add(String.format(
@@ -145,9 +154,8 @@ public class GradescopeAutoGrader {
                     (current.output.length() > 0) ? "\"status\": \"failed\"," : "",
                     current.visible));
             if (this.dropLowest) {
-                if (!current.name.equals(lowestTest)) {
-                    totalScore += (current.grade / current.maxScore)
-                            * (this.assignmentTotalScore / (this.data.size() - 1));
+                if (!(current.name.equals(lowestTest) || classesToIgnore.contains(current.name))) {
+                    totalScore += (current.grade / current.maxScore) * pointsPerProblem;
                 }
             } else if (!bypassScoreCalculation) {
                 // Calculate score based on test weight
@@ -256,8 +264,14 @@ public class GradescopeAutoGrader {
             GradescopeAutoGrader g = new GradescopeAutoGrader(score, testWeights, dropLowest);
             HashSet<TestRunner> runners = new HashSet<TestRunner>();
             for (Class<?> c : allClasses) {
-                if (!c.toString().contains("RunAllTests")) {
-                    runners.add(new TestRunner(c, g, testVisibility));
+                if (!(c.toString().contains("RunAllTests")
+                        || c.toString().contains("TestRunner"))) {
+                    try {
+                        TestRunner runner = new TestRunner(c, g, testVisibility);
+                        runners.add(runner);
+                    } catch (NoClassDefFoundError e) {
+                        continue;
+                    }
                 }
             }
             for (TestRunner t : runners) {

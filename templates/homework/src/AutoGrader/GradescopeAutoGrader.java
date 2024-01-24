@@ -28,7 +28,7 @@ import org.junit.runners.model.InitializationError;
  * package(s) and output the results to results.json
  *
  * @author Canon Maranda
- * @version 5.0
+ * @version 5.1
  * @see https://github.com/cm090/gradescope-autograder
  */
 public class GradescopeAutoGrader {
@@ -224,8 +224,14 @@ public class GradescopeAutoGrader {
             String testVisibility =
                     config.getJSONObject("additional_options").getString("test_visibility");
             for (Class<?> c : allClasses) {
-                if (!c.toString().contains("RunAllTests")) {
-                    runners.add(new TestRunner(c, g, testVisibility));
+                if (!(c.toString().contains("RunAllTests")
+                        || c.toString().contains("TestRunner"))) {
+                    try {
+                        TestRunner runner = new TestRunner(c, g, testVisibility);
+                        runners.add(runner);
+                    } catch (NoClassDefFoundError e) {
+                        continue;
+                    }
                 }
             }
             for (TestRunner t : runners) {
