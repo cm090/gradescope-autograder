@@ -5,13 +5,6 @@
   "visibility": "visible",
   "tests": [
     {
-      "status": "passed",
-      "name": "File tool download",
-      "output": "(Grader) Visit this link to download the file tool: [https://link.canon.click/autograder/filetool](https://link.canon.click/autograder/filetool)",
-      "output_format": "md",
-      "visibility": "hidden"
-    },
-    {
       "score": 0.5,
       "max_score": 1,
       "status": "passed",
@@ -19,6 +12,13 @@
       "output": "Visit this link:",
       "output_format": "md",
       "visibility": "visible"
+    },
+    {
+      "status": "passed",
+      "name": "File tool download",
+      "output":"(Grader) Visit this link to download the file tool: [https://link.canon.click/autograder/filetool](https://link.canon.click/autograder/filetool)",
+      "output_format": "md",
+      "visibility": "hidden"
     },
     {
       "status": "passed",
