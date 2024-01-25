@@ -4,7 +4,7 @@
 apt update &> /dev/null
 apt install jq -y &> /dev/null
 
-DOWNLOAD_LINK=$(jq -r '.["download-link"]' config.json) # Link for students to download starter code
+DOWNLOAD_LINK=$(jq -r '.["download-link"]' /autograder/source/config.json) # Link for students to download starter code
 RESULTS_TEMPLATE="results_template_success" # Default to success template
 
 # Check if file names match config
