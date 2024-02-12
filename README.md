@@ -7,4 +7,4 @@ This repository contains the tools used to manage Gradescope assignments for CSS
 - `/rename-tool` Rename folders exported from Gradescope without a template
 - `/templates` The base code required to compile and run the autograder
 
-See [`/template/README.md`](https://github.com/cm090/gradescope-autograder/tree/main/template#readme) for more information
+See [`/templates/homework/README.md`](https://github.com/cm090/gradescope-autograder/tree/main/templates/homework#readme) for more information
