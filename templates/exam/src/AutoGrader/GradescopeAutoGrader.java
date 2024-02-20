@@ -103,10 +103,8 @@ public class GradescopeAutoGrader {
 
     /**
      * Converts map of scores to JSON. Exports to file for Gradescope to analyze.
-     *
-     * @param percentage The percentage of the assignment that the student has completed.
      */
-    void toJSON(double percentage) {
+    void toJson() {
         StringJoiner tests = new StringJoiner(",");
 
         tests.add(String.format(
@@ -125,7 +123,7 @@ public class GradescopeAutoGrader {
             int testsToDrop = this.testWeights.get(className)[1].intValue();
             double scoreMultiplier = packagePoints / (keys.size() - testsToDrop);
 
-            if (testsToDrop == 0 || testsToDrop < 0) {
+            if (testsToDrop <= 0) {
                 // Calculate scores normally
                 // If there are more tests to drop than there are tests, prevent negative scores
                 int testsCount = this.testsCount.getOrDefault(className, 0);
@@ -140,7 +138,9 @@ public class GradescopeAutoGrader {
                             (current.output.length() > 0) ? "\"status\": \"failed\"," : "",
                             current.visible));
                 }
-                totalScore += (testsCount / testsPassed) * packagePoints;
+                if (testsPassed > 0) {
+                    totalScore += (testsCount / testsPassed) * packagePoints;
+                }
             } else {
                 // Drop lowest test classes
                 double testSum = 0;
