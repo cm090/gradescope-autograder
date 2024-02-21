@@ -114,16 +114,18 @@ public class GradescopeAutoGrader {
         double totalScore = 0;
         for (String className : this.testWeights.keySet()) {
             double packagePoints = this.testWeights.get(className)[0];
-            if (packagePoints == 0) {
-                continue;
-            }
             Set<Integer> keys =
                     this.idList.entrySet().stream().filter(e -> e.getKey().startsWith(className))
                             .map(Map.Entry::getValue).collect(Collectors.toSet());
             int testsToDrop = this.testWeights.get(className)[1].intValue();
             double scoreMultiplier = packagePoints / (keys.size() - testsToDrop);
 
-            if (testsToDrop <= 0) {
+            if (packagePoints == 0) {
+                for (int key : keys) {
+                    TestData current = this.data.get(key);
+                    outputTest(tests, current, key);
+                }
+            } else if (testsToDrop <= 0) {
                 // Calculate scores normally
                 // If there are more tests to drop than there are tests, prevent negative scores
                 int testsCount = this.testsCount.getOrDefault(className, 0);
