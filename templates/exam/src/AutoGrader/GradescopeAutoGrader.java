@@ -127,19 +127,14 @@ public class GradescopeAutoGrader {
                 // Calculate scores normally
                 // If there are more tests to drop than there are tests, prevent negative scores
                 int testsCount = this.testsCount.getOrDefault(className, 0);
-                int testsPassed = 0;
+                double testsPassed = 0;
                 for (int key : keys) {
                     TestData current = this.data.get(key);
                     testsPassed += current.grade;
-                    tests.add(String.format(
-                            "{\"score\": %f, \"max_score\": %f, \"name\": \"%s\", \"number\": \"%d\", \"output\": \"%s\", %s \"visibility\": \"%s\"}",
-                            current.grade, current.maxScore, current.name, key,
-                            current.output.replaceAll("\t", " "),
-                            (current.output.length() > 0) ? "\"status\": \"failed\"," : "",
-                            current.visible));
+                    outputTest(tests, current, key);
                 }
                 if (testsPassed > 0) {
-                    totalScore += (testsCount / testsPassed) * packagePoints;
+                    totalScore += (testsPassed / testsCount) * packagePoints;
                 }
             } else {
                 // Drop lowest test classes
@@ -150,12 +145,7 @@ public class GradescopeAutoGrader {
                     double currentScore = current.grade / current.maxScore;
                     testSum += currentScore;
                     testScores.add(currentScore);
-                    tests.add(String.format(
-                            "{\"score\": %f, \"max_score\": %f, \"name\": \"%s\", \"number\": \"%d\", \"output\": \"%s\", %s \"visibility\": \"%s\"}",
-                            current.grade, current.maxScore, current.name, key,
-                            current.output.replaceAll("\t", " "),
-                            (current.output.length() > 0) ? "\"status\": \"failed\"," : "",
-                            current.visible));
+                    outputTest(tests, current, key);
                 }
                 testScores.sort(Double::compareTo);
                 for (int i = 0; i < testsToDrop; i++) {
@@ -170,6 +160,21 @@ public class GradescopeAutoGrader {
                 totalScore, resultMessage.getMessage(), tests);
         output.append(json);
         output.close();
+    }
+
+    /**
+     * Outputs a test to the JSON file
+     * 
+     * @param tests The string joiner to add the test to
+     * @param current The current test
+     * @param key The key of the current test in the map of tests
+     */
+    private void outputTest(StringJoiner tests, TestData current, int key) {
+        tests.add(String.format(
+                "{\"score\": %f, \"max_score\": %f, \"name\": \"%s\", \"number\": \"%d\", \"output\": \"%s\", %s \"visibility\": \"%s\"}",
+                current.grade, current.maxScore, current.name, key,
+                current.output.replaceAll("\t", " "),
+                (current.output.length() > 0) ? "\"status\": \"failed\"," : "", current.visible));
     }
 
     /**
