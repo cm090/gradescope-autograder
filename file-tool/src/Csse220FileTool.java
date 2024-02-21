@@ -37,7 +37,11 @@ public class Csse220FileTool {
 	private static int copyDirTree(Path source, TreeVisitor tc) throws IOException {
 		EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
 		final int MAX_DIR_DEPTH = 20;
-		Files.walkFileTree(source, opts, MAX_DIR_DEPTH, tc);
+		try {
+			Files.walkFileTree(source, opts, MAX_DIR_DEPTH, tc);
+		} catch (Exception e) {
+			throw new IOException("Error copying directory tree", e);
+		}
 		return tc.getNumFilesCopied();
 	}
 
@@ -46,8 +50,8 @@ public class Csse220FileTool {
 	}
 
 	/**
-	 * Adapted file tool for Gradescope exports. Reads the submission_metadata.yml file and renames the
-	 * folders to the student's name and id
+	 * Adapted file tool for Gradescope exports. Reads the submission_metadata.yml file and renames
+	 * the folders to the student's name and id
 	 */
 	public static HashSet<String> copyFolders(File dir, File outputDir, PrintStream output,
 			Lambda copier) throws FileNotFoundException {
@@ -90,7 +94,7 @@ public class Csse220FileTool {
 			} catch (IOException e) {
 				output.printf("Unable to copy files for student %s. Did they submit the correct files?\n",
 						name);
-				failed.add(name);
+				failed.add(name + " (" + id + ")");
 				continue;
 			}
 			output.printf("Copied submission_%d to %s\n", id, outputDirRelative);
@@ -107,7 +111,15 @@ public class Csse220FileTool {
 		}
 
 		if (Files.exists(pathAppend(studentSubmissionDir.toPath(), "submission_metadata.yml"))) {
-			copyFolders(studentSubmissionDir, outputDir, output, (o) -> false);
+			HashSet<String> failed = copyFolders(studentSubmissionDir, outputDir, output, (o) -> false);
+			output.println("-------------------------------------------");
+			output.println("Rename completed successfully.");
+			if (failed.size() > 0) {
+				output.printf("The following students could not be copied:\n");
+				for (String s : failed) {
+					output.println(s);
+				}
+			}
 		}
 	}
 
@@ -140,6 +152,5 @@ public class Csse220FileTool {
 				output.println(s);
 			}
 		}
-		output.println("-------------------------------------------");
 	}
 }

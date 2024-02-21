@@ -130,7 +130,7 @@ class TestRunner extends BlockJUnit4ClassRunner {
                 output.println(
                         "------------------------------------------------------------------");
                 output.close();
-                this.g.toJSON(allPercentagePassed);
+                this.g.toJson();
             }
         }
     }

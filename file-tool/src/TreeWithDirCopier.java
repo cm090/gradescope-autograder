@@ -48,7 +48,7 @@ class TreeWithDirCopier implements TreeVisitor {
 					line = line.trim();
 					int spaceIndex = line.indexOf(" ");
 					packageName = line.substring(spaceIndex + 1);
-					packageName = packageName.replace(";", "");
+					packageName = packageName.substring(0, packageName.indexOf(";"));
 					found = true;
 				}
 			}
