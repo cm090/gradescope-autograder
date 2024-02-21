@@ -94,7 +94,7 @@ public class Csse220FileTool {
 			} catch (IOException e) {
 				output.printf("Unable to copy files for student %s. Did they submit the correct files?\n",
 						name);
-				failed.add(name);
+				failed.add(name + " (" + id + ")");
 				continue;
 			}
 			output.printf("Copied submission_%d to %s\n", id, outputDirRelative);
@@ -152,6 +152,5 @@ public class Csse220FileTool {
 				output.println(s);
 			}
 		}
-		output.println("-------------------------------------------");
 	}
 }
