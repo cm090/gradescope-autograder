@@ -149,9 +149,11 @@ public class GradescopeAutoGrader {
                     testScores.add(currentScore);
                     outputTest(tests, current, key);
                 }
-                testScores.sort(Double::compareTo);
-                for (int i = 0; i < testsToDrop; i++) {
-                    testSum -= testScores.get(i);
+                if (!testScores.isEmpty()) {
+                    testScores.sort(Double::compareTo);
+                    for (int i = 0; i < testsToDrop; i++) {
+                        testSum -= testScores.get(i);
+                    }
                 }
                 totalScore += testSum * scoreMultiplier;
             }

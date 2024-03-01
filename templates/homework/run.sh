@@ -21,6 +21,37 @@ cat results.out
 # If a file is missing, alert the student (false positives are possible)
 if grep -q ".*The import [^ ]* cannot be resolved.*" java.out
 then
-    echo "One or more files are missing. See java.out for details."
+    echo "One or more files are missing. See compiler output for details."
     jq --arg msg "$IMPORT_ERROR" '.output = $msg' /autograder/results/results.json > temp && mv temp /autograder/results/results.json
+fi
+
+# Upload compiler and runtime outputs, if files aren't empty
+OUTPUT_TEXT=""
+if [ -s java.out ]
+then
+    UPLOAD=$(cat java.out | curl -s -X POST https://bpa.st/curl -F 'raw=<-')
+    COMPILER_OUTPUT=$(echo "$UPLOAD" | sed -n 2p | grep -Eo 'https:.*')
+    COMPILER_REMOVE=$(echo "$UPLOAD" | sed -n 3p | grep -Eo 'https:.*')
+    OUTPUT_TEXT+="Compiler output: [$COMPILER_OUTPUT]($COMPILER_OUTPUT) ([remove]($COMPILER_REMOVE))\\n"
+fi
+if [ -s java.stdout ]
+then
+    UPLOAD=$(cat java.stdout | curl -s -X POST https://bpa.st/curl -F 'raw=<-')
+    RUNTIME_OUTPUT=$(echo "$UPLOAD" | sed -n 2p | grep -Eo 'https:.*')
+    RUNTIME_REMOVE=$(echo "$UPLOAD" | sed -n 3p | grep -Eo 'https:.*')
+    OUTPUT_TEXT+="Runtime output: [$RUNTIME_OUTPUT]($RUNTIME_OUTPUT) ([remove]($RUNTIME_REMOVE))"
+fi
+
+# Add links to the results.json file, if they exist
+if [ -n "$OUTPUT_TEXT" ]
+then
+    OUTPUT_JSON="{
+          \"status\": \"passed\",
+          \"name\": \"Console Output (expires after 24 hours)\",
+          \"name_format\": \"md\",
+          \"output\": \"$OUTPUT_TEXT\",
+          \"output_format\": \"md\",
+          \"visibility\": \"hidden\"
+        }"
+    jq --argjson new_test "$OUTPUT_JSON" '.tests += [$new_test]' /autograder/results/results.json > temp && mv temp /autograder/results/results.json
 fi
