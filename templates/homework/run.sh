@@ -48,7 +48,6 @@ then
     OUTPUT_JSON="{
           \"status\": \"passed\",
           \"name\": \"Console Output (expires after 24 hours)\",
-          \"name_format\": \"md\",
           \"output\": \"$OUTPUT_TEXT\",
           \"output_format\": \"md\",
           \"visibility\": \"hidden\"
