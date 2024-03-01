@@ -1,1 +1,3 @@
-# Nothing to set up but Gradescope will complain if this file is missing
+# This is what Gradescope runs first. Start by updating system packages and installing jq
+apt update &> /dev/null
+apt install jq -y &> /dev/null
