@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-apt update &> /dev/null
-apt install jq -y &> /dev/null
-
 # Check if any Java files were submitted
 file_count=$(find submission -type f -name "*.java" | wc -l)
 if [ $file_count -eq 0 ]

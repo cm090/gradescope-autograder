@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-# This is what Gradescope runs first. Start by updating the system and installing required packages
-apt update &> /dev/null
-apt install ecj java-wrappers jq -y &> /dev/null
-
 # Copy the general failure results file just in case
 cp /autograder/source/results_error_template /autograder/results/results.json
 
