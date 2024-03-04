@@ -29,27 +29,22 @@ fi
 OUTPUT_TEXT=""
 if [ -s java.out ]
 then
-    UPLOAD=$(cat java.out | curl -s -X POST https://bpa.st/curl -F 'raw=<-')
-    COMPILER_OUTPUT=$(echo "$UPLOAD" | sed -n 2p | grep -Eo 'https:.*')
-    COMPILER_REMOVE=$(echo "$UPLOAD" | sed -n 3p | grep -Eo 'https:.*')
-    OUTPUT_TEXT+="Compiler output: [$COMPILER_OUTPUT]($COMPILER_OUTPUT) ([remove]($COMPILER_REMOVE))\\n"
+    OUTPUT_TEXT=+"<details><summary><b>Compiler output</b></summary><pre>$(cat java.out)</pre></details>"
 fi
 if [ -s java.stdout ]
 then
-    UPLOAD=$(cat java.stdout | curl -s -X POST https://bpa.st/curl -F 'raw=<-')
-    RUNTIME_OUTPUT=$(echo "$UPLOAD" | sed -n 2p | grep -Eo 'https:.*')
-    RUNTIME_REMOVE=$(echo "$UPLOAD" | sed -n 3p | grep -Eo 'https:.*')
-    OUTPUT_TEXT+="Runtime output: [$RUNTIME_OUTPUT]($RUNTIME_OUTPUT) ([remove]($RUNTIME_REMOVE))"
+    OUTPUT_TEXT+="<details><summary><b>Runtime output</b></summary><pre>$(cat java.stdout)</pre></details>"
 fi
 
 # Add links to the results.json file, if they exist
 if [ -n "$OUTPUT_TEXT" ]
 then
+    OUTPUT_TEXT=$(echo "$OUTPUT_TEXT" | sed -z 's/\n/\\n/g')
     OUTPUT_JSON="{
           \"status\": \"passed\",
-          \"name\": \"Console Output (expires after 24 hours)\",
+          \"name\": \"Console Output\",
           \"output\": \"$OUTPUT_TEXT\",
-          \"output_format\": \"md\",
+          \"output_format\": \"html\",
           \"visibility\": \"hidden\"
         }"
     jq --argjson new_test "$OUTPUT_JSON" '.tests += [$new_test]' /autograder/results/results.json > temp && mv temp /autograder/results/results.json
