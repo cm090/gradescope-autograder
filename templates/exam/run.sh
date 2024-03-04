@@ -29,11 +29,11 @@ fi
 OUTPUT_TEXT=""
 if [ -s java.out ]
 then
-    OUTPUT_TEXT=+"<details><summary><b>Compiler output</b></summary><pre>$(cat java.out)</pre></details>"
+    OUTPUT_TEXT=+"<details><summary>Compiler output</summary><pre>$(cat java.out)</pre></details>"
 fi
 if [ -s java.stdout ]
 then
-    OUTPUT_TEXT+="<details><summary><b>Runtime output</b></summary><pre>$(cat java.stdout)</pre></details>"
+    OUTPUT_TEXT+="<details><summary>Runtime output</summary><pre>$(cat java.stdout)</pre></details>"
 fi
 
 # Add links to the results.json file, if they exist
