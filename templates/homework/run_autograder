@@ -12,7 +12,7 @@ do
     if [[ "$pkg" != *"Test"* ]] && [[ "$file" != *"RunAllTests"* ]]
     then
         mkdir /autograder/source/src/$pkg &> /dev/null
-        cp -n $file /autograder/source/src/$pkg
+        cp -n $file /autograder/source/src/$pkg &> /dev/null
     fi
 done
 
