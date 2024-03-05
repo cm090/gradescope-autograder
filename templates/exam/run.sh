@@ -29,7 +29,7 @@ fi
 OUTPUT_TEXT=""
 if [ -s java.out ]
 then
-    OUTPUT_TEXT=+"<details><summary>Compiler output</summary><pre>$(cat java.out)</pre></details>"
+    OUTPUT_TEXT+="<details><summary>Compiler output</summary><pre>$(cat java.out)</pre></details>"
 fi
 if [ -s java.stdout ]
 then
@@ -39,7 +39,7 @@ fi
 # Add links to the results.json file, if they exist
 if [ -n "$OUTPUT_TEXT" ]
 then
-    OUTPUT_TEXT=$(echo "$OUTPUT_TEXT" | sed -z 's/\n/\\n/g')
+    OUTPUT_TEXT=$(echo "$OUTPUT_TEXT" | sed -z 's/\n/\\n/g' | sed -z 's/\"/\\"/g')
     OUTPUT_JSON="{
           \"status\": \"passed\",
           \"name\": \"Console Output\",

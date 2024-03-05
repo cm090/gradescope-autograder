@@ -13,8 +13,6 @@ then
 fi
 
 # Continue if this isn't the first submission
-apt install ecj java-wrappers -y &> /dev/null
-
 # Copy the general failure results file just in case
 output=$(jq -r '.tests[0].output' /autograder/source/results_error_template)
 jq --arg data "$output [$DOWNLOAD_LINK]($DOWNLOAD_LINK)" '.tests[0].output = $data' /autograder/source/results_error_template > /autograder/results/results.json
@@ -28,7 +26,7 @@ do
     if [[ "$pkg" != *"Test"* ]] && [[ "$file" != *"RunAllTests"* ]]
     then
         mkdir /autograder/source/src/$pkg &> /dev/null
-        cp -n $file /autograder/source/src/$pkg
+        cp -n $file /autograder/source/src/$pkg &> /dev/null
     fi
 done
 
