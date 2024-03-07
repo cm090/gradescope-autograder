@@ -43,7 +43,7 @@ then
     OUTPUT_JSON="{
           \"status\": \"passed\",
           \"name\": \"Console Output\",
-          \"output\": \"$(echo $OUTPUT_TEXT)\",
+          \"output\": \"$OUTPUT_TEXT\",
           \"output_format\": \"html\",
           \"visibility\": \"hidden\"
         }"
