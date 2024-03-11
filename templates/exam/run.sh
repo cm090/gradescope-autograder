@@ -39,11 +39,10 @@ fi
 # Add links to the results.json file, if they exist
 if [ -n "$OUTPUT_TEXT" ]
 then
-    OUTPUT_TEXT=$(echo "$OUTPUT_TEXT" | sed -z 's/\n/\\n/g' | sed -z 's/\"/\\"/g')
     OUTPUT_JSON="{
           \"status\": \"passed\",
           \"name\": \"Console Output\",
-          \"output\": \"$OUTPUT_TEXT\",
+          \"output\": $(jo out="$OUTPUT_TEXT" | jq .out),
           \"output_format\": \"html\",
           \"visibility\": \"hidden\"
         }"
