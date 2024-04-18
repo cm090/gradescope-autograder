@@ -6,7 +6,7 @@ RESULTS_TEMPLATE="results_template_success" # Default to success template
 # Check if file names match config
 missing_files=()
 while read -r required_file; do
-    if [ ! -f "submission/$required_file" ]
+    if [ -z "$(find submission -type f -iname "$required_file")" ]
     then
         missing_files+=("$required_file")
     fi
@@ -22,7 +22,7 @@ then
         RESULTS_TEMPLATE="download_starter_code_template"
     else
         # Not the first submission
-        file_count=$(find submission -type f -name "*.java" | wc -l)
+        file_count=$(find submission -type f -iname "*.java" | wc -l)
         if [ $file_count -eq 0 ]
         then
             RESULTS_TEMPLATE="results_template_no_java_files"

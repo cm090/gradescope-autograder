@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Check if any Java files were submitted
-file_count=$(find submission -type f -name "*.java" | wc -l)
+file_count=$(find submission -type f -iname "*.java" | wc -l)
 if [ $file_count -eq 0 ]
 then
     cp /autograder/source/results_template_no_java_files /autograder/results/results.json
@@ -11,7 +11,7 @@ fi
 # Check if file names match config
 missing_files=()
 while read -r required_file; do
-    if [ ! -f "submission/$required_file" ]
+    if [ -z "$(find submission -type f -iname "$required_file")" ]
     then
         missing_files+=("$required_file")
     fi
