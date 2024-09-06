@@ -1,30 +1,26 @@
 #!/usr/bin/env bash
 
 DOWNLOAD_LINK=$(jq -r '.["download-link"]' /autograder/source/config.json) # Link for students to download starter code
-RESULTS_TEMPLATE="results_template_success" # Default to success template
+RESULTS_TEMPLATE="results_template_success"                                # Default to success template
 
 # Check if file names match config
 missing_files=()
 while read -r required_file; do
-    if [ -z "$(find submission -type f -iname "$required_file")" ]
-    then
+    if [ -z "$(find submission -type f -iname "$required_file")" ]; then
         missing_files+=("$required_file")
     fi
 done < <(jq -r '.["required-files"][]' /autograder/source/config.json)
 
-if [ ${#missing_files[@]} -gt 0 ]
-then
+if [ ${#missing_files[@]} -gt 0 ]; then
     # Missing .java files
     prev=$(jq '.previous_submissions' submission_metadata.json)
-    if [ "$prev" == "[]" ] && [ ${#missing_files[@]} -eq $(jq -r '.["required-files"] | length' /autograder/source/config.json) ]
-    then
+    if [ "$prev" == "[]" ] && [ ${#missing_files[@]} -eq $(jq -r '.["required-files"] | length' /autograder/source/config.json) ]; then
         # First submission and no required files submitted
         RESULTS_TEMPLATE="download_starter_code_template"
     else
         # Not the first submission
         file_count=$(find submission -type f -iname "*.java" | wc -l)
-        if [ $file_count -eq 0 ]
-        then
+        if [ $file_count -eq 0 ]; then
             RESULTS_TEMPLATE="results_template_no_java_files"
         else
             RESULTS_TEMPLATE="results_template_missing_files"
@@ -39,4 +35,4 @@ fi
 
 cd /autograder/source
 output=$(jq -r '.tests[0].output' $RESULTS_TEMPLATE)
-jq --arg data "$output [$DOWNLOAD_LINK]($DOWNLOAD_LINK)" '.tests[0].output = $data' $RESULTS_TEMPLATE > /autograder/results/results.json
+jq --arg data "$output [$DOWNLOAD_LINK]($DOWNLOAD_LINK)" '.tests[0].output = $data' $RESULTS_TEMPLATE >/autograder/results/results.json
