@@ -6,13 +6,22 @@ RESULTS_TEMPLATE="results_template_success"                                # Def
 # Check if file names match config
 missing_files=()
 while read -r required_file; do
-    if [ -z "$(find submission -type f -iname "$required_file")" ]; then
+    matches=$(find submission -type f -iname "$required_file")
+    if [ -z $matches ]; then
         missing_files+=("$required_file")
+    else
+        # Remove file from directory if found
+        mkdir -p tmp
+        mv $matches tmp/
     fi
-done < <(jq -r '.["required-files"][]' /autograder/source/config.json)
+done < <(jq -r '.["required-files"][]' /autograder/source/config.json | sort -r)
+
+# Restore submission directory
+mv tmp/* submission/
+rmdir tmp
 
 if [ ${#missing_files[@]} -gt 0 ]; then
-    # Missing .java files
+    # Missing files
     prev=$(jq '.previous_submissions' submission_metadata.json)
     if [ "$prev" == "[]" ] && [ ${#missing_files[@]} -eq $(jq -r '.["required-files"] | length' /autograder/source/config.json) ]; then
         # First submission and no required files submitted
