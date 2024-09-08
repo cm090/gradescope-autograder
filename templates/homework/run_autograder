@@ -4,22 +4,20 @@
 cp /autograder/source/results_error_template /autograder/results/results.json
 
 # Copy student code to source directory. Ignores all files with "Test" or "RunAllTests" in the name
-for file in /autograder/submission/*
-do
+for file in /autograder/submission/*; do
     file=${file##*./}
     pkg=$(head -1 $file | cut -d " " -f 2 | cut -d ";" -f 1)
     pkg=$(echo "$pkg" | sed 's/\./\//g')
-    if [[ "$pkg" != *"Test"* ]] && [[ "$file" != *"RunAllTests"* ]]
-    then
-        mkdir /autograder/source/src/$pkg &> /dev/null
-        cp -n $file /autograder/source/src/$pkg &> /dev/null
+    if [[ "$pkg" != *"Test"* ]] && [[ "$file" != *"RunAllTests"* ]]; then
+        mkdir /autograder/source/src/$pkg &>/dev/null
+        cp -n $file /autograder/source/src/$pkg &>/dev/null
     fi
 done
 
 # Prepare for compilation
 cd /autograder/source
-mkdir bin &> /dev/null
+mkdir bin &>/dev/null
 
 # Run compilation script
-dos2unix ./run.sh &> /dev/null
+dos2unix ./run.sh &>/dev/null
 bash ./run.sh
