@@ -5,8 +5,6 @@
   "visibility": "visible",
   "tests": [
     {
-      "score": 1,
-      "max_score": 1,
       "status": "passed",
       "name": "Starter code download",
       "output": "Visit this link:",
@@ -26,6 +24,24 @@
       "output": "(Grader) Visit this link to download the file tool: [https://link.canon.click/autograder/filetool](https://link.canon.click/autograder/filetool)",
       "output_format": "md",
       "visibility": "hidden"
+    },
+    {
+      "name": "Started but not submitted",
+      "visibility": "hidden",
+      "score": 0,
+      "max_score": 1
+    },
+    {
+      "name": "Submitted with failures",
+      "visibility": "hidden",
+      "score": 0,
+      "max_score": 1
+    },
+    {
+      "name": "Submitted successfully",
+      "visibility": "hidden",
+      "score": 1,
+      "max_score": 1
     }
   ]
 }

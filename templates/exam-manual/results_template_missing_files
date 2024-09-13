@@ -5,8 +5,6 @@
   "visibility": "visible",
   "tests": [
     {
-      "score": 0.5,
-      "max_score": 1,
       "status": "passed",
       "name": "Starter code download",
       "output": "Visit this link:",
@@ -26,6 +24,24 @@
       "output": "![Import to Eclipse](https://raw.githubusercontent.com/cm090/gradescope-autograder/main/templates/exam/import-instructions.png)",
       "output_format": "md",
       "visibility": "visible"
+    },
+    {
+      "name": "Started but not submitted",
+      "visibility": "hidden",
+      "score": 0,
+      "max_score": 1
+    },
+    {
+      "name": "Submitted with failures",
+      "visibility": "hidden",
+      "score": 1,
+      "max_score": 1
+    },
+    {
+      "name": "Submitted successfully",
+      "visibility": "hidden",
+      "score": 0,
+      "max_score": 1
     }
   ]
 }
