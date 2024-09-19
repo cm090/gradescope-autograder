@@ -64,7 +64,7 @@ public class FileToolCli {
       Map<String, Object> submission = (Map<String, Object>) o.get(s);
       @SuppressWarnings("unchecked")
       Map<String, Object> userData =
-          ((Map<String, Object>) ((ArrayList<Object>) submission.get(":submitters")).getFirst());
+          ((Map<String, Object>) ((ArrayList<Object>) submission.get(":submitters")).get(0));
       String name =
           Normalizer.normalize((String) userData.get(":name"), Form.NFD).replaceAll("\\p{M}", "");
       String sid = "";
