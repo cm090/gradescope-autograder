@@ -23,7 +23,7 @@
                 <configuration>
                     <archive>
                         <manifest>
-                            <mainClass>rhit.Main</mainClass>
+                            <mainClass>rhit.presentation.AutograderBuilder</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>
