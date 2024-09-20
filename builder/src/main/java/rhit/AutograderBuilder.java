@@ -28,6 +28,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import org.apache.commons.io.FileUtils;
 
 public class AutograderBuilder {
@@ -41,8 +42,7 @@ public class AutograderBuilder {
   private File[] homeworkSubDirectories;
 
   public AutograderBuilder(JButton homeworkDirButton, JTextArea outputArea,
-                           JButton templateDirButton, JButton compileDirButton, JButton startButton,
-                           JFrame frame) {
+      JButton templateDirButton, JButton compileDirButton, JButton startButton, JFrame frame) {
     this.homeworkDirButton = homeworkDirButton;
     this.outputArea = outputArea;
     this.templateDirButton = templateDirButton;
@@ -75,6 +75,15 @@ public class AutograderBuilder {
     File templateDir = new File(templateDirButton.getText());
     File compileDir = new File(compileDirButton.getText());
 
+    if (!templateDir.exists() || !templateDir.isDirectory()) {
+      outputArea.append("Template directory does not exist or is not a directory.\n");
+      return;
+    }
+    if (!compileDir.exists() && !compileDir.mkdirs()) {
+      outputArea.append("Failed to create compile directory.\n");
+      return;
+    }
+
     copyTemplateDir(templateDir, compileDir);
 
     copyHomeworkTestFiles(homeworkSubDirectories, compileDir);
@@ -87,7 +96,7 @@ public class AutograderBuilder {
     try {
       Desktop.getDesktop().open(compileDir);
     } catch (IOException e) {
-      System.err.println("Error opening output directory: " + e.getMessage());
+      outputArea.append("Error opening output directory: " + e.getMessage() + "\n");
     }
   }
 
@@ -95,7 +104,7 @@ public class AutograderBuilder {
    * Copies the template directory to the output directory.
    *
    * @param templateDir the template directory
-   * @param compileDir  the output directory
+   * @param compileDir the output directory
    */
   private void copyTemplateDir(File templateDir, File compileDir) {
     try {
@@ -111,14 +120,19 @@ public class AutograderBuilder {
    * Copies the test files from the homework directory to the output directory.
    *
    * @param homeworkSubDirectories the subdirectories of the homework directory
-   * @param compileDir             the output directory
+   * @param compileDir the output directory
    */
   private void copyHomeworkTestFiles(File[] homeworkSubDirectories, File compileDir) {
     homeworkSubDirectories =
         Arrays.stream(homeworkSubDirectories).filter(Objects::nonNull).toArray(File[]::new);
     System.out.println(Arrays.toString(homeworkSubDirectories));
     for (File dir : homeworkSubDirectories) {
-      for (File f : Objects.requireNonNull(dir.listFiles())) {
+      File[] files = dir.listFiles();
+      if (files == null) {
+        outputArea.append("Failed to list files in directory: " + dir.getName() + "\n");
+        continue;
+      }
+      for (File f : files) {
         if (f.toString().toLowerCase().contains("test") && !f.isDirectory()) {
           File out = new File(compileDir, "src/" + dir.getName() + '/' + f.getName());
           try {
@@ -142,7 +156,9 @@ public class AutograderBuilder {
         sb.append("{ \"name\": \"").append(className).append("\", \"weight\": ")
             .append(testClasses.get(className)).append(" },\n");
       }
-      sb.deleteCharAt(sb.length() - 2);
+      if (sb.length() >= 2 && sb.charAt(sb.length() - 2) == ',') {
+        sb.deleteCharAt(sb.length() - 2);
+      }
       sb.append("]\n}");
       FileWriter fw = new FileWriter(runnerFile);
       fw.write(sb.toString());
@@ -163,16 +179,15 @@ public class AutograderBuilder {
     Path folder = compileDir.toPath();
     Path zipFilePath = new File(compileDir, "autograder.zip").toPath();
     try {
-      FileOutputStream fos = new FileOutputStream(zipFilePath.toFile());
-      try (fos; ZipOutputStream zos = new ZipOutputStream(fos)) {
+      try (FileOutputStream fos = new FileOutputStream(zipFilePath.toFile());
+          ZipOutputStream zos = new ZipOutputStream(fos)) {
         Files.walkFileTree(folder, new SimpleFileVisitor<>() {
           public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
               throws IOException {
             if (file.toString().contains("autograder.zip")) {
               return FileVisitResult.CONTINUE;
             }
-            zos.putNextEntry(new ZipEntry(
-                folder.relativize(file).toString().replace("\\", "/")));
+            zos.putNextEntry(new ZipEntry(folder.relativize(file).toString().replace("\\", "/")));
             Files.copy(file, zos);
             zos.closeEntry();
             return FileVisitResult.CONTINUE;
@@ -192,8 +207,7 @@ public class AutograderBuilder {
   void prepareTestClassesList() {
     testClasses = new HashMap<>();
     File homeworkDir = new File(homeworkDirButton.getText() + "/src");
-    homeworkSubDirectories =
-        homeworkDir.listFiles(File::isDirectory);
+    homeworkSubDirectories = homeworkDir.listFiles(File::isDirectory);
     if (homeworkSubDirectories != null) {
       for (File dir : homeworkSubDirectories) {
         if (dir.isDirectory() && dir.getName().toLowerCase().contains("test")) {
@@ -207,30 +221,33 @@ public class AutograderBuilder {
           "No Test Classes Found", JOptionPane.WARNING_MESSAGE);
       return;
     }
-    JFrame classSelect = new JFrame("Select Test Classes");
-    classSelect.setLayout(new GridLayout(testClasses.size() + 2, 1));
-    classSelect.add(new JLabel("Select test classes and point values (-1 for default):"));
-    JCheckBox[] boxes = new JCheckBox[testClasses.size()];
-    JTextField[] fields = new JTextField[testClasses.size()];
-    ArrayList<String> testClassesList = new ArrayList<>(testClasses.keySet());
-    for (int i = 0; i < testClasses.size(); i++) {
-      boxes[i] = new JCheckBox(testClassesList.get(i));
-      boxes[i].setSelected(true);
-      fields[i] = new JFormattedTextField();
-      fields[i].setText("-1");
-      JPanel option = new JPanel();
-      option.setLayout(new GridLayout(1, 2));
-      option.add(boxes[i]);
-      option.add(fields[i]);
-      option.setVisible(true);
-      classSelect.add(option);
-    }
-    JButton submit = createSubmitButton(boxes, fields, classSelect);
-    classSelect.add(submit);
-    classSelect.pack();
-    classSelect.setMinimumSize(new Dimension(350, 100));
-    classSelect.setLocationRelativeTo(frame);
-    classSelect.setVisible(true);
+
+    SwingUtilities.invokeLater(() -> {
+      JFrame classSelect = new JFrame("Select Test Classes");
+      classSelect.setLayout(new GridLayout(testClasses.size() + 2, 1));
+      classSelect.add(new JLabel("Select test classes and point values (-1 for default):"));
+      JCheckBox[] boxes = new JCheckBox[testClasses.size()];
+      JTextField[] fields = new JTextField[testClasses.size()];
+      ArrayList<String> testClassesList = new ArrayList<>(testClasses.keySet());
+      for (int i = 0; i < testClasses.size(); i++) {
+        boxes[i] = new JCheckBox(testClassesList.get(i));
+        boxes[i].setSelected(true);
+        fields[i] = new JFormattedTextField();
+        fields[i].setText("-1");
+        JPanel option = new JPanel();
+        option.setLayout(new GridLayout(1, 2));
+        option.add(boxes[i]);
+        option.add(fields[i]);
+        option.setVisible(true);
+        classSelect.add(option);
+      }
+      JButton submit = createSubmitButton(boxes, fields, classSelect);
+      classSelect.add(submit);
+      classSelect.pack();
+      classSelect.setMinimumSize(new Dimension(350, 100));
+      classSelect.setLocationRelativeTo(frame);
+      classSelect.setVisible(true);
+    });
   }
 
   private JButton createSubmitButton(JCheckBox[] boxes, JTextField[] fields, JFrame classSelect) {
@@ -246,7 +263,16 @@ public class AutograderBuilder {
             }
           }
         } else {
-          testClasses.put(boxes[i].getText(), Double.parseDouble(fields[i].getText()));
+          String weightText = fields[i].getText();
+          try {
+            double weight = Double.parseDouble(weightText);
+            testClasses.put(boxes[i].getText(), weight);
+          } catch (NumberFormatException ex) {
+            JOptionPane.showMessageDialog(classSelect,
+                "Invalid weight for " + boxes[i].getText() + ". Please enter a valid number.",
+                "Input Error", JOptionPane.ERROR_MESSAGE);
+            return;
+          }
         }
       }
       classSelect.dispose();

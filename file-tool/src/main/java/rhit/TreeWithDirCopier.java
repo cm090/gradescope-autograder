@@ -42,26 +42,25 @@ class TreeWithDirCopier implements TreeVisitor {
   @Override
   public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
     // first, read the file to see package info
-    InputStream in = null;
     String packageName = null;
     boolean found = false;
-    try {
-      in = Files.newInputStream(file);
-      BufferedReader reader = new BufferedReader(new InputStreamReader(in));
-
+    try (InputStream in = Files.newInputStream(file);
+        BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
       String line;
       while ((line = reader.readLine()) != null && !found) {
         if (line.trim().startsWith("package")) {
           line = line.trim();
           int spaceIndex = line.indexOf(" ");
           packageName = line.substring(spaceIndex + 1);
-          packageName = packageName.substring(0, packageName.indexOf(";"));
-          found = true;
+          int semicolonIndex = packageName.indexOf(";");
+          if (semicolonIndex != -1) {
+            packageName = packageName.substring(0, semicolonIndex);
+            found = true;
+          } else {
+            reader.close();
+            throw new IOException("Invalid package declaration in file: " + file);
+          }
         }
-      }
-    } finally {
-      if (in != null) {
-        in.close();
       }
     }
 
@@ -82,7 +81,7 @@ class TreeWithDirCopier implements TreeVisitor {
       }
 
       // add the file name to the end of the path.
-      p = p.resolve(target.resolve(source.relativize(file)).getFileName());
+      p = p.resolve(file.getFileName());
 
     } else {
       // otherwise, set p to the absolute path to the src directory
