@@ -1,3 +1,5 @@
+package rhit;
+
 import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 

@@ -1,0 +1,36 @@
+name: Publish JARs to release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+          cache: maven
+      - name: Builder tool
+        run: |
+          cd builder
+          mvn clean compile assembly:single
+          mv target/*.jar ../AutograderBuilder.jar
+          cd ..
+      - name: File tool
+        run: |
+          cd file-tool
+          mvn clean compile assembly:single
+          mv target/*.jar ../AutograderFileTool.jar
+          cd ..
+      - name: Publish to release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release delete "latest" -y --cleanup-tag
+          gh release create "latest" -t "Autograder Tools" ./AutograderBuilder.jar ./AutograderFileTool.jar
