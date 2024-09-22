@@ -1,13 +1,11 @@
 package rhit.domain;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public class BuilderData {
   private String templateDir;
-
-  public String getTemplateDir() {
-    return templateDir;
-  }
-
-  public void setTemplateDir(String templateDir) {
-    this.templateDir = templateDir;
-  }
+  private TemplateType templateType;
 }
