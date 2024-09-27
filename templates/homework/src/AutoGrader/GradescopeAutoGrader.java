@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.StringJoiner;
+import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.json.JSONArray;
@@ -28,7 +28,6 @@ import org.junit.runners.model.InitializationError;
  * package(s) and output the results to results.json
  *
  * @author Canon Maranda
- * @version 5.1
  * @see https://github.com/cm090/gradescope-autograder
  */
 public class GradescopeAutoGrader {
@@ -60,7 +59,6 @@ public class GradescopeAutoGrader {
      * Adds a test file to the map of tests.
      *
      * @param name The name of the test
-     * @param maxScore The maximum score a student can get on the test
      * @param visibility "hidden", "after_due_date", "after_published", or "visible"
      */
     void addTest(String name, String visibility) {
@@ -70,10 +68,11 @@ public class GradescopeAutoGrader {
     }
 
     /**
-     * Adds a result to an already existing test. takes in a name and number of points.
+     * Adds a result to an already existing test.
      *
      * @param name The name of the test
-     * @param grade The grade the student received on the test
+     * @param numTests The number of tests that were run
+     * @param numFailed The number of tests that failed
      */
     void addResult(String name, int numTests, int numFailed) {
         TestData current = this.data.get(idList.get(name));
@@ -88,8 +87,7 @@ public class GradescopeAutoGrader {
     }
 
     /**
-     * This function takes in a name and output, and adds the output to that of the test with the
-     * given name
+     * Logs a test failure and displays the output to the student.
      *
      * @param name The name of the test
      * @param output The output of the test
@@ -98,7 +96,7 @@ public class GradescopeAutoGrader {
         TestData current = data.get(idList.get(name));
         StringBuilder sb = new StringBuilder(current.output);
         sb.append(output.replaceAll("\\(.*\\):", "").replaceAll("\n", " ").replaceAll("\\P{Print}",
-                "")).append("\\n");
+                "")).append("\n");
         current.output = sb.toString();
         current.visible = "visible";
     }
@@ -108,39 +106,50 @@ public class GradescopeAutoGrader {
      *
      * @param percentage The percentage of the assignment that the student has completed.
      */
-    void toJSON(double percentage) {
+    void toJson(double percentage) {
         percentage /= 100.0;
-        StringJoiner tests = new StringJoiner(",");
         double totalScore = 0.0;
         boolean bypassScoreCalculation = false;
+        JSONObject json = new JSONObject();
+        JSONArray tests = new JSONArray();
 
-        for (int key : this.data.keySet()) {
-            TestData current = this.data.get(key);
-            tests.add(String.format(
-                    "{\"score\": %f, \"max_score\": %f, \"name\": \"%s\", \"number\": \"%d\", \"output\": \"%s\", %s \"visibility\": \"%s\"}",
-                    current.grade, current.maxScore, current.name, key,
-                    current.output.replaceAll("\t", " "),
-                    (current.output.length() > 0) ? "\"status\": \"failed\"," : "",
-                    current.visible));
+        for (Entry<Integer, TestData> entry : this.data.entrySet()) {
+            JSONObject test = new JSONObject();
+            test.put("score", entry.getValue().grade);
+            test.put("max_score", entry.getValue().maxScore);
+            test.put("name", entry.getValue().name);
+            test.put("number", entry.getKey());
+            test.put("output", entry.getValue().output.replaceAll("\t", " "));
+            test.put("visibility", entry.getValue().visible);
+            if (entry.getValue().output.length() > 0) {
+                test.put("status", "failed");
+            }
+            tests.put(test);
+
             if (!bypassScoreCalculation) {
                 // Calculate score based on test weight
-                String currentName = current.name.indexOf(".") == -1 ? current.name
-                        : current.name.substring(0, current.name.lastIndexOf("."));
+                String currentName =
+                        entry.getValue().name.indexOf(".") == -1 ? entry.getValue().name
+                                : entry.getValue().name.substring(0,
+                                        entry.getValue().name.lastIndexOf("."));
                 double currentWeight = testWeights.get(currentName);
                 if (currentWeight < 0) {
                     // Calculate score based on number of tests
                     bypassScoreCalculation = true;
                 }
-                totalScore += (current.grade * currentWeight)
+                totalScore += (entry.getValue().grade * currentWeight)
                         / this.testsCount.getOrDefault(currentName, 1);
             }
         }
 
-        String json = String.format(
-                "{ \"score\": %.2f, \"output\": \"%s\", \"output_format\": \"md\", \"visibility\": \"visible\", \"tests\":[%s]}",
-                bypassScoreCalculation ? percentage * this.assignmentTotalScore : totalScore,
-                resultMessage.getMessage(), tests);
-        output.append(json);
+        json.put("score",
+                bypassScoreCalculation ? percentage * this.assignmentTotalScore : totalScore);
+        json.put("output", resultMessage.getMessage());
+        json.put("output_format", "md");
+        json.put("visibility", "visible");
+        json.put("tests", tests);
+
+        output.append(json.toString());
         output.close();
     }
 
