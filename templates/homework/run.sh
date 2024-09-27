@@ -15,8 +15,7 @@ ecj -cp lib/hamcrest-core-1.3.jar:lib/junit-4.13.2.jar:lib/json-20231013.jar -d 
 java -cp bin/:lib/* AutoGrader.GradescopeAutoGrader $CONFIG_FILE &>java.stdout
 
 # Parse results as JSON and confirm successful operation
-json_pp <results.json >results.json.tmp
-if [ $? -eq 0 ]; then
+if json_pp <results.json >results.json.tmp; then
     mv results.json.tmp /autograder/results/results.json
 fi
 
