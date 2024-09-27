@@ -13,7 +13,12 @@ shopt -s globstar &>/dev/null
 # Allows us to compile code while ignoring errors (very important)
 ecj -cp lib/hamcrest-core-1.3.jar:lib/junit-4.13.2.jar:lib/json-20231013.jar -d bin/ -Xlint -nowarn -1.9 -proceedOnError src/ &>java.out
 java -cp bin/:lib/* AutoGrader.GradescopeAutoGrader $CONFIG_FILE &>java.stdout
-json_pp <results.json >/autograder/results/results.json
+
+# Parse results as JSON and confirm successful operation
+json_pp <results.json >results.json.tmp
+if [ $? -eq 0 ]; then
+    mv results.json.tmp /autograder/results/results.json
+fi
 
 # TestRunner.java will throw results to this file. Cleans the output for Gradescope
 cat results.out
