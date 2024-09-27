@@ -14,7 +14,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.StringJoiner;
 import java.util.stream.Collectors;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,7 +25,6 @@ import org.junit.runners.model.InitializationError;
  * package(s) and output the results to results.json
  *
  * @author Canon Maranda
- * @version 5.2
  * @see https://github.com/cm090/gradescope-autograder
  */
 public class GradescopeAutoGrader {
@@ -58,7 +56,6 @@ public class GradescopeAutoGrader {
      * Adds a test file to the map of tests.
      *
      * @param name The name of the test
-     * @param maxScore The maximum score a student can get on the test
      * @param visibility "hidden", "after_due_date", "after_published", or "visible"
      */
     void addTest(String name, String visibility) {
@@ -68,10 +65,11 @@ public class GradescopeAutoGrader {
     }
 
     /**
-     * Adds a result to an already existing test. takes in a name and number of points.
+     * Adds a result to an already existing test.
      *
      * @param name The name of the test
-     * @param grade The grade the student received on the test
+     * @param numTests The number of tests that were run
+     * @param numFailed The number of tests that failed
      */
     void addResult(String name, int numTests, int numFailed) {
         TestData current = this.data.get(idList.get(name));
@@ -86,8 +84,7 @@ public class GradescopeAutoGrader {
     }
 
     /**
-     * This function takes in a name and output, and adds the output to that of the test with the
-     * given name
+     * Logs a test failure and displays the output to the student.
      *
      * @param name The name of the test
      * @param output The output of the test
@@ -96,7 +93,7 @@ public class GradescopeAutoGrader {
         TestData current = data.get(idList.get(name));
         StringBuilder sb = new StringBuilder(current.output);
         sb.append(output.replaceAll("\\(.*\\):", "").replaceAll("\n", " ").replaceAll("\\P{Print}",
-                "")).append("\\n");
+                "")).append("\n");
         current.output = sb.toString();
         current.visible = "visible";
     }
@@ -105,14 +102,12 @@ public class GradescopeAutoGrader {
      * Converts map of scores to JSON. Exports to file for Gradescope to analyze.
      */
     void toJson() {
-        StringJoiner tests = new StringJoiner(",");
-
-        tests.add(String.format(
-                "{\"score\": 1, \"max_score\": 1, \"status\": \"passed\", \"name\": \"Starter code download\", \"output\": \"Visit this link: [%s](%s)\", \"output_format\": \"md\", \"visibility\": \"visible\"}",
-                downloadLink, downloadLink));
-
+        JSONObject json = new JSONObject();
+        JSONArray tests = new JSONArray();
         double totalScore = 0;
-        for (String className : this.testWeights.keySet()) {
+
+        tests.put(createDownloadLink());
+        for (String className : testWeights.keySet()) {
             double packagePoints = this.testWeights.get(className)[0];
             Set<Integer> keys =
                     this.idList.entrySet().stream().filter(e -> e.getKey().startsWith(className))
@@ -159,26 +154,53 @@ public class GradescopeAutoGrader {
             }
         }
 
-        String json = String.format(
-                "{ \"score\": %.2f, \"output\": \"%s\", \"output_format\": \"md\", \"visibility\": \"visible\", \"tests\":[%s]}",
-                totalScore, resultMessage.getMessage(), tests);
-        output.append(json);
+        json.put("score", totalScore);
+        json.put("output", resultMessage.getMessage());
+        json.put("output_format", "md");
+        json.put("visibility", "visible");
+        json.put("tests", tests);
+
+        output.append(json.toString());
         output.close();
+    }
+
+    /**
+     * Creates a download link for the starter code
+     * 
+     * @return The JSON object for the download link
+     */
+    private JSONObject createDownloadLink() {
+        JSONObject download = new JSONObject();
+        download.put("score", 1);
+        download.put("max_score", 1);
+        download.put("status", "passed");
+        download.put("name", "Starter code download");
+        download.put("output",
+                String.format("Visit this link: [%s](%s)", downloadLink, downloadLink));
+        download.put("output_format", "md");
+        download.put("visibility", "visible");
+        return download;
     }
 
     /**
      * Outputs a test to the JSON file
      * 
-     * @param tests The string joiner to add the test to
+     * @param tests The array to add the test to
      * @param current The current test
      * @param key The key of the current test in the map of tests
      */
-    private void outputTest(StringJoiner tests, TestData current, int key) {
-        tests.add(String.format(
-                "{\"score\": %f, \"max_score\": %f, \"name\": \"%s\", \"number\": \"%d\", \"output\": \"%s\", %s \"visibility\": \"%s\"}",
-                current.grade, current.maxScore, current.name, key,
-                current.output.replaceAll("\t", " "),
-                (current.output.length() > 0) ? "\"status\": \"failed\"," : "", current.visible));
+    private void outputTest(JSONArray tests, TestData current, Integer key) {
+        JSONObject test = new JSONObject();
+        test.put("score", current.grade);
+        test.put("max_score", current.maxScore);
+        test.put("name", current.name);
+        test.put("number", key.toString());
+        test.put("output", current.output.replaceAll("\t", " "));
+        if (current.output.length() > 0) {
+            test.put("status", "failed");
+        }
+        test.put("visibility", current.visible);
+        tests.put(test);
     }
 
     /**
@@ -202,8 +224,8 @@ public class GradescopeAutoGrader {
      * Stores success and failure output messages
      */
     private enum OutputMessage {
-        DEFAULT("# Your submission has been successfully graded \\nYour estimated grade is shown to the right under *\\\"Autograder Score\\\"*"), TEST_RUNNER_FAILED(
-                "# ERROR: Grading Failed \\n**There was a problem with your code** that caused some tests to unexpectedly fail. Please see the output below and resubmit. Contact an instructor or TA for more help.");
+        DEFAULT("# Your submission has been successfully graded \nYour estimated grade is shown to the right under *\"Autograder Score\"*"), TEST_RUNNER_FAILED(
+                "# ERROR: Grading Failed \n**There was a problem with your code** that caused some tests to unexpectedly fail. Please see the output below and resubmit. Contact an instructor or TA for more help.");
 
         private String message;
 
