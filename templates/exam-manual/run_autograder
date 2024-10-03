@@ -17,8 +17,8 @@ while read -r required_file; do
 done < <(jq -r '.["required-files"][]' /autograder/source/config.json | sort -r)
 
 # Restore submission directory
-mv tmp/* submission/
-rmdir tmp
+mv tmp/* submission/ &> /dev/null
+rmdir tmp &> /dev/null
 
 if [ ${#missing_files[@]} -gt 0 ]; then
     # Missing files
