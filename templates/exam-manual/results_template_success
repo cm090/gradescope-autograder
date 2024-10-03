@@ -26,18 +26,21 @@
       "visibility": "hidden"
     },
     {
+      "status": "passed",
       "name": "Started but not submitted",
       "visibility": "hidden",
       "score": 0,
       "max_score": 1
     },
     {
+      "status": "passed",
       "name": "Submitted with failures",
       "visibility": "hidden",
       "score": 0,
       "max_score": 1
     },
     {
+      "status": "passed",
       "name": "Submitted successfully",
       "visibility": "hidden",
       "score": 1,
