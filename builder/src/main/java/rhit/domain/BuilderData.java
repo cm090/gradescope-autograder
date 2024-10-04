@@ -10,5 +10,9 @@ public class BuilderData {
 
   @Getter
   @Setter
-  private static TemplateType templateType;
+  private static String starterCodeDir;
+
+  @Getter
+  @Setter
+  private static TemplateType templateType = TemplateType.AUTO;
 }
