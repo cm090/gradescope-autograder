@@ -3,9 +3,12 @@ package rhit.domain;
 import lombok.Getter;
 import lombok.Setter;
 
-@Getter
-@Setter
 public class BuilderData {
-  private String templateDir;
-  private TemplateType templateType;
+  @Getter
+  @Setter
+  private static String templateDir;
+
+  @Getter
+  @Setter
+  private static TemplateType templateType;
 }

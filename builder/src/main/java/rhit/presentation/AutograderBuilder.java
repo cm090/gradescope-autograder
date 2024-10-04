@@ -15,13 +15,12 @@ import rhit.domain.BuilderData;
 import rhit.domain.TemplateType;
 
 public class AutograderBuilder {
-  private final BuilderData builderData;
   private final JFrame frame;
   private JPanel panel;
 
   public AutograderBuilder() {
-    builderData = new BuilderData();
     frame = new JFrame("Autograder Builder");
+    InterfaceUtils.setFrame(frame);
     displayTemplateSelector();
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
   }
@@ -30,20 +29,8 @@ public class AutograderBuilder {
     new AutograderBuilder();
   }
 
-  private void updateFrame() {
-    frame.pack();
-    frame.setLocationRelativeTo(null);
-    frame.setVisible(true);
-  }
-
-  private void hideFrame() {
-    panel.removeAll();
-    frame.getContentPane().removeAll();
-    frame.setVisible(false);
-  }
-
   private void displayTemplateSelector() {
-    String templateDir = builderData.getTemplateDir();
+    String templateDir = BuilderData.getTemplateDir();
     JLabel label = new JLabel("Select a template: ");
     JButton templateButton = new JButton(templateDir == null ? "Select a directory" :
         templateDir.substring(templateDir.lastIndexOf(File.separator) + 1));
@@ -56,12 +43,12 @@ public class AutograderBuilder {
     autogradedButton.addActionListener(e -> {
       autogradedButton.setSelected(true);
       manualButton.setSelected(false);
-      builderData.setTemplateType(TemplateType.AUTO);
+      BuilderData.setTemplateType(TemplateType.AUTO);
     });
     manualButton.addActionListener(e -> {
       autogradedButton.setSelected(false);
       manualButton.setSelected(true);
-      builderData.setTemplateType(TemplateType.MANUAL);
+      BuilderData.setTemplateType(TemplateType.MANUAL);
     });
 
     JButton continueButton = new JButton("Continue");
@@ -81,11 +68,11 @@ public class AutograderBuilder {
     panel.add(continueButton, BorderLayout.SOUTH);
     frame.add(panel);
 
-    updateFrame();
+    InterfaceUtils.updateFrame();
   }
 
   private void handleSelectTemplate() {
-    hideFrame();
+    InterfaceUtils.hideFrame(panel);
     JFileChooser fileChooser = new JFileChooser();
     File startDir = new File("../templates");
     if (!startDir.exists()) {
@@ -97,17 +84,22 @@ public class AutograderBuilder {
     fileChooser.setAcceptAllFileFilterUsed(false);
     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
       String path = fileChooser.getSelectedFile().getAbsolutePath();
-      builderData.setTemplateDir(path);
+      BuilderData.setTemplateDir(path);
     }
     displayTemplateSelector();
   }
 
   private void handleContinue() {
-    if (builderData.getTemplateDir() == null) {
+    if (BuilderData.getTemplateDir() == null) {
       JOptionPane.showMessageDialog(frame, "Please select a template directory", "Error",
           JOptionPane.ERROR_MESSAGE);
       return;
     }
-    hideFrame();
+    InterfaceUtils.hideFrame(panel);
+    if (BuilderData.getTemplateType() == TemplateType.AUTO) {
+      new FileTreeSelector();
+    } else {
+      new ConfigurationOptions();
+    }
   }
 }
