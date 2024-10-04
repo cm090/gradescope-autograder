@@ -1,5 +1,7 @@
 package rhit.presentation;
 
+import eu.essilab.lablib.checkboxtree.CheckboxTree;
+import eu.essilab.lablib.checkboxtree.TreeCheckingModel;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.io.File;
@@ -16,6 +18,7 @@ public class FileTreeSelector {
   private final JFrame frame;
   private JPanel panel;
   private FileTree fileTree;
+  private CheckboxTree checkboxTree;
 
   public FileTreeSelector() {
     this.frame = InterfaceUtils.getFrame();
@@ -41,6 +44,9 @@ public class FileTreeSelector {
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
     panel.add(formPanel);
+    if (checkboxTree != null) {
+      panel.add(checkboxTree);
+    }
     panel.add(continueButton, BorderLayout.SOUTH);
     frame.add(panel);
 
@@ -61,6 +67,7 @@ public class FileTreeSelector {
     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
       String path = fileChooser.getSelectedFile().getAbsolutePath();
       BuilderData.setStarterCodeDir(path);
+      generateCheckboxTree();
     }
     displayFileTreeSelector();
   }
@@ -68,5 +75,13 @@ public class FileTreeSelector {
   private void handleContinue() {
     InterfaceUtils.hideFrame(panel);
     new ConfigurationOptions();
+  }
+
+  private void generateCheckboxTree() {
+    this.fileTree = new FileTree(BuilderData.getStarterCodeDir());
+    this.checkboxTree = new CheckboxTree(fileTree.getRoot());
+    this.checkboxTree.getCheckingModel().setCheckingMode(TreeCheckingModel.CheckingMode.PROPAGATE);
+    this.checkboxTree.setCellRenderer(new TreeCellRenderer());
+    this.checkboxTree.expandAll();
   }
 }

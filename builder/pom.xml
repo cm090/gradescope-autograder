@@ -20,6 +20,11 @@
             <version>1.18.34</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>eu.essilab</groupId>
+            <artifactId>lablib-checkboxtree</artifactId>
+            <version>4.0</version>
+        </dependency>
     </dependencies>
 
     <build>

@@ -2,43 +2,105 @@ package rhit.domain;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
+import javax.swing.tree.TreeNode;
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 public class FileTree {
-  private final Node root;
+  private final FileTreeNode root;
 
   public FileTree(String path) {
-    this.root = parseFileTree(path);
+    this.root = parseFileTree(path, 0, null);
   }
 
-  private static Node parseFileTree(String path) {
+  private static FileTreeNode parseFileTree(String path, int index, FileTreeNode parent) {
     String filePath = path.substring(0, path.lastIndexOf(File.separatorChar));
     String fileName = path.substring(path.lastIndexOf(File.separatorChar) + 1);
+    if (shouldIgnoreFile(fileName)) {
+      return null;
+    }
     File currentFile = new File(filePath, fileName);
     if (currentFile.isDirectory()) {
-      Node current = Node.builder().path(filePath).name(fileName).type(FileType.DIRECTORY).build();
+      FileTreeNode current =
+          FileTreeNode.builder().index(index).parent(parent).path(filePath).name(fileName)
+              .type(FileType.DIRECTORY).build();
       for (File file : Objects.requireNonNull(currentFile.listFiles())) {
-        Node next = parseFileTree(file.getAbsolutePath());
-        current.children.add(next);
+        FileTreeNode next = parseFileTree(file.getAbsolutePath(), index + 1, current);
+        if (next != null) {
+          current.children.add(next);
+        }
       }
       return current;
     } else {
       String extension = fileName.substring(fileName.lastIndexOf('.') + 1);
       FileType type = extension.equals("java") ? FileType.JAVA : FileType.NON_JAVA;
-      return Node.builder().path(filePath).name(fileName).type(type).build();
+      return FileTreeNode.builder().index(index).parent(parent).path(filePath).name(fileName)
+          .type(type).build();
     }
   }
 
+  private static boolean shouldIgnoreFile(String fileName) {
+    return fileName.startsWith(".") || fileName.equals("bin");
+  }
+
   @Builder
-  @Getter
-  public static class Node {
-    private final List<Node> children = new ArrayList<>();
+  public static class FileTreeNode implements TreeNode {
+    private final List<FileTreeNode> children = new ArrayList<>();
+    private FileTreeNode parent;
+    private int index;
+
+    @Getter
     private String path;
+
+    @Getter
     private String name;
+
+    @Getter
     private FileType type;
+
+    @Override
+    public TreeNode getChildAt(int childIndex) {
+      return children.get(childIndex);
+    }
+
+    @Override
+    public int getChildCount() {
+      return children.size();
+    }
+
+    @Override
+    public TreeNode getParent() {
+      return parent;
+    }
+
+    @Override
+    public int getIndex(TreeNode node) {
+      return index;
+    }
+
+    @Override
+    public boolean getAllowsChildren() {
+      return true;
+    }
+
+    @Override
+    public boolean isLeaf() {
+      return children.isEmpty();
+    }
+
+    @Override
+    public Enumeration<? extends TreeNode> children() {
+      return Collections.enumeration(children);
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
   }
 }
