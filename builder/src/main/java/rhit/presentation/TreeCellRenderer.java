@@ -13,10 +13,14 @@ import javax.swing.JTree;
 import javax.swing.UIManager;
 import javax.swing.tree.TreePath;
 
-public class TreeCellRenderer implements
-    CheckboxTreeCellRenderer {
 
-  JCheckBox button = new JCheckBox();
+/**
+ * @see <a href="https://github.com/lorebiga/CheckboxTree/tree/master/src/main/java/eu/essilab/lablib/checkboxtree">Source</a>
+ * @see <a href="https://www.infoworld.com/article/2175895/swing-based-tree-layouts-with-checkboxtree.html">Example</a>
+ */
+public class TreeCellRenderer implements CheckboxTreeCellRenderer {
+
+  JCheckBox checkBox = new JCheckBox();
   JPanel panel = new JPanel();
   JLabel label = new JLabel();
 
@@ -24,18 +28,18 @@ public class TreeCellRenderer implements
     label.setFocusable(true);
     label.setOpaque(true);
     panel.setLayout(new FlowLayout(FlowLayout.LEFT, 0, 0));
-    panel.add(button);
+    panel.add(checkBox);
     panel.add(label);
-    button.setBackground(UIManager.getColor("Tree.textBackground"));
+    checkBox.setBackground(UIManager.getColor("Tree.textBackground"));
     panel.setBackground(UIManager.getColor("Tree.textBackground"));
   }
 
   public boolean isOnHotspot(int x, int y) {
-    return (button.getBounds().contains(x, y));
+    return (checkBox.getBounds().contains(x, y));
   }
 
-  public Component getTreeCellRendererComponent(JTree tree, Object
-      value, boolean selected, boolean expanded, boolean leaf, int row,
+  public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected,
+                                                boolean expanded, boolean leaf, int row,
                                                 boolean hasFocus) {
     label.setText(value.toString());
     if (selected) {
@@ -43,19 +47,18 @@ public class TreeCellRenderer implements
     } else {
       label.setBackground(UIManager.getColor("Tree.textBackground"));
     }
-    TreeCheckingModel checkingModel = ((CheckboxTree)
-        tree).getCheckingModel();
+    TreeCheckingModel checkingModel = ((CheckboxTree) tree).getCheckingModel();
     TreePath path = tree.getPathForRow(row);
     boolean enabled = checkingModel.isPathEnabled(path);
     boolean checked = checkingModel.isPathChecked(path);
     boolean grayed = checkingModel.isPathGreyed(path);
-    button.setEnabled(enabled);
+    checkBox.setEnabled(enabled);
     if (grayed) {
       label.setForeground(Color.lightGray);
     } else {
       label.setForeground(Color.black);
     }
-    button.setSelected(checked);
+    checkBox.setSelected(checked);
     return panel;
   }
 }

@@ -27,8 +27,7 @@ public class FileTree {
     File currentFile = new File(filePath, fileName);
     if (currentFile.isDirectory()) {
       FileTreeNode current =
-          FileTreeNode.builder().index(index).parent(parent).path(filePath).name(fileName)
-              .type(FileType.DIRECTORY).build();
+          FileTreeNode.builder().index(index).parent(parent).path(filePath).name(fileName).build();
       for (File file : Objects.requireNonNull(currentFile.listFiles())) {
         FileTreeNode next = parseFileTree(file.getAbsolutePath(), index + 1, current);
         if (next != null) {
@@ -37,10 +36,8 @@ public class FileTree {
       }
       return current;
     } else {
-      String extension = fileName.substring(fileName.lastIndexOf('.') + 1);
-      FileType type = extension.equals("java") ? FileType.JAVA : FileType.NON_JAVA;
       return FileTreeNode.builder().index(index).parent(parent).path(filePath).name(fileName)
-          .type(type).build();
+          .build();
     }
   }
 
@@ -59,9 +56,6 @@ public class FileTree {
 
     @Getter
     private String name;
-
-    @Getter
-    private FileType type;
 
     @Override
     public TreeNode getChildAt(int childIndex) {

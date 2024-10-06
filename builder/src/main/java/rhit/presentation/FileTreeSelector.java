@@ -3,6 +3,9 @@ package rhit.presentation;
 import eu.essilab.lablib.checkboxtree.CheckboxTree;
 import eu.essilab.lablib.checkboxtree.TreeCheckingModel;
 import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.io.File;
 import javax.swing.BorderFactory;
@@ -11,6 +14,7 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import rhit.domain.BuilderData;
 import rhit.domain.FileTree;
 
@@ -35,18 +39,35 @@ public class FileTreeSelector {
     JButton continueButton = new JButton("Continue");
     continueButton.addActionListener(e -> handleContinue());
 
-    JPanel formPanel = new JPanel();
+    JPanel formPanel = new JPanel(new GridBagLayout());
     formPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-    formPanel.setLayout(new GridLayout(1, 2));
-    formPanel.add(label);
-    formPanel.add(startingDirectoryButton);
+    GridBagConstraints gbc = new GridBagConstraints();
+    gbc.fill = GridBagConstraints.HORIZONTAL;
+    gbc.gridx = 0;
+    gbc.gridy = 0;
+
+    JPanel directorySelectorPanel = new JPanel(new GridLayout(1, 2));
+    directorySelectorPanel.add(label);
+    directorySelectorPanel.add(startingDirectoryButton);
+    formPanel.add(directorySelectorPanel, gbc);
+
+    if (checkboxTree != null) {
+      gbc.gridy++;
+      gbc.insets.top = 10;
+      formPanel.add(new JLabel("Select files to exclude (ones that students will edit):"), gbc);
+      gbc.gridy++;
+      gbc.weightx = 1;
+      gbc.weighty = 1;
+      gbc.insets.top = 0;
+      gbc.fill = GridBagConstraints.BOTH;
+      JScrollPane scrollPane = new JScrollPane(checkboxTree);
+      scrollPane.setPreferredSize(new Dimension(350, 500));
+      formPanel.add(scrollPane, gbc);
+    }
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
     panel.add(formPanel);
-    if (checkboxTree != null) {
-      panel.add(checkboxTree);
-    }
     panel.add(continueButton, BorderLayout.SOUTH);
     frame.add(panel);
 
