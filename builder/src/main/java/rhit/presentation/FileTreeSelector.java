@@ -17,11 +17,11 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import rhit.domain.BuilderData;
 import rhit.domain.FileTree;
+import rhit.domain.PropertiesLoader;
 
 public class FileTreeSelector {
   private final JFrame frame;
   private JPanel panel;
-  private FileTree fileTree;
   private CheckboxTree checkboxTree;
 
   public FileTreeSelector() {
@@ -31,12 +31,13 @@ public class FileTreeSelector {
 
   private void displayFileTreeSelector() {
     String startingDir = BuilderData.getStarterCodeDir();
-    JLabel label = new JLabel("Starter code: ");
-    JButton startingDirectoryButton = new JButton(startingDir == null ? "Select a directory" :
-        startingDir.substring(startingDir.lastIndexOf(File.separator) + 1));
+    JLabel label = new JLabel(PropertiesLoader.get("starterCodeDirPrompt") + ": ");
+    JButton startingDirectoryButton = new JButton(
+        startingDir == null ? PropertiesLoader.get("selectButtonHint") :
+            startingDir.substring(startingDir.lastIndexOf(File.separator) + 1));
     startingDirectoryButton.addActionListener(e -> handleSelectStartingDirectory());
 
-    JButton continueButton = new JButton("Continue");
+    JButton continueButton = new JButton(PropertiesLoader.get("continueButton"));
     continueButton.addActionListener(e -> handleContinue());
 
     JPanel formPanel = new JPanel(new GridBagLayout());
@@ -54,7 +55,7 @@ public class FileTreeSelector {
     if (checkboxTree != null) {
       gbc.gridy++;
       gbc.insets.top = 10;
-      formPanel.add(new JLabel("Select files to exclude (ones that students will edit):"), gbc);
+      formPanel.add(new JLabel(PropertiesLoader.get("includeFilesPrompt")), gbc);
       gbc.gridy++;
       gbc.weightx = 1;
       gbc.weighty = 1;
@@ -77,12 +78,12 @@ public class FileTreeSelector {
   private void handleSelectStartingDirectory() {
     InterfaceUtils.hideFrame(panel);
     JFileChooser fileChooser = new JFileChooser();
-    File startDir = new File("../../");
+    File startDir = new File(PropertiesLoader.get("starterCodeSelectStartingDir"));
     if (!startDir.exists()) {
       startDir = new File(".");
     }
     fileChooser.setCurrentDirectory(startDir);
-    fileChooser.setDialogTitle("Choose a directory");
+    fileChooser.setDialogTitle(PropertiesLoader.get("selectButtonHint"));
     fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     fileChooser.setAcceptAllFileFilterUsed(false);
     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
@@ -99,7 +100,7 @@ public class FileTreeSelector {
   }
 
   private void generateCheckboxTree() {
-    this.fileTree = new FileTree(BuilderData.getStarterCodeDir());
+    FileTree fileTree = new FileTree(BuilderData.getStarterCodeDir());
     this.checkboxTree = new CheckboxTree(fileTree.getRoot());
     this.checkboxTree.getCheckingModel().setCheckingMode(TreeCheckingModel.CheckingMode.PROPAGATE);
     this.checkboxTree.setCellRenderer(new TreeCellRenderer());

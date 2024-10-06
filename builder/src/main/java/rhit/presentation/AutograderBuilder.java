@@ -12,6 +12,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import rhit.domain.BuilderData;
+import rhit.domain.PropertiesLoader;
 import rhit.domain.TemplateType;
 
 public class AutograderBuilder {
@@ -19,7 +20,7 @@ public class AutograderBuilder {
   private JPanel panel;
 
   public AutograderBuilder() {
-    frame = new JFrame("Autograder Builder");
+    frame = new JFrame(PropertiesLoader.get("windowTitle"));
     InterfaceUtils.setFrame(frame);
     displayTemplateSelector();
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -31,13 +32,14 @@ public class AutograderBuilder {
 
   private void displayTemplateSelector() {
     String templateDir = BuilderData.getTemplateDir();
-    JLabel label = new JLabel("Select a template: ");
-    JButton templateButton = new JButton(templateDir == null ? "Select a directory" :
-        templateDir.substring(templateDir.lastIndexOf(File.separator) + 1));
+    JLabel label = new JLabel(PropertiesLoader.get("templateDirPrompt") + ": ");
+    JButton templateButton = new JButton(
+        templateDir == null ? PropertiesLoader.get("selectButtonHint") :
+            templateDir.substring(templateDir.lastIndexOf(File.separator) + 1));
     templateButton.addActionListener(e -> handleSelectTemplate());
 
-    JRadioButton autogradedButton = new JRadioButton("Autograded");
-    JRadioButton manualButton = new JRadioButton("Manual");
+    JRadioButton autogradedButton = new JRadioButton(PropertiesLoader.get("autogradedOption"));
+    JRadioButton manualButton = new JRadioButton(PropertiesLoader.get("manualOption"));
     autogradedButton.setSelected(true);
     manualButton.setSelected(false);
     autogradedButton.addActionListener(e -> {
@@ -51,7 +53,7 @@ public class AutograderBuilder {
       BuilderData.setTemplateType(TemplateType.MANUAL);
     });
 
-    JButton continueButton = new JButton("Continue");
+    JButton continueButton = new JButton(PropertiesLoader.get("continueButton"));
     continueButton.addActionListener(e -> handleContinue());
 
     JPanel formPanel = new JPanel();
@@ -74,12 +76,12 @@ public class AutograderBuilder {
   private void handleSelectTemplate() {
     InterfaceUtils.hideFrame(panel);
     JFileChooser fileChooser = new JFileChooser();
-    File startDir = new File("../templates");
+    File startDir = new File(PropertiesLoader.get("templateSelectStartingDir"));
     if (!startDir.exists()) {
       startDir = new File(".");
     }
     fileChooser.setCurrentDirectory(startDir);
-    fileChooser.setDialogTitle("Choose a directory");
+    fileChooser.setDialogTitle(PropertiesLoader.get("selectButtonHint"));
     fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     fileChooser.setAcceptAllFileFilterUsed(false);
     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
@@ -91,8 +93,8 @@ public class AutograderBuilder {
 
   private void handleContinue() {
     if (BuilderData.getTemplateDir() == null) {
-      JOptionPane.showMessageDialog(frame, "Please select a template directory", "Error",
-          JOptionPane.ERROR_MESSAGE);
+      JOptionPane.showMessageDialog(frame, PropertiesLoader.get("templateSelectError"),
+          PropertiesLoader.get("errorTitle"), JOptionPane.ERROR_MESSAGE);
       return;
     }
     InterfaceUtils.hideFrame(panel);
