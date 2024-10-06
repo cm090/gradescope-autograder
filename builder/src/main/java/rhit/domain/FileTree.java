@@ -34,7 +34,7 @@ public class FileTree {
           current.children.add(next);
         }
       }
-      return current;
+      return current.getChildCount() > 0 ? current : null;
     } else {
       return FileTreeNode.builder().index(index).parent(parent).path(filePath).name(fileName)
           .build();
@@ -42,7 +42,7 @@ public class FileTree {
   }
 
   private static boolean shouldIgnoreFile(String fileName) {
-    return fileName.startsWith(".") || fileName.equals("bin");
+    return fileName.startsWith(".") || fileName.equals("bin") || fileName.endsWith(".class");
   }
 
   @Builder
