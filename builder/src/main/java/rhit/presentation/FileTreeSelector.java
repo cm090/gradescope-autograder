@@ -8,6 +8,8 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.io.File;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -96,6 +98,14 @@ public class FileTreeSelector {
 
   private void handleContinue() {
     InterfaceUtils.hideFrame(panel);
+    Arrays.stream(this.checkboxTree.getCheckingPaths()).forEach(path -> {
+      File filePath = new File(BuilderData.getStarterCodeDir(),
+          Arrays.stream(path.getPath()).skip(1).map(String::valueOf)
+              .collect(Collectors.joining(File.separator)));
+      if (filePath.exists() && filePath.isFile()) {
+        BuilderData.addTemplateFile(filePath.getAbsolutePath());
+      }
+    });
     new ConfigurationOptions();
   }
 
