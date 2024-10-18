@@ -15,6 +15,7 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import rhit.domain.BuilderData;
@@ -97,6 +98,11 @@ public class FileTreeSelector {
   }
 
   private void handleContinue() {
+    if (BuilderData.getStarterCodeDir() == null) {
+      JOptionPane.showMessageDialog(frame, PropertiesLoader.get("starterCodeSelectError"),
+          PropertiesLoader.get("errorTitle"), JOptionPane.ERROR_MESSAGE);
+      return;
+    }
     InterfaceUtils.hideFrame(panel);
     Arrays.stream(this.checkboxTree.getCheckingPaths()).forEach(path -> {
       File filePath = new File(BuilderData.getStarterCodeDir(),
