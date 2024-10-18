@@ -49,28 +49,27 @@ public class ConfigurationOptions {
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-
+    gbc.insets.set(2, 2, 2, 2);
     iterativeFormPanel(configOptions, formPanel, gbc);
-    if (configOptions.containsKey("additional_options")) {
-      iterativeFormPanel((JSONObject) configOptions.get("additional_options"), formPanel, gbc);
-    }
   }
 
   @SuppressWarnings("unchecked")
   private void iterativeFormPanel(JSONObject configOptions, JPanel formPanel,
                                   GridBagConstraints gbc) {
     configOptions.forEach((key, value) -> {
+      if (value instanceof JSONObject) {
+        iterativeFormPanel((JSONObject) value, formPanel, gbc);
+        return;
+      }
       gbc.gridx = 0;
       String keyLabel = String.join(" ", key.toString().split("[-_]"));
       keyLabel = keyLabel.substring(0, 1).toUpperCase() + keyLabel.substring(1);
       formPanel.add(new JLabel(keyLabel + ": "), gbc);
       gbc.gridx = 1;
-      if (value instanceof JSONObject) {
-        // TODO: Handle classes object
-        formPanel.add(new JLabel("Class object"), gbc);
-      } else if (value instanceof JSONArray) {
-        // TODO: Handle array objects
-        formPanel.add(new JLabel("Array object"), gbc);
+      if (value instanceof JSONArray) {
+        JButton button = new JButton("Edit");
+        button.addActionListener(e -> displayArrayEditor((JSONArray) value));
+        formPanel.add(button, gbc);
       } else {
         JTextField textField = new JTextField(value.toString());
         textField.getDocument().addDocumentListener(new DocumentListener() {
@@ -103,6 +102,10 @@ public class ConfigurationOptions {
       }
       gbc.gridy++;
     });
+  }
+
+  private void displayArrayEditor(JSONArray array) {
+    // TODO: Implement array editor
   }
 
   private void handleContinue() {
