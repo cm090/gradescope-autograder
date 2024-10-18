@@ -40,8 +40,8 @@ public class AutograderBuilder {
 
     JRadioButton autogradedButton = new JRadioButton(PropertiesLoader.get("autogradedOption"));
     JRadioButton manualButton = new JRadioButton(PropertiesLoader.get("manualOption"));
-    autogradedButton.setSelected(true);
-    manualButton.setSelected(false);
+    autogradedButton.setSelected(BuilderData.getTemplateType() == TemplateType.AUTO);
+    manualButton.setSelected(BuilderData.getTemplateType() == TemplateType.MANUAL);
     autogradedButton.addActionListener(e -> {
       autogradedButton.setSelected(true);
       manualButton.setSelected(false);
