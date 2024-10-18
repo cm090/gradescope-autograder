@@ -9,6 +9,8 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import rhit.domain.BuilderData;
@@ -42,12 +44,21 @@ public class ConfigurationOptions {
     InterfaceUtils.updateFrame();
   }
 
-  @SuppressWarnings("unchecked")
   private void generateFormPanel(JPanel formPanel) {
     JSONObject configOptions = BuilderData.getConfigOptions();
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridy = 0;
+    gbc.fill = GridBagConstraints.HORIZONTAL;
 
+    iterativeFormPanel(configOptions, formPanel, gbc);
+    if (configOptions.containsKey("additional_options")) {
+      iterativeFormPanel((JSONObject) configOptions.get("additional_options"), formPanel, gbc);
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private void iterativeFormPanel(JSONObject configOptions, JPanel formPanel,
+                                  GridBagConstraints gbc) {
     configOptions.forEach((key, value) -> {
       gbc.gridx = 0;
       String keyLabel = String.join(" ", key.toString().split("[-_]"));
@@ -62,14 +73,31 @@ public class ConfigurationOptions {
         formPanel.add(new JLabel("Array object"), gbc);
       } else {
         JTextField textField = new JTextField(value.toString());
-        textField.addActionListener(e -> {
-          Object newValue = textField.getText();
-          if (value instanceof Long) {
-            newValue = Long.parseLong((String) newValue);
-          } else if (value instanceof Boolean) {
-            newValue = Boolean.parseBoolean((String) newValue);
+        textField.getDocument().addDocumentListener(new DocumentListener() {
+          @Override
+          public void insertUpdate(DocumentEvent e) {
+            handleChange();
           }
-          BuilderData.getConfigOptions().put(key, newValue);
+
+          @Override
+          public void removeUpdate(DocumentEvent e) {
+            handleChange();
+          }
+
+          @Override
+          public void changedUpdate(DocumentEvent e) {
+            handleChange();
+          }
+
+          private void handleChange() {
+            Object newValue = textField.getText();
+            if (value instanceof Long) {
+              newValue = Long.parseLong((String) newValue);
+            } else if (value instanceof Boolean) {
+              newValue = Boolean.parseBoolean((String) newValue);
+            }
+            configOptions.put(key, newValue);
+          }
         });
         formPanel.add(textField, gbc);
       }
