@@ -105,7 +105,8 @@ public class ConfigurationOptions {
   }
 
   private void displayArrayEditor(JSONArray array) {
-    // TODO: Implement array editor
+    ArrayEditorDialog dialog = new ArrayEditorDialog(frame, array);
+    dialog.setVisible(true);
   }
 
   private void handleContinue() {
