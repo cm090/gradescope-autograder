@@ -1,6 +1,7 @@
 package rhit.presentation;
 
 import java.awt.GridLayout;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -46,17 +47,13 @@ public class MultipleInputDialog {
       }
       fields.forEach((key, textField) -> {
         Class<?> type = object.get(key).getClass();
-        Object value;
-        if (type == Long.class) {
-          value = Long.parseLong(textField.getText());
-        } else if (type == Double.class) {
-          value = Double.parseDouble(textField.getText());
-        } else if (type == Boolean.class) {
-          value = Boolean.parseBoolean(textField.getText());
-        } else {
-          value = textField.getText();
+        try {
+          Object value = type == String.class ? textField.getText() :
+              type.getDeclaredMethod("valueOf", String.class).invoke(null, textField.getText());
+          object.put(key, value);
+        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
+          throw new RuntimeException(e);
         }
-        object.put(key, value);
       });
       callbacks.forEach(Runnable::run);
     }
