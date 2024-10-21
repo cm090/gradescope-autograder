@@ -40,7 +40,10 @@ public class MultipleInputDialog {
         JOptionPane.showConfirmDialog(null, panel, "Enter Details", JOptionPane.OK_CANCEL_OPTION,
             JOptionPane.PLAIN_MESSAGE);
     if (result == JOptionPane.OK_OPTION) {
-      // TODO: Handle empty fields
+      if (fields.values().stream().anyMatch(textField -> textField.getText().isEmpty())) {
+        JOptionPane.showMessageDialog(null, "Fields cannot be empty! Item did not save.");
+        return;
+      }
       fields.forEach((key, textField) -> {
         Class<?> type = object.get(key).getClass();
         Object value;
