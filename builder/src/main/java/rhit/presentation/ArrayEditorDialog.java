@@ -91,14 +91,12 @@ public class ArrayEditorDialog extends JDialog {
   }
 
   private void generateEditableObject(JSONObject newItem) {
-    // TODO: Use appropriate constructors
     ((JSONObject) array.get(0)).keySet().forEach(key -> {
       try {
-        newItem.put(key,
-            ((JSONObject) array.get(0)).get(key).getClass().getDeclaredConstructor()
-                .newInstance());
-      } catch (InstantiationException | IllegalAccessException | NoSuchMethodException |
-               InvocationTargetException ex) {
+        Class<?> type = ((JSONObject) array.get(0)).get(key).getClass();
+        newItem.put(key, type == String.class ? "" :
+            type.getDeclaredMethod("valueOf", String.class).invoke(null, "0"));
+      } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException ex) {
         throw new RuntimeException(ex);
       }
     });
