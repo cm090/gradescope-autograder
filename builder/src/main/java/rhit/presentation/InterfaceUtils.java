@@ -1,6 +1,7 @@
 package rhit.presentation;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.function.Consumer;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -26,19 +27,14 @@ public class InterfaceUtils {
   }
 
   static void invokeClassMethod(Object object, String key, String stringText, String objectText,
-                                RunnableWithArgument<Object> callback) {
+                                Consumer<Object> callback) {
     Class<?> type = object.getClass();
     try {
       Object value = type == String.class ? stringText :
           type.getDeclaredMethod("valueOf", String.class).invoke(null, objectText);
-      callback.run(value);
+      callback.accept(value);
     } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
       JOptionPane.showMessageDialog(null, String.format(PropertiesLoader.get("typeError"), key));
     }
-  }
-
-  @FunctionalInterface
-  interface RunnableWithArgument<T> {
-    void run(T t);
   }
 }

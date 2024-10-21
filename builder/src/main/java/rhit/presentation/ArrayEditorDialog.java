@@ -68,26 +68,28 @@ public class ArrayEditorDialog extends JDialog {
 
   private JButton getAddButton() {
     JButton addButton = new JButton(PropertiesLoader.get("addButton"));
-    addButton.addActionListener(e -> {
-      if (isObjectArray) {
-        JSONObject newItem = new JSONObject();
-        generateEditableObject(newItem);
-        MultipleInputDialog dialog = new MultipleInputDialog(newItem);
-        dialog.addCallback(() -> {
-          listModel.addElement(newItem.toString());
-          array.add(newItem);
-        });
-        dialog.show();
-      } else {
-        String newItem = JOptionPane.showInputDialog(ArrayEditorDialog.this,
-            PropertiesLoader.get("addItem") + ":");
-        if (newItem != null && !newItem.trim().isEmpty()) {
-          listModel.addElement(newItem);
-          array.add(newItem);
-        }
-      }
-    });
+    addButton.addActionListener(e -> handleAddButtonClick());
     return addButton;
+  }
+
+  private void handleAddButtonClick() {
+    if (isObjectArray) {
+      JSONObject newItem = new JSONObject();
+      generateEditableObject(newItem);
+      MultipleInputDialog dialog = new MultipleInputDialog(newItem);
+      dialog.addCallback(() -> {
+        listModel.addElement(newItem.toString());
+        array.add(newItem);
+      });
+      dialog.show();
+    } else {
+      String newItem = JOptionPane.showInputDialog(ArrayEditorDialog.this,
+          PropertiesLoader.get("addItem") + ":");
+      if (newItem != null && !newItem.trim().isEmpty()) {
+        listModel.addElement(newItem);
+        array.add(newItem);
+      }
+    }
   }
 
   private void generateEditableObject(JSONObject newItem) {
@@ -98,29 +100,31 @@ public class ArrayEditorDialog extends JDialog {
 
   private JButton getEditButton() {
     JButton editButton = new JButton(PropertiesLoader.get("editButton"));
-    editButton.addActionListener(e -> {
-      int selectedIndex = itemList.getSelectedIndex();
-      if (selectedIndex == -1) {
-        return;
-      }
-      if (isObjectArray) {
-        JSONObject currentItem = (JSONObject) array.get(selectedIndex);
-        MultipleInputDialog dialog = new MultipleInputDialog(currentItem);
-        dialog.addCallback(() -> {
-          listModel.setElementAt(currentItem.toString(), selectedIndex);
-          array.set(selectedIndex, currentItem);
-        });
-        dialog.show();
-      } else {
-        String currentItem = listModel.getElementAt(selectedIndex);
-        String newItem = JOptionPane.showInputDialog(ArrayEditorDialog.this,
-            PropertiesLoader.get("editItem") + ":", currentItem);
-        if (newItem != null && !newItem.trim().isEmpty()) {
-          listModel.setElementAt(newItem, selectedIndex);
-          array.set(selectedIndex, newItem);
-        }
-      }
-    });
+    editButton.addActionListener((e) -> handleEditButtonClick());
     return editButton;
+  }
+
+  private void handleEditButtonClick() {
+    int selectedIndex = itemList.getSelectedIndex();
+    if (selectedIndex == -1) {
+      return;
+    }
+    if (isObjectArray) {
+      JSONObject currentItem = (JSONObject) array.get(selectedIndex);
+      MultipleInputDialog dialog = new MultipleInputDialog(currentItem);
+      dialog.addCallback(() -> {
+        listModel.setElementAt(currentItem.toString(), selectedIndex);
+        array.set(selectedIndex, currentItem);
+      });
+      dialog.show();
+    } else {
+      String currentItem = listModel.getElementAt(selectedIndex);
+      String newItem = JOptionPane.showInputDialog(ArrayEditorDialog.this,
+          PropertiesLoader.get("editItem") + ":", currentItem);
+      if (newItem != null && !newItem.trim().isEmpty()) {
+        listModel.setElementAt(newItem, selectedIndex);
+        array.set(selectedIndex, newItem);
+      }
+    }
   }
 }

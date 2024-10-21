@@ -26,29 +26,35 @@ public class MultipleInputDialog {
   @SuppressWarnings("unchecked")
   public void show() {
     JPanel panel = new JPanel(new GridLayout(0, 2));
-    object.forEach((key, value) -> {
-      String keyString = key.toString();
-      panel.add(new JLabel(
-          keyString.substring(0, 1).toUpperCase() + keyString.substring(1).replaceAll("[-_]", " ") +
-              ":"));
-      JTextField textField = new JTextField(10);
-      textField.setText(value.toString());
-      panel.add(textField);
-      fields.put(keyString, textField);
-    });
+    object.forEach((key, value) -> createFormRow(key.toString(), value, panel));
 
-    int result =
+    handleDialogAction(
         JOptionPane.showConfirmDialog(null, panel, PropertiesLoader.get("detailsEditorTitle"),
-            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-    if (result == JOptionPane.OK_OPTION) {
-      if (fields.values().stream().anyMatch(textField -> textField.getText().isEmpty())) {
-        JOptionPane.showMessageDialog(null, PropertiesLoader.get("emptyFieldError"));
-        return;
-      }
-      fields.forEach((key, textField) -> InterfaceUtils.invokeClassMethod(object.get(key), key,
-          textField.getText(), textField.getText(), (value) -> object.put(key, value)));
-      callbacks.forEach(Runnable::run);
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE));
+
+  }
+
+  private void createFormRow(String key, Object value, JPanel panel) {
+    panel.add(new JLabel(
+        key.substring(0, 1).toUpperCase() + key.substring(1).replaceAll("[-_]", " ") + ":"));
+    JTextField textField = new JTextField(10);
+    textField.setText(value.toString());
+    panel.add(textField);
+    fields.put(key, textField);
+  }
+
+  @SuppressWarnings("unchecked")
+  private void handleDialogAction(int result) {
+    if (result != JOptionPane.OK_OPTION) {
+      return;
     }
+    if (fields.values().stream().anyMatch(textField -> textField.getText().isEmpty())) {
+      JOptionPane.showMessageDialog(null, PropertiesLoader.get("emptyFieldError"));
+      return;
+    }
+    fields.forEach((key, textField) -> InterfaceUtils.invokeClassMethod(object.get(key), key,
+        textField.getText(), textField.getText(), (value) -> object.put(key, value)));
+    callbacks.forEach(Runnable::run);
   }
 
   public void addCallback(Runnable callback) {
