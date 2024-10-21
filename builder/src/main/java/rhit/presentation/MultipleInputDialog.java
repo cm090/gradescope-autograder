@@ -52,7 +52,8 @@ public class MultipleInputDialog {
               type.getDeclaredMethod("valueOf", String.class).invoke(null, textField.getText());
           object.put(key, value);
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-          throw new RuntimeException(e);
+          JOptionPane.showMessageDialog(null,
+              String.format("The value for %s is the wrong type! Item did not save.", key));
         }
       });
       callbacks.forEach(Runnable::run);
