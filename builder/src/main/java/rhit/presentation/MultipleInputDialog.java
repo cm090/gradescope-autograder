@@ -1,7 +1,6 @@
 package rhit.presentation;
 
 import java.awt.GridLayout;
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -46,17 +45,8 @@ public class MultipleInputDialog {
         JOptionPane.showMessageDialog(null, PropertiesLoader.get("emptyFieldError"));
         return;
       }
-      fields.forEach((key, textField) -> {
-        Class<?> type = object.get(key).getClass();
-        try {
-          Object value = type == String.class ? textField.getText() :
-              type.getDeclaredMethod("valueOf", String.class).invoke(null, textField.getText());
-          object.put(key, value);
-        } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-          JOptionPane.showMessageDialog(null,
-              String.format(PropertiesLoader.get("inputTypeError"), key));
-        }
-      });
+      fields.forEach((key, textField) -> InterfaceUtils.invokeClassMethod(object.get(key), key,
+          textField.getText(), textField.getText(), (value) -> object.put(key, value)));
       callbacks.forEach(Runnable::run);
     }
   }

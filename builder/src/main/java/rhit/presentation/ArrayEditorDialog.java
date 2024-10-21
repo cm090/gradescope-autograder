@@ -2,7 +2,6 @@ package rhit.presentation;
 
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
-import java.lang.reflect.InvocationTargetException;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -92,15 +91,9 @@ public class ArrayEditorDialog extends JDialog {
   }
 
   private void generateEditableObject(JSONObject newItem) {
-    ((JSONObject) array.get(0)).keySet().forEach(key -> {
-      try {
-        Class<?> type = ((JSONObject) array.get(0)).get(key).getClass();
-        newItem.put(key, type == String.class ? "" :
-            type.getDeclaredMethod("valueOf", String.class).invoke(null, "0"));
-      } catch (IllegalAccessException | NoSuchMethodException | InvocationTargetException ex) {
-        throw new RuntimeException(ex);
-      }
-    });
+    ((JSONObject) array.get(0)).keySet().forEach(
+        key -> InterfaceUtils.invokeClassMethod(((JSONObject) array.get(0)).get(key), (String) key,
+            "", "0", (value) -> newItem.put(key, value)));
   }
 
   private JButton getEditButton() {
