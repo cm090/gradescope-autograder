@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import rhit.domain.PropertiesLoader;
 
 @SuppressWarnings("unchecked")
 public class ArrayEditorDialog extends JDialog {
@@ -22,7 +23,7 @@ public class ArrayEditorDialog extends JDialog {
   private final boolean isObjectArray;
 
   public ArrayEditorDialog(JFrame parent, JSONArray array) {
-    super(parent, "Edit Array (close when finished)", true);
+    super(parent, PropertiesLoader.get("arrayEditorTitle"), true);
     this.array = array;
     this.listModel = new DefaultListModel<>();
     array.forEach(item -> listModel.addElement(item.toString()));
@@ -46,11 +47,10 @@ public class ArrayEditorDialog extends JDialog {
     JButton editButton = getEditButton();
     buttonPanel.add(editButton);
 
-    JButton removeButton = new JButton("Remove");
+    JButton removeButton = new JButton(PropertiesLoader.get("removeButton"));
     removeButton.addActionListener(e -> {
       if (array.size() < 2) {
-        JOptionPane.showMessageDialog(ArrayEditorDialog.this,
-            "The array cannot be empty! Add another item to remove this one.");
+        JOptionPane.showMessageDialog(ArrayEditorDialog.this, PropertiesLoader.get("removeError"));
         return;
       }
       int selectedIndex = itemList.getSelectedIndex();
@@ -68,7 +68,7 @@ public class ArrayEditorDialog extends JDialog {
   }
 
   private JButton getAddButton() {
-    JButton addButton = new JButton("Add");
+    JButton addButton = new JButton(PropertiesLoader.get("addButton"));
     addButton.addActionListener(e -> {
       if (isObjectArray) {
         JSONObject newItem = new JSONObject();
@@ -80,7 +80,8 @@ public class ArrayEditorDialog extends JDialog {
         });
         dialog.show();
       } else {
-        String newItem = JOptionPane.showInputDialog(ArrayEditorDialog.this, "Enter new item:");
+        String newItem = JOptionPane.showInputDialog(ArrayEditorDialog.this,
+            PropertiesLoader.get("addItem") + ":");
         if (newItem != null && !newItem.trim().isEmpty()) {
           listModel.addElement(newItem);
           array.add(newItem);
@@ -103,7 +104,7 @@ public class ArrayEditorDialog extends JDialog {
   }
 
   private JButton getEditButton() {
-    JButton editButton = new JButton("Edit");
+    JButton editButton = new JButton(PropertiesLoader.get("editButton"));
     editButton.addActionListener(e -> {
       int selectedIndex = itemList.getSelectedIndex();
       if (selectedIndex == -1) {
@@ -119,8 +120,8 @@ public class ArrayEditorDialog extends JDialog {
         dialog.show();
       } else {
         String currentItem = listModel.getElementAt(selectedIndex);
-        String newItem =
-            JOptionPane.showInputDialog(ArrayEditorDialog.this, "Edit item:", currentItem);
+        String newItem = JOptionPane.showInputDialog(ArrayEditorDialog.this,
+            PropertiesLoader.get("editItem") + ":", currentItem);
         if (newItem != null && !newItem.trim().isEmpty()) {
           listModel.setElementAt(newItem, selectedIndex);
           array.set(selectedIndex, newItem);

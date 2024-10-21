@@ -11,6 +11,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import org.json.simple.JSONObject;
+import rhit.domain.PropertiesLoader;
 
 public class MultipleInputDialog {
   private final Set<Runnable> callbacks;
@@ -38,11 +39,11 @@ public class MultipleInputDialog {
     });
 
     int result =
-        JOptionPane.showConfirmDialog(null, panel, "Enter Details", JOptionPane.OK_CANCEL_OPTION,
-            JOptionPane.PLAIN_MESSAGE);
+        JOptionPane.showConfirmDialog(null, panel, PropertiesLoader.get("detailsEditorTitle"),
+            JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
     if (result == JOptionPane.OK_OPTION) {
       if (fields.values().stream().anyMatch(textField -> textField.getText().isEmpty())) {
-        JOptionPane.showMessageDialog(null, "Fields cannot be empty! Item did not save.");
+        JOptionPane.showMessageDialog(null, PropertiesLoader.get("emptyFieldError"));
         return;
       }
       fields.forEach((key, textField) -> {
@@ -53,7 +54,7 @@ public class MultipleInputDialog {
           object.put(key, value);
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
           JOptionPane.showMessageDialog(null,
-              String.format("The value for %s is the wrong type! Item did not save.", key));
+              String.format(PropertiesLoader.get("inputTypeError"), key));
         }
       });
       callbacks.forEach(Runnable::run);
