@@ -14,15 +14,19 @@ import org.json.simple.parser.ParseException;
 public class BuilderData {
   @Getter
   private static final Set<String> templateFiles = new HashSet<>();
+
   @Getter
   @Setter
   private static String templateDir;
+
   @Getter
   @Setter
   private static String starterCodeDir;
+
   @Getter
   @Setter
   private static TemplateType templateType = TemplateType.AUTO;
+  
   @Getter
   private static JSONObject configOptions;
 

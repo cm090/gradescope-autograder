@@ -13,13 +13,11 @@ import javax.swing.JTree;
 import javax.swing.UIManager;
 import javax.swing.tree.TreePath;
 
-
 /**
  * @see <a href="https://github.com/lorebiga/CheckboxTree/tree/master/src/main/java/eu/essilab/lablib/checkboxtree">Source</a>
  * @see <a href="https://www.infoworld.com/article/2175895/swing-based-tree-layouts-with-checkboxtree.html">Example</a>
  */
 class TreeCellRenderer implements CheckboxTreeCellRenderer {
-
   JCheckBox checkBox = new JCheckBox();
   JPanel panel = new JPanel();
   JLabel label = new JLabel();

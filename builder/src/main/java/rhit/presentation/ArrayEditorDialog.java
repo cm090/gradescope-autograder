@@ -14,13 +14,13 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import rhit.domain.PropertiesLoader;
 
-@SuppressWarnings("unchecked")
 class ArrayEditorDialog extends JDialog {
   private final DefaultListModel<String> listModel;
   private final JList<String> itemList;
   private final JSONArray array;
   private final boolean isObjectArray;
 
+  @SuppressWarnings("unchecked")
   ArrayEditorDialog(JFrame parent, JSONArray array) {
     super(parent, PropertiesLoader.get("arrayEditorTitle"), true);
     this.array = array;
@@ -76,6 +76,7 @@ class ArrayEditorDialog extends JDialog {
     return addButton;
   }
 
+  @SuppressWarnings("unchecked")
   private void handleAddButtonClick() {
     if (isObjectArray) {
       JSONObject newItem = new JSONObject();
@@ -96,6 +97,7 @@ class ArrayEditorDialog extends JDialog {
     }
   }
 
+  @SuppressWarnings("unchecked")
   private void generateEditableObject(JSONObject newItem) {
     ((JSONObject) array.get(0)).keySet().forEach(
         key -> InterfaceUtils.invokeClassMethod(((JSONObject) array.get(0)).get(key), (String) key,
@@ -108,6 +110,7 @@ class ArrayEditorDialog extends JDialog {
     return editButton;
   }
 
+  @SuppressWarnings("unchecked")
   private void handleEditButtonClick() {
     int selectedIndex = itemList.getSelectedIndex();
     if (selectedIndex == -1) {
