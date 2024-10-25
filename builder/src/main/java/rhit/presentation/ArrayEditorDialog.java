@@ -38,7 +38,7 @@ public class ArrayEditorDialog extends JDialog {
     add(scrollPane, BorderLayout.CENTER);
 
     JPanel buttonPanel = new JPanel();
-    buttonPanel.setLayout(new GridLayout(1, 3));
+    buttonPanel.setLayout(new GridLayout(1, 4));
 
     JButton addButton = getAddButton();
     buttonPanel.add(addButton);
@@ -59,6 +59,10 @@ public class ArrayEditorDialog extends JDialog {
       }
     });
     buttonPanel.add(removeButton);
+
+    JButton doneButton = new JButton(PropertiesLoader.get("doneButton"));
+    doneButton.addActionListener(e -> dispose());
+    buttonPanel.add(doneButton);
 
     add(buttonPanel, BorderLayout.SOUTH);
 
