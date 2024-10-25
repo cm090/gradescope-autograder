@@ -46,7 +46,7 @@ public class FileTree {
   }
 
   @Builder
-  public static class FileTreeNode implements TreeNode {
+  private static class FileTreeNode implements TreeNode {
     private final List<FileTreeNode> children = new ArrayList<>();
     private FileTreeNode parent;
     private int index;

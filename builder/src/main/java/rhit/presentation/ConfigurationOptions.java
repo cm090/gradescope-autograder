@@ -19,12 +19,12 @@ import org.json.simple.JSONObject;
 import rhit.domain.BuilderData;
 import rhit.domain.PropertiesLoader;
 
-public class ConfigurationOptions {
+class ConfigurationOptions {
   private final JFrame frame;
   private JPanel panel;
   private final Map<String, String> formValues;
 
-  public ConfigurationOptions() {
+  ConfigurationOptions() {
     this.frame = InterfaceUtils.getFrame();
     this.formValues = new HashMap<>();
     BuilderData.parseConfigFile();

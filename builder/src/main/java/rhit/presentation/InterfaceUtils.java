@@ -16,7 +16,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import rhit.domain.PropertiesLoader;
 
-public class InterfaceUtils {
+class InterfaceUtils {
   private static final Pattern packagePattern = Pattern.compile("(?<=src[\\\\/]).+(?=[\\\\/])");
 
   @Getter

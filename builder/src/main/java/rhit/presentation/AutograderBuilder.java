@@ -19,7 +19,7 @@ public class AutograderBuilder {
   private final JFrame frame;
   private JPanel panel;
 
-  public AutograderBuilder() {
+  private AutograderBuilder() {
     frame = new JFrame(PropertiesLoader.get("windowTitle"));
     InterfaceUtils.setFrame(frame);
     displayTemplateSelector();

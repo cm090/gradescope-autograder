@@ -15,13 +15,13 @@ import org.json.simple.JSONObject;
 import rhit.domain.PropertiesLoader;
 
 @SuppressWarnings("unchecked")
-public class ArrayEditorDialog extends JDialog {
+class ArrayEditorDialog extends JDialog {
   private final DefaultListModel<String> listModel;
   private final JList<String> itemList;
   private final JSONArray array;
   private final boolean isObjectArray;
 
-  public ArrayEditorDialog(JFrame parent, JSONArray array) {
+  ArrayEditorDialog(JFrame parent, JSONArray array) {
     super(parent, PropertiesLoader.get("arrayEditorTitle"), true);
     this.array = array;
     this.listModel = new DefaultListModel<>();

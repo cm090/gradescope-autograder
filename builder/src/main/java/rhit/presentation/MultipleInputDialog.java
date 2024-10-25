@@ -12,12 +12,12 @@ import javax.swing.JTextField;
 import org.json.simple.JSONObject;
 import rhit.domain.PropertiesLoader;
 
-public class MultipleInputDialog {
+class MultipleInputDialog {
   private final Set<Runnable> callbacks;
   private final Map<String, JTextField> fields;
   private final JSONObject object;
 
-  public MultipleInputDialog(JSONObject object) {
+  MultipleInputDialog(JSONObject object) {
     this.callbacks = new HashSet<>();
     this.fields = new HashMap<>();
     this.object = object;

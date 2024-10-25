@@ -8,7 +8,7 @@ public class PropertiesLoader {
   private static final PropertiesLoader instance = new PropertiesLoader("Strings.properties");
   private final Properties properties = new Properties();
 
-  public PropertiesLoader(String fileName) {
+  private PropertiesLoader(String fileName) {
     try (InputStream input = getClass().getClassLoader().getResourceAsStream(fileName)) {
       if (input == null) {
         System.out.println("Could not find properties file " + fileName);
@@ -25,7 +25,7 @@ public class PropertiesLoader {
     return instance.getProperty(key);
   }
 
-  public String getProperty(String key) {
+  private String getProperty(String key) {
     return properties.getProperty(key);
   }
 }

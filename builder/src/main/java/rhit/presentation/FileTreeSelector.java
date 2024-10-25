@@ -22,12 +22,12 @@ import rhit.domain.BuilderData;
 import rhit.domain.FileTree;
 import rhit.domain.PropertiesLoader;
 
-public class FileTreeSelector {
+class FileTreeSelector {
   private final JFrame frame;
   private JPanel panel;
   private CheckboxTree checkboxTree;
 
-  public FileTreeSelector() {
+  FileTreeSelector() {
     this.frame = InterfaceUtils.getFrame();
     displayFileTreeSelector();
   }
