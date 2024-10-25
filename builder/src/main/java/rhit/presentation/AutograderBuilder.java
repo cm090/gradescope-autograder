@@ -3,6 +3,8 @@ package rhit.presentation;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -17,60 +19,56 @@ import rhit.domain.TemplateType;
 
 public class AutograderBuilder {
   private final JFrame frame;
+  private final Set<JRadioButton> radioButtons;
   private JPanel panel;
 
   private AutograderBuilder() {
-    frame = new JFrame(PropertiesLoader.get("windowTitle"));
+    this.frame = new JFrame(PropertiesLoader.get("windowTitle"));
+    this.radioButtons = new HashSet<>();
     InterfaceUtils.setFrame(frame);
-    displayTemplateSelector();
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
   }
 
   public static void main(String[] args) {
-    new AutograderBuilder();
+    AutograderBuilder gui = new AutograderBuilder();
+    gui.show();
   }
 
-  private void displayTemplateSelector() {
-    String templateDir = BuilderData.getTemplateDir();
-    JLabel label = new JLabel(PropertiesLoader.get("templateDirPrompt") + ": ");
-    JButton templateButton = new JButton(
-        templateDir == null ? PropertiesLoader.get("selectButtonHint") :
-            templateDir.substring(templateDir.lastIndexOf(File.separator) + 1));
-    templateButton.addActionListener(e -> handleSelectTemplate());
-
-    JRadioButton autogradedButton = new JRadioButton(PropertiesLoader.get("autogradedOption"));
-    JRadioButton manualButton = new JRadioButton(PropertiesLoader.get("manualOption"));
-    autogradedButton.setSelected(BuilderData.getTemplateType() == TemplateType.AUTO);
-    manualButton.setSelected(BuilderData.getTemplateType() == TemplateType.MANUAL);
-    autogradedButton.addActionListener(e -> {
-      autogradedButton.setSelected(true);
-      manualButton.setSelected(false);
-      BuilderData.setTemplateType(TemplateType.AUTO);
-    });
-    manualButton.addActionListener(e -> {
-      autogradedButton.setSelected(false);
-      manualButton.setSelected(true);
-      BuilderData.setTemplateType(TemplateType.MANUAL);
-    });
-
+  private void show() {
     JButton continueButton = new JButton(PropertiesLoader.get("continueButton"));
     continueButton.addActionListener(e -> handleContinue());
 
-    JPanel formPanel = new JPanel();
-    formPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-    formPanel.setLayout(new GridLayout(2, 2));
-    formPanel.add(label);
-    formPanel.add(templateButton);
-    formPanel.add(autogradedButton);
-    formPanel.add(manualButton);
-
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
-    panel.add(formPanel);
+    panel.add(createFormPanel());
     panel.add(continueButton, BorderLayout.SOUTH);
     frame.add(panel);
 
     InterfaceUtils.updateFrame();
+  }
+
+  private JPanel createFormPanel() {
+    JPanel formPanel = new JPanel();
+    formPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    formPanel.setLayout(new GridLayout(2, 2));
+    formPanel.add(new JLabel(PropertiesLoader.get("templateDirPrompt") + ": "));
+    formPanel.add(createTemplateButton());
+
+    radioButtons.clear();
+    createRadioButton(PropertiesLoader.get("autogradedOption"), TemplateType.AUTO);
+    createRadioButton(PropertiesLoader.get("manualOption"), TemplateType.MANUAL);
+    radioButtons.forEach(formPanel::add);
+
+    return formPanel;
+  }
+
+  private JButton createTemplateButton() {
+    String templateDir = BuilderData.getTemplateDir();
+    JButton templateButton = new JButton(
+        templateDir == null ? PropertiesLoader.get("selectButtonHint") :
+            templateDir.substring(templateDir.lastIndexOf(File.separator) + 1));
+    templateButton.addActionListener(e -> handleSelectTemplate());
+    return templateButton;
   }
 
   private void handleSelectTemplate() {
@@ -88,7 +86,17 @@ public class AutograderBuilder {
       String path = fileChooser.getSelectedFile().getAbsolutePath();
       BuilderData.setTemplateDir(path);
     }
-    displayTemplateSelector();
+    show();
+  }
+
+  private void createRadioButton(String text, TemplateType type) {
+    JRadioButton radioButton = new JRadioButton(text);
+    radioButtons.add(radioButton);
+    radioButton.setSelected(BuilderData.getTemplateType() == type);
+    radioButton.addActionListener(e -> {
+      radioButtons.forEach(button -> button.setSelected(button == radioButton));
+      BuilderData.setTemplateType(type);
+    });
   }
 
   private void handleContinue() {
