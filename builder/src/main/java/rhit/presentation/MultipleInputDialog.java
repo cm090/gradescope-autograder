@@ -49,7 +49,8 @@ public class MultipleInputDialog {
       return;
     }
     if (fields.values().stream().anyMatch(textField -> textField.getText().isEmpty())) {
-      JOptionPane.showMessageDialog(null, PropertiesLoader.get("emptyFieldError"));
+      JOptionPane.showMessageDialog(null,
+          PropertiesLoader.get("emptyFieldError") + " " + PropertiesLoader.get("didNotSave"));
       return;
     }
     fields.forEach((key, textField) -> InterfaceUtils.invokeClassMethod(object.get(key), key,

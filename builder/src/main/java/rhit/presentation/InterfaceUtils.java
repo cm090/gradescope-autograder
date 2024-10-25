@@ -34,7 +34,8 @@ public class InterfaceUtils {
           type.getDeclaredMethod("valueOf", String.class).invoke(null, objectText);
       callback.accept(value);
     } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
-      JOptionPane.showMessageDialog(null, String.format(PropertiesLoader.get("typeError"), key));
+      JOptionPane.showMessageDialog(null, String.format(
+          PropertiesLoader.get("typeError") + " " + PropertiesLoader.get("didNotSave"), key));
     }
   }
 }

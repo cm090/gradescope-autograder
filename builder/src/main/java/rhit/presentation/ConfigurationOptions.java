@@ -3,10 +3,13 @@ package rhit.presentation;
 import java.awt.BorderLayout;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.util.HashMap;
+import java.util.Map;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.event.DocumentEvent;
@@ -19,9 +22,11 @@ import rhit.domain.PropertiesLoader;
 public class ConfigurationOptions {
   private final JFrame frame;
   private JPanel panel;
+  private final Map<String, String> formValues;
 
   public ConfigurationOptions() {
     this.frame = InterfaceUtils.getFrame();
+    this.formValues = new HashMap<>();
     BuilderData.parseConfigFile();
     displayConfigurationOptions();
   }
@@ -72,6 +77,7 @@ public class ConfigurationOptions {
         formPanel.add(button, gbc);
       } else {
         JTextField textField = new JTextField(value.toString());
+        formValues.put(key.toString(), value.toString());
         textField.getDocument().addDocumentListener(new DocumentListener() {
           @Override
           public void insertUpdate(DocumentEvent e) {
@@ -90,6 +96,10 @@ public class ConfigurationOptions {
 
           private void handleChange() {
             Object newValue = textField.getText();
+            formValues.put(key.toString(), (String) newValue);
+            if (((String) newValue).isEmpty()) {
+              return;
+            }
             if (value instanceof Long) {
               newValue = Long.parseLong((String) newValue);
             } else if (value instanceof Boolean) {
@@ -110,6 +120,10 @@ public class ConfigurationOptions {
   }
 
   private void handleContinue() {
+    if (formValues.values().stream().anyMatch(String::isEmpty)) {
+      JOptionPane.showMessageDialog(frame, PropertiesLoader.get("emptyFieldError"));
+      return;
+    }
     InterfaceUtils.hideFrame(panel);
   }
 }
