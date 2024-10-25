@@ -72,6 +72,10 @@ public class ConfigurationOptions {
       formPanel.add(new JLabel(keyLabel + ": "), gbc);
       gbc.gridx = 1;
       if (value instanceof JSONArray) {
+        if (key.toString().equals("classes")) {
+          InterfaceUtils.createClassObjectsFromPackages((JSONArray) value,
+              BuilderData.getTemplateFiles());
+        }
         JButton button = new JButton(PropertiesLoader.get("editButton"));
         button.addActionListener(e -> displayArrayEditor((JSONArray) value));
         formPanel.add(button, gbc);
