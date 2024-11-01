@@ -3,8 +3,8 @@ package rhit.presentation;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -19,12 +19,12 @@ import rhit.domain.TemplateType;
 
 public class AutograderBuilder {
   private final JFrame frame;
-  private final Set<JRadioButton> radioButtons;
+  private final List<JRadioButton> radioButtons;
   private JPanel panel;
 
   private AutograderBuilder() {
     this.frame = new JFrame(PropertiesLoader.get("windowTitle"));
-    this.radioButtons = new HashSet<>();
+    this.radioButtons = new ArrayList<>();
     InterfaceUtils.setFrame(frame);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
   }

@@ -91,7 +91,7 @@ public class BuildRunner {
     File runnerFile = new File(compileDir, "config.json");
     try {
       FileWriter fw = new FileWriter(runnerFile);
-      fw.write(BuilderData.getConfigOptions().toString());
+      fw.write(BuilderData.getConfigOptions().toJSONString().replace("\\/", "/"));
       fw.close();
     } catch (Exception e) {
       logOutput.append(
