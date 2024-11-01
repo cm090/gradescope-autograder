@@ -37,32 +37,35 @@ public class BuildRunner {
     updateConfigFile();
     compressOutput();
 
-    logOutput.append("Done! Opening output directory...");
+    logOutput.append(PropertiesLoader.get("buildSuccess") + "\n");
     try {
       Desktop.getDesktop().open(compileDir);
     } catch (IOException e) {
-      logOutput.append("Error opening output directory: " + e.getMessage());
+      logOutput.append(
+          String.format(PropertiesLoader.get("fileExplorerOpenError"), e.getMessage()) + "\n");
     }
   }
 
   private void copyTemplateDir() {
     if (!templateDir.exists() || !templateDir.isDirectory()) {
       logOutput.append(
-          "Template directory " + templateDir + " does not exist or is not a directory.\n");
+          String.format(PropertiesLoader.get("templateDirectoryDoesNotExist"), templateDir) + "\n");
       return;
     }
     if (!compileDir.exists() && !compileDir.mkdirs()) {
-      logOutput.append("Failed to create compile directory " + compileDir + "\n");
+      logOutput.append(
+          String.format(PropertiesLoader.get("compileDirectoryFailure"), compileDir) + "\n");
       return;
     }
 
     try {
       FileUtils.copyDirectory(templateDir, compileDir);
     } catch (Exception e) {
-      logOutput.append("Error copying template directory: " + e.getMessage() + "\n");
+      logOutput.append(
+          String.format(PropertiesLoader.get("templateCopyError"), e.getMessage()) + "\n");
       return;
     }
-    logOutput.append("Copied template directory\n");
+    logOutput.append(PropertiesLoader.get("templateCopied") + "\n");
   }
 
   private void copyHomeworkTestFiles() {
@@ -75,10 +78,12 @@ public class BuildRunner {
       try {
         FileUtils.copyFile(file, out);
       } catch (Exception e) {
-        logOutput.append("Error copying homework file: " + e.getMessage() + "\n");
+        logOutput.append(
+            String.format(PropertiesLoader.get("homeworkCopyError"), e.getMessage()) + "\n");
         return;
       }
-      logOutput.append("Copied homework file " + file.getName() + "\n");
+      logOutput.append(
+          String.format(PropertiesLoader.get("homeworkCopied"), file.getName()) + "\n");
     }
   }
 
@@ -89,22 +94,24 @@ public class BuildRunner {
       fw.write(BuilderData.getConfigOptions().toString());
       fw.close();
     } catch (Exception e) {
-      logOutput.append("Error updating config file: " + e.getMessage() + "\n");
+      logOutput.append(
+          String.format(PropertiesLoader.get("configUpdateError"), e.getMessage()) + "\n");
       return;
     }
-    logOutput.append("Updated config file\n");
+    logOutput.append(PropertiesLoader.get("configUpdated") + "\n");
   }
 
   public void compressOutput() {
     Path folder = compileDir.toPath();
-    Path zipFilePath = new File(compileDir, "autograder.zip").toPath();
+    String zipFileName = "autograder.zip";
+    Path zipFilePath = new File(compileDir, zipFileName).toPath();
     try {
       try (FileOutputStream fos = new FileOutputStream(zipFilePath.toFile());
            ZipOutputStream zos = new ZipOutputStream(fos)) {
         Files.walkFileTree(folder, new SimpleFileVisitor<>() {
           public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
               throws IOException {
-            if (file.toString().contains("autograder.zip")) {
+            if (file.toString().contains(zipFileName)) {
               return FileVisitResult.CONTINUE;
             }
             zos.putNextEntry(new ZipEntry(folder.relativize(file).toString().replace("\\", "/")));
@@ -115,9 +122,10 @@ public class BuildRunner {
         });
       }
     } catch (Exception e) {
-      logOutput.append("Error compressing output: " + e.getMessage() + "\n");
+      logOutput.append(
+          String.format(PropertiesLoader.get("compressionError"), e.getMessage()) + "\n");
       return;
     }
-    logOutput.append("Compressed output to autograder.zip\n");
+    logOutput.append(String.format(PropertiesLoader.get("compressionSuccess"), zipFileName) + "\n");
   }
 }
