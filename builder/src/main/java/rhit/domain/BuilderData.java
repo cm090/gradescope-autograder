@@ -21,12 +21,17 @@ public class BuilderData {
 
   @Getter
   @Setter
+  // TODO: Add output selector to GUI
+  private static String outputDir;
+
+  @Getter
+  @Setter
   private static String starterCodeDir;
 
   @Getter
   @Setter
   private static TemplateType templateType = TemplateType.AUTO;
-  
+
   @Getter
   private static JSONObject configOptions;
 

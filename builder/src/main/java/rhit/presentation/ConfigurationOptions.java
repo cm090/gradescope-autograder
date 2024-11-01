@@ -129,5 +129,6 @@ class ConfigurationOptions {
       return;
     }
     InterfaceUtils.hideFrame(panel);
+    new BuildProgress();
   }
 }
