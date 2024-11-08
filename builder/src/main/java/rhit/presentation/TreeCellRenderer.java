@@ -18,9 +18,9 @@ import javax.swing.tree.TreePath;
  * @see <a href="https://www.infoworld.com/article/2175895/swing-based-tree-layouts-with-checkboxtree.html">Example</a>
  */
 class TreeCellRenderer implements CheckboxTreeCellRenderer {
-  JCheckBox checkBox = new JCheckBox();
-  JPanel panel = new JPanel();
-  JLabel label = new JLabel();
+  final JCheckBox checkBox = new JCheckBox();
+  final JPanel panel = new JPanel();
+  final JLabel label = new JLabel();
 
   TreeCellRenderer() {
     label.setFocusable(true);
