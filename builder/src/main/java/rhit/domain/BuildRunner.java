@@ -70,12 +70,12 @@ public class BuildRunner {
   }
 
   private void copyHomeworkTestFiles() {
-    // TODO: Copy files to the correct location
     Set<File> homeworkFiles =
         BuilderData.getTemplateFiles().stream().map(File::new).filter(File::isFile)
             .collect(Collectors.toSet());
     for (File file : homeworkFiles) {
-      File out = new File(compileDir, file.getName());
+      String relativePath = file.getPath().replace(BuilderData.getStarterCodeDir(), "");
+      File out = new File(compileDir, relativePath);
       try {
         FileUtils.copyFile(file, out);
       } catch (Exception e) {
