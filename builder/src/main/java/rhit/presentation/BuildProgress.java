@@ -1,11 +1,14 @@
 package rhit.presentation;
 
+import java.awt.BorderLayout;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import rhit.domain.BuildRunner;
+import rhit.domain.PropertiesLoader;
 
-public class BuildProgress {
+public class BuildProgress extends SwingGui {
   private static final int FRAME_WIDTH = 300;
   private static final int FRAME_HEIGHT = 300;
 
@@ -13,10 +16,9 @@ public class BuildProgress {
 
   BuildProgress() {
     this.frame = InterfaceUtils.getFrame();
-    displayBuildProgress();
   }
 
-  private void displayBuildProgress() {
+  void show() {
     JTextArea textArea = new JTextArea();
     textArea.setEditable(false);
     textArea.setLineWrap(true);
@@ -26,7 +28,12 @@ public class BuildProgress {
     scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
     scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
-    frame.add(scrollPane);
+    JButton continueButton = new JButton(PropertiesLoader.get("continueButton"));
+    continueButton.addActionListener(e -> handleContinue());
+
+    frame.setLayout(new BorderLayout());
+    frame.add(scrollPane, BorderLayout.CENTER);
+    frame.add(continueButton, BorderLayout.SOUTH);
 
     BuildRunner runner = new BuildRunner(textArea);
 
@@ -34,5 +41,9 @@ public class BuildProgress {
     frame.setLocationRelativeTo(null);
     frame.setVisible(true);
     runner.processBuild();
+  }
+
+  void handleContinue() {
+    frame.dispose();
   }
 }

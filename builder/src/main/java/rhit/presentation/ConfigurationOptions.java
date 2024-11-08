@@ -19,7 +19,7 @@ import org.json.simple.JSONObject;
 import rhit.domain.BuilderData;
 import rhit.domain.PropertiesLoader;
 
-class ConfigurationOptions {
+class ConfigurationOptions extends SwingGui {
   private static final int BORDER_SIZE = 5;
   private static final int GRID_PADDING = 2;
 
@@ -31,10 +31,9 @@ class ConfigurationOptions {
     this.frame = InterfaceUtils.getFrame();
     this.formValues = new HashMap<>();
     BuilderData.parseConfigFile();
-    displayConfigurationOptions();
   }
 
-  private void displayConfigurationOptions() {
+  void show() {
     JPanel formPanel = new JPanel(new GridBagLayout());
     formPanel.setBorder(
         BorderFactory.createEmptyBorder(BORDER_SIZE, BORDER_SIZE, BORDER_SIZE, BORDER_SIZE));
@@ -127,12 +126,13 @@ class ConfigurationOptions {
     dialog.setVisible(true);
   }
 
-  private void handleContinue() {
+  void handleContinue() {
     if (formValues.values().stream().anyMatch(String::isEmpty)) {
       JOptionPane.showMessageDialog(frame, PropertiesLoader.get("emptyFieldError"));
       return;
     }
     InterfaceUtils.hideFrame(panel);
-    new BuildProgress();
+    SwingGui.setVisibleFrame(new BuildProgress());
+    SwingGui.showFrame();
   }
 }

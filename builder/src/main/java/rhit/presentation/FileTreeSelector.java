@@ -22,7 +22,7 @@ import rhit.domain.BuilderData;
 import rhit.domain.FileTree;
 import rhit.domain.PropertiesLoader;
 
-class FileTreeSelector {
+class FileTreeSelector extends SwingGui {
   private static final int BORDER_SIZE = 5;
   private static final int NUM_ROWS = 1;
   private static final int NUM_COLS = 2;
@@ -37,10 +37,9 @@ class FileTreeSelector {
 
   FileTreeSelector() {
     this.frame = InterfaceUtils.getFrame();
-    displayFileTreeSelector();
   }
 
-  private void displayFileTreeSelector() {
+  void show() {
     String startingDir = BuilderData.getStarterCodeDir();
     JLabel label = new JLabel(PropertiesLoader.get("starterCodeDirPrompt") + ": ");
     JButton startingDirectoryButton = new JButton(
@@ -103,10 +102,10 @@ class FileTreeSelector {
       BuilderData.setStarterCodeDir(path);
       generateCheckboxTree();
     }
-    displayFileTreeSelector();
+    show();
   }
 
-  private void handleContinue() {
+  void handleContinue() {
     if (BuilderData.getStarterCodeDir() == null) {
       JOptionPane.showMessageDialog(frame, PropertiesLoader.get("starterCodeSelectError"),
           PropertiesLoader.get("errorTitle"), JOptionPane.ERROR_MESSAGE);
@@ -121,7 +120,8 @@ class FileTreeSelector {
         BuilderData.addTemplateFile(filePath.getAbsolutePath());
       }
     });
-    new ConfigurationOptions();
+    SwingGui.setVisibleFrame(new ConfigurationOptions());
+    SwingGui.showFrame();
   }
 
   private void generateCheckboxTree() {
