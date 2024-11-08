@@ -6,6 +6,9 @@ import javax.swing.JTextArea;
 import rhit.domain.BuildRunner;
 
 public class BuildProgress {
+  private static final int FRAME_WIDTH = 300;
+  private static final int FRAME_HEIGHT = 300;
+
   private final JFrame frame;
 
   BuildProgress() {
@@ -27,7 +30,7 @@ public class BuildProgress {
 
     BuildRunner runner = new BuildRunner(textArea);
 
-    frame.setSize(300, 300);
+    frame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
     frame.setLocationRelativeTo(null);
     frame.setVisible(true);
     runner.processBuild();

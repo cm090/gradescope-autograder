@@ -17,7 +17,9 @@ import org.json.simple.JSONObject;
 import rhit.domain.PropertiesLoader;
 
 class InterfaceUtils {
-  private static final Pattern packagePattern = Pattern.compile("(?<=src[\\\\/]).+(?=[\\\\/])");
+  private static final String JAVA_EXTENSION = ".java";
+  private static final String PACKAGE_NAME_KEY = "name";
+  private static final Pattern PACKAGE_PATTERN = Pattern.compile("(?<=src[\\\\/]).+(?=[\\\\/])");
 
   @Getter
   @Setter
@@ -64,7 +66,7 @@ class InterfaceUtils {
     for (String packageName : packages) {
       JSONObject object = new JSONObject();
       for (Object key : original.keySet()) {
-        object.put(key, key.equals("name") ? packageName : original.get(key));
+        object.put(key, key.equals(PACKAGE_NAME_KEY) ? packageName : original.get(key));
       }
       array.add(object);
     }
@@ -72,10 +74,10 @@ class InterfaceUtils {
   }
 
   private static String getPackageFromFile(String path) {
-    if (!(path.endsWith(".java") && path.contains(File.separator))) {
+    if (!(path.endsWith(JAVA_EXTENSION) && path.contains(File.separator))) {
       return "";
     }
-    Matcher matcher = packagePattern.matcher(path);
+    Matcher matcher = PACKAGE_PATTERN.matcher(path);
     return matcher.find() ? matcher.group().replace("/", ".") : "";
   }
 }

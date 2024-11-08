@@ -19,6 +19,11 @@ import rhit.domain.PropertiesLoader;
 import rhit.domain.TemplateType;
 
 public class AutograderBuilder {
+  private static final int BORDER_SIZE = 5;
+  private static final int NUM_ROWS = 3;
+  private static final int NUM_COLS = 2;
+  private static final int GRID_PADDING = 2;
+
   private final JFrame frame;
   private final List<JRadioButton> radioButtons;
   private JPanel panel;
@@ -50,8 +55,9 @@ public class AutograderBuilder {
 
   private JPanel createFormPanel() {
     JPanel formPanel = new JPanel();
-    formPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-    formPanel.setLayout(new GridLayout(3, 2, 0, 5));
+    formPanel.setBorder(
+        BorderFactory.createEmptyBorder(BORDER_SIZE, BORDER_SIZE, BORDER_SIZE, BORDER_SIZE));
+    formPanel.setLayout(new GridLayout(NUM_ROWS, NUM_COLS, 0, GRID_PADDING));
     formPanel.add(new JLabel(PropertiesLoader.get("templateDirPrompt") + ": "));
     formPanel.add(createTemplateButton());
     formPanel.add(new JLabel(PropertiesLoader.get("outputDirPrompt") + ": "));

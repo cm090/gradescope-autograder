@@ -23,6 +23,14 @@ import rhit.domain.FileTree;
 import rhit.domain.PropertiesLoader;
 
 class FileTreeSelector {
+  private static final int BORDER_SIZE = 5;
+  private static final int NUM_ROWS = 1;
+  private static final int NUM_COLS = 2;
+  private static final int TOP_PADDING = 10;
+  private static final int EXPAND_SIZE = 1;
+  private static final int FRAME_WIDTH = 350;
+  private static final int FRAME_HEIGHT = 500;
+
   private final JFrame frame;
   private JPanel panel;
   private CheckboxTree checkboxTree;
@@ -44,28 +52,29 @@ class FileTreeSelector {
     continueButton.addActionListener(e -> handleContinue());
 
     JPanel formPanel = new JPanel(new GridBagLayout());
-    formPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    formPanel.setBorder(
+        BorderFactory.createEmptyBorder(BORDER_SIZE, BORDER_SIZE, BORDER_SIZE, BORDER_SIZE));
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.gridx = 0;
     gbc.gridy = 0;
 
-    JPanel directorySelectorPanel = new JPanel(new GridLayout(1, 2));
+    JPanel directorySelectorPanel = new JPanel(new GridLayout(NUM_ROWS, NUM_COLS));
     directorySelectorPanel.add(label);
     directorySelectorPanel.add(startingDirectoryButton);
     formPanel.add(directorySelectorPanel, gbc);
 
     if (checkboxTree != null) {
       gbc.gridy++;
-      gbc.insets.top = 10;
+      gbc.insets.top = TOP_PADDING;
       formPanel.add(new JLabel(PropertiesLoader.get("includeFilesPrompt")), gbc);
       gbc.gridy++;
-      gbc.weightx = 1;
-      gbc.weighty = 1;
+      gbc.weightx = EXPAND_SIZE;
+      gbc.weighty = EXPAND_SIZE;
       gbc.insets.top = 0;
       gbc.fill = GridBagConstraints.BOTH;
       JScrollPane scrollPane = new JScrollPane(checkboxTree);
-      scrollPane.setPreferredSize(new Dimension(350, 500));
+      scrollPane.setPreferredSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
       formPanel.add(scrollPane, gbc);
     }
 

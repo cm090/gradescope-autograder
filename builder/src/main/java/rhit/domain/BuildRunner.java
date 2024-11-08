@@ -89,7 +89,7 @@ public class BuildRunner {
   }
 
   private void updateConfigFile() {
-    File runnerFile = new File(compileDir, "config.json");
+    File runnerFile = new File(compileDir, BuilderData.CONFIG_FILE);
     try {
       FileWriter fw = new FileWriter(runnerFile);
       fw.write(BuilderData.getConfigOptions().toJSONString().replace("\\/", "/"));

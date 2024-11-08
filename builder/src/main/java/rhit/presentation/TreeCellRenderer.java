@@ -47,16 +47,13 @@ class TreeCellRenderer implements CheckboxTreeCellRenderer {
     }
     TreeCheckingModel checkingModel = ((CheckboxTree) tree).getCheckingModel();
     TreePath path = tree.getPathForRow(row);
-    boolean enabled = checkingModel.isPathEnabled(path);
-    boolean checked = checkingModel.isPathChecked(path);
-    boolean grayed = checkingModel.isPathGreyed(path);
-    checkBox.setEnabled(enabled);
-    if (grayed) {
+    checkBox.setEnabled(checkingModel.isPathEnabled(path));
+    if (checkingModel.isPathGreyed(path)) {
       label.setForeground(Color.lightGray);
     } else {
       label.setForeground(Color.black);
     }
-    checkBox.setSelected(checked);
+    checkBox.setSelected(checkingModel.isPathChecked(path));
     return panel;
   }
 }

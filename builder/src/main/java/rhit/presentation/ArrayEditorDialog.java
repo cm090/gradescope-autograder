@@ -15,6 +15,11 @@ import org.json.simple.JSONObject;
 import rhit.domain.PropertiesLoader;
 
 class ArrayEditorDialog extends JDialog {
+  private static final int FRAME_WIDTH = 400;
+  private static final int FRAME_HEIGHT = 300;
+  private static final int NUM_ROWS = 1;
+  private static final int NUM_COLS = 4;
+
   private final DefaultListModel<String> listModel;
   private final JList<String> itemList;
   private final JSONArray array;
@@ -38,7 +43,7 @@ class ArrayEditorDialog extends JDialog {
     add(scrollPane, BorderLayout.CENTER);
 
     JPanel buttonPanel = new JPanel();
-    buttonPanel.setLayout(new GridLayout(1, 4));
+    buttonPanel.setLayout(new GridLayout(NUM_ROWS, NUM_COLS));
 
     JButton addButton = getAddButton();
     buttonPanel.add(addButton);
@@ -48,7 +53,7 @@ class ArrayEditorDialog extends JDialog {
 
     JButton removeButton = new JButton(PropertiesLoader.get("removeButton"));
     removeButton.addActionListener(e -> {
-      if (array.size() < 2) {
+      if (array.size() <= 1) {
         JOptionPane.showMessageDialog(ArrayEditorDialog.this, PropertiesLoader.get("removeError"));
         return;
       }
@@ -66,7 +71,7 @@ class ArrayEditorDialog extends JDialog {
 
     add(buttonPanel, BorderLayout.SOUTH);
 
-    setSize(400, 300);
+    setSize(FRAME_WIDTH, FRAME_HEIGHT);
     setLocationRelativeTo(getParent());
   }
 

@@ -20,9 +20,12 @@ import rhit.domain.BuilderData;
 import rhit.domain.PropertiesLoader;
 
 class ConfigurationOptions {
+  private static final int BORDER_SIZE = 5;
+  private static final int GRID_PADDING = 2;
+
   private final JFrame frame;
-  private JPanel panel;
   private final Map<String, String> formValues;
+  private JPanel panel;
 
   ConfigurationOptions() {
     this.frame = InterfaceUtils.getFrame();
@@ -33,7 +36,8 @@ class ConfigurationOptions {
 
   private void displayConfigurationOptions() {
     JPanel formPanel = new JPanel(new GridBagLayout());
-    formPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    formPanel.setBorder(
+        BorderFactory.createEmptyBorder(BORDER_SIZE, BORDER_SIZE, BORDER_SIZE, BORDER_SIZE));
 
     generateFormPanel(formPanel);
 
@@ -54,7 +58,7 @@ class ConfigurationOptions {
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
-    gbc.insets.set(2, 2, 2, 2);
+    gbc.insets.set(GRID_PADDING, GRID_PADDING, GRID_PADDING, GRID_PADDING);
     iterativeFormPanel(configOptions, formPanel, gbc);
   }
 

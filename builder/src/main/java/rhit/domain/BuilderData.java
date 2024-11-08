@@ -12,6 +12,8 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 public class BuilderData {
+  static final String CONFIG_FILE = "config.json";
+
   @Getter
   private static final Set<String> templateFiles = new HashSet<>();
 
@@ -39,7 +41,7 @@ public class BuilderData {
   }
 
   public static void parseConfigFile() {
-    File configFile = new File(templateDir, "config.json");
+    File configFile = new File(templateDir, CONFIG_FILE);
     try (FileReader reader = new FileReader(configFile)) {
       configOptions = (JSONObject) new JSONParser().parse(reader);
     } catch (ParseException | IOException e) {

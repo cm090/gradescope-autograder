@@ -13,6 +13,8 @@ import org.json.simple.JSONObject;
 import rhit.domain.PropertiesLoader;
 
 class MultipleInputDialog {
+  private static final int NUM_COLS = 2;
+
   private final Set<Runnable> callbacks;
   private final Map<String, JTextField> fields;
   private final JSONObject object;
@@ -25,7 +27,7 @@ class MultipleInputDialog {
 
   @SuppressWarnings("unchecked")
   public void show() {
-    JPanel panel = new JPanel(new GridLayout(0, 2));
+    JPanel panel = new JPanel(new GridLayout(0, NUM_COLS));
     object.forEach((key, value) -> createFormRow(key.toString(), value, panel));
 
     handleDialogAction(

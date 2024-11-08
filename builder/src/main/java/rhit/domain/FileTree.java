@@ -12,6 +12,9 @@ import lombok.Getter;
 
 @Getter
 public class FileTree {
+  private static final String BIN_DIR = "bin";
+  private static final String CLASS_EXTENSION = ".class";
+
   private final FileTreeNode root;
 
   public FileTree(String path) {
@@ -42,7 +45,8 @@ public class FileTree {
   }
 
   private static boolean shouldIgnoreFile(String fileName) {
-    return fileName.startsWith(".") || fileName.equals("bin") || fileName.endsWith(".class");
+    return fileName.startsWith(".") || fileName.equals(BIN_DIR) ||
+        fileName.endsWith(CLASS_EXTENSION);
   }
 
   @Builder
