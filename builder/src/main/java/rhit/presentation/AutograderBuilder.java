@@ -112,7 +112,7 @@ public class AutograderBuilder {
     fileChooser.setAcceptAllFileFilterUsed(false);
     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
       String path = fileChooser.getSelectedFile().getAbsolutePath();
-      if (Objects.requireNonNull(new File(path).listFiles()).length > 0) {
+      while (Objects.requireNonNull(new File(path).listFiles()).length > 0) {
         JOptionPane.showMessageDialog(frame,
             String.format(PropertiesLoader.get("outputSelectDirectoryWarning"), path,
                 PropertiesLoader.get("outputActualDir")), PropertiesLoader.get("errorTitle"),
