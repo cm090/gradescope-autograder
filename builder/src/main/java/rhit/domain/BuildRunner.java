@@ -127,5 +127,6 @@ public class BuildRunner {
       return;
     }
     logOutput.append(String.format(PropertiesLoader.get("compressionSuccess"), zipFileName) + "\n");
+    logOutput.append(PropertiesLoader.get("closeWindowReminder"));
   }
 }

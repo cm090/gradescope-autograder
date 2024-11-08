@@ -21,7 +21,6 @@ public class BuilderData {
 
   @Getter
   @Setter
-  // TODO: Add output selector to GUI
   private static String outputDir;
 
   @Getter

@@ -50,9 +50,11 @@ public class AutograderBuilder {
   private JPanel createFormPanel() {
     JPanel formPanel = new JPanel();
     formPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-    formPanel.setLayout(new GridLayout(2, 2));
+    formPanel.setLayout(new GridLayout(3, 2, 0, 5));
     formPanel.add(new JLabel(PropertiesLoader.get("templateDirPrompt") + ": "));
     formPanel.add(createTemplateButton());
+    formPanel.add(new JLabel(PropertiesLoader.get("outputDirPrompt") + ": "));
+    formPanel.add(createOutputButton());
 
     radioButtons.clear();
     createRadioButton(PropertiesLoader.get("autogradedOption"), TemplateType.AUTO);
@@ -89,6 +91,30 @@ public class AutograderBuilder {
     show();
   }
 
+  private JButton createOutputButton() {
+    String outputDir = BuilderData.getOutputDir();
+    JButton templateButton = new JButton(
+        outputDir == null ? PropertiesLoader.get("selectButtonHint") :
+            outputDir.substring(outputDir.lastIndexOf(File.separator) + 1));
+    templateButton.addActionListener(e -> handleSelectOutput());
+    return templateButton;
+  }
+
+  private void handleSelectOutput() {
+    InterfaceUtils.hideFrame(panel);
+    JFileChooser fileChooser = new JFileChooser();
+    fileChooser.setCurrentDirectory(new File("."));
+    fileChooser.setDialogTitle(String.format("%s (%s)", PropertiesLoader.get("selectButtonHint"),
+        PropertiesLoader.get("outputDirHint")));
+    fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    fileChooser.setAcceptAllFileFilterUsed(false);
+    if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
+      String path = fileChooser.getSelectedFile().getAbsolutePath();
+      BuilderData.setOutputDir(path);
+    }
+    show();
+  }
+
   private void createRadioButton(String text, TemplateType type) {
     JRadioButton radioButton = new JRadioButton(text);
     radioButtons.add(radioButton);
@@ -102,6 +128,10 @@ public class AutograderBuilder {
   private void handleContinue() {
     if (BuilderData.getTemplateDir() == null) {
       JOptionPane.showMessageDialog(frame, PropertiesLoader.get("templateSelectError"),
+          PropertiesLoader.get("errorTitle"), JOptionPane.ERROR_MESSAGE);
+      return;
+    } else if (BuilderData.getOutputDir() == null) {
+      JOptionPane.showMessageDialog(frame, PropertiesLoader.get("outputSelectError"),
           PropertiesLoader.get("errorTitle"), JOptionPane.ERROR_MESSAGE);
       return;
     }
