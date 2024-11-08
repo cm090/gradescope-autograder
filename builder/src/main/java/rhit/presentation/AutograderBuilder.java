@@ -105,12 +105,20 @@ public class AutograderBuilder {
     JFileChooser fileChooser = new JFileChooser();
     fileChooser.setCurrentDirectory(new File("."));
     fileChooser.setDialogTitle(String.format("%s (%s)", PropertiesLoader.get("selectButtonHint"),
-        PropertiesLoader.get("outputDirHint")));
+        String.format(PropertiesLoader.get("outputDirHint"),
+            PropertiesLoader.get("outputActualDir"))));
     fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     fileChooser.setAcceptAllFileFilterUsed(false);
     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
       String path = fileChooser.getSelectedFile().getAbsolutePath();
-      BuilderData.setOutputDir(path);
+      File actualPath = new File(path, PropertiesLoader.get("outputActualDir"));
+      if (actualPath.exists()) {
+        JOptionPane.showMessageDialog(frame,
+            String.format(PropertiesLoader.get("outputSelectDirectoryError"), actualPath),
+            PropertiesLoader.get("errorTitle"), JOptionPane.ERROR_MESSAGE);
+      } else {
+        BuilderData.setOutputDir(path);
+      }
     }
     show();
   }

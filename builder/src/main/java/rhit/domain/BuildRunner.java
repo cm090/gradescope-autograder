@@ -28,7 +28,7 @@ public class BuildRunner {
 
   public void processBuild() {
     templateDir = new File(BuilderData.getTemplateDir());
-    compileDir = new File(BuilderData.getOutputDir(), "autograder");
+    compileDir = new File(BuilderData.getOutputDir(), PropertiesLoader.get("outputActualDir"));
 
     copyTemplateDir();
     if (BuilderData.getTemplateType() == TemplateType.AUTO) {
@@ -103,7 +103,7 @@ public class BuildRunner {
 
   public void compressOutput() {
     Path folder = compileDir.toPath();
-    String zipFileName = "autograder.zip";
+    String zipFileName = PropertiesLoader.get("outputZipName") + ".zip";
     Path zipFilePath = new File(compileDir, zipFileName).toPath();
     try {
       try (FileOutputStream fos = new FileOutputStream(zipFilePath.toFile());
