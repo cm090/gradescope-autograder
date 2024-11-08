@@ -5,6 +5,7 @@ import java.awt.GridLayout;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -111,14 +112,14 @@ public class AutograderBuilder {
     fileChooser.setAcceptAllFileFilterUsed(false);
     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
       String path = fileChooser.getSelectedFile().getAbsolutePath();
-      File actualPath = new File(path, PropertiesLoader.get("outputActualDir"));
-      if (actualPath.exists()) {
+      if (Objects.requireNonNull(new File(path).listFiles()).length > 0) {
         JOptionPane.showMessageDialog(frame,
-            String.format(PropertiesLoader.get("outputSelectDirectoryError"), actualPath),
-            PropertiesLoader.get("errorTitle"), JOptionPane.ERROR_MESSAGE);
-      } else {
-        BuilderData.setOutputDir(path);
+            String.format(PropertiesLoader.get("outputSelectDirectoryWarning"), path,
+                PropertiesLoader.get("outputActualDir")), PropertiesLoader.get("errorTitle"),
+            JOptionPane.WARNING_MESSAGE);
+        path = new File(path, PropertiesLoader.get("outputActualDir")).getAbsolutePath();
       }
+      BuilderData.setOutputDir(path);
     }
     show();
   }

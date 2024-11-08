@@ -28,7 +28,7 @@ public class BuildRunner {
 
   public void processBuild() {
     templateDir = new File(BuilderData.getTemplateDir());
-    compileDir = new File(BuilderData.getOutputDir(), PropertiesLoader.get("outputActualDir"));
+    compileDir = new File(BuilderData.getOutputDir());
 
     copyTemplateDir();
     if (BuilderData.getTemplateType() == TemplateType.AUTO) {
@@ -44,6 +44,7 @@ public class BuildRunner {
       logOutput.append(
           String.format(PropertiesLoader.get("fileExplorerOpenError"), e.getMessage()) + "\n");
     }
+    logOutput.append(PropertiesLoader.get("closeWindowReminder"));
   }
 
   private void copyTemplateDir() {
@@ -127,6 +128,5 @@ public class BuildRunner {
       return;
     }
     logOutput.append(String.format(PropertiesLoader.get("compressionSuccess"), zipFileName) + "\n");
-    logOutput.append(PropertiesLoader.get("closeWindowReminder"));
   }
 }
