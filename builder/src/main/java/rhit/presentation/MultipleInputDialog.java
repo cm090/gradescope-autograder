@@ -61,6 +61,9 @@ class MultipleInputDialog {
   }
 
   public void addCallback(Runnable callback) {
+    if (callback == null) {
+      throw new IllegalArgumentException("Callback cannot be null");
+    }
     callbacks.add(callback);
   }
 }
