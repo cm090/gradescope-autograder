@@ -15,7 +15,7 @@ abstract class SwingGui {
     visibleFrame.show();
   }
 
-  void verifyFrame(JFrame frame) {
+  protected void verifyFrame(JFrame frame) {
     if (frame == null) {
       throw new IllegalStateException("Failed to initialize frame");
     }
@@ -23,5 +23,5 @@ abstract class SwingGui {
 
   abstract void show();
 
-  abstract void handleContinue();
+  protected abstract void handleContinue();
 }

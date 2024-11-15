@@ -84,8 +84,9 @@ public class BuildRunner {
         BuilderData.getTemplateFiles().stream().map(File::new).filter(File::isFile)
             .collect(Collectors.toSet());
     for (File file : homeworkFiles) {
-      String relativePath = file.getPath().replace(BuilderData.getStarterCodeDir(), "");
-      File out = new File(compileDir, relativePath);
+      Path relativePath =
+          new File(BuilderData.getStarterCodeDir()).toPath().relativize(file.toPath());
+      File out = new File(compileDir, relativePath.toString());
       try {
         FileUtils.copyFile(file, out);
       } catch (Exception e) {

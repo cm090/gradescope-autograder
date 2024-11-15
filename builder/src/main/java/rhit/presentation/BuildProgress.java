@@ -45,7 +45,7 @@ public class BuildProgress extends SwingGui {
     runner.processBuild();
   }
 
-  void handleContinue() {
+  protected void handleContinue() {
     frame.dispose();
   }
 }

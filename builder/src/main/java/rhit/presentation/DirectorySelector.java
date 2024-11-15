@@ -144,7 +144,7 @@ public class DirectorySelector extends SwingGui {
     });
   }
 
-  void handleContinue() {
+  protected void handleContinue() {
     if (BuilderData.getTemplateDir() == null) {
       JOptionPane.showMessageDialog(frame, PropertiesLoader.get("templateSelectError"),
           PropertiesLoader.get("errorTitle"), JOptionPane.ERROR_MESSAGE);

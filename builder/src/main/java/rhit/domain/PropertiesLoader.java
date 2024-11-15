@@ -12,13 +12,11 @@ public class PropertiesLoader {
   private PropertiesLoader() {
     try (InputStream input = getClass().getClassLoader().getResourceAsStream(FILE_NAME)) {
       if (input == null) {
-        System.out.println("Could not find properties file " + FILE_NAME);
-        return;
+        throw new IllegalStateException("Could not find properties file " + FILE_NAME);
       }
       properties.load(input);
     } catch (IOException ex) {
-      System.err.println("Could not load properties file " + FILE_NAME);
-      System.err.println(ex.getMessage());
+      throw new IllegalStateException("Could not load properties file " + FILE_NAME, ex);
     }
   }
 

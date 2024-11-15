@@ -35,6 +35,7 @@ final class InterfaceUtils {
     panel.removeAll();
     frame.getContentPane().removeAll();
     frame.setVisible(false);
+    frame.dispose();
   }
 
   static void invokeClassMethod(Object object, String key, String stringText, String objectText,

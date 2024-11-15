@@ -129,7 +129,7 @@ class ConfigurationOptions extends SwingGui {
     dialog.setVisible(true);
   }
 
-  void handleContinue() {
+  protected void handleContinue() {
     if (formValues.values().stream().anyMatch(String::isEmpty)) {
       JOptionPane.showMessageDialog(frame, PropertiesLoader.get("emptyFieldError"));
       return;

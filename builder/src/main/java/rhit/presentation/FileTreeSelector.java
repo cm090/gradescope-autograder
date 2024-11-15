@@ -51,7 +51,7 @@ class FileTreeSelector extends SwingGui {
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.gridx = 0;
     gbc.gridy = 0;
-    
+
     addDirectorySelector(gbc, formPanel);
     prepareCheckboxTree(gbc, formPanel);
 
@@ -83,7 +83,7 @@ class FileTreeSelector extends SwingGui {
     show();
   }
 
-  void handleContinue() {
+  protected void handleContinue() {
     if (BuilderData.getStarterCodeDir() == null) {
       JOptionPane.showMessageDialog(frame, PropertiesLoader.get("starterCodeSelectError"),
           PropertiesLoader.get("errorTitle"), JOptionPane.ERROR_MESSAGE);
