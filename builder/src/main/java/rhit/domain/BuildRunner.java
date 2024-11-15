@@ -3,8 +3,9 @@ package rhit.domain;
 import java.awt.Desktop;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -90,10 +91,9 @@ public class BuildRunner {
 
   private void updateConfigFile() {
     File runnerFile = new File(compileDir, BuilderData.CONFIG_FILE);
-    try {
-      FileWriter fw = new FileWriter(runnerFile);
-      fw.write(BuilderData.getConfigOptions().toJSONString().replace("\\/", "/"));
-      fw.close();
+    try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(runnerFile),
+        StandardCharsets.UTF_8)) {
+      writer.write(BuilderData.getConfigOptions().toJSONString().replace("\\/", "/"));
     } catch (Exception e) {
       logOutput.append(
           String.format(PropertiesLoader.get("configUpdateError"), e.getMessage()) + "\n");

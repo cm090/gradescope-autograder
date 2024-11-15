@@ -53,11 +53,12 @@ class ConfigurationOptions extends SwingGui {
   }
 
   private void generateFormPanel(JPanel formPanel) {
-    JSONObject configOptions = BuilderData.getConfigOptions();
     GridBagConstraints gbc = new GridBagConstraints();
     gbc.gridy = 0;
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.insets.set(GRID_PADDING, GRID_PADDING, GRID_PADDING, GRID_PADDING);
+
+    JSONObject configOptions = BuilderData.getConfigOptions();
     iterativeFormPanel(configOptions, formPanel, gbc);
   }
 

@@ -35,11 +35,12 @@ public class BuildProgress extends SwingGui {
     frame.add(scrollPane, BorderLayout.CENTER);
     frame.add(continueButton, BorderLayout.SOUTH);
 
-    BuildRunner runner = new BuildRunner(textArea);
 
     frame.setSize(FRAME_WIDTH, FRAME_HEIGHT);
     frame.setLocationRelativeTo(null);
     frame.setVisible(true);
+
+    BuildRunner runner = new BuildRunner(textArea);
     runner.processBuild();
   }
 
