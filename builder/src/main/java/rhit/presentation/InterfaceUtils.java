@@ -16,7 +16,7 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import rhit.domain.PropertiesLoader;
 
-class InterfaceUtils {
+final class InterfaceUtils {
   private static final String JAVA_EXTENSION = ".java";
   private static final String PACKAGE_NAME_KEY = "name";
   private static final Pattern PACKAGE_PATTERN = Pattern.compile("(?<=src[\\\\/]).+(?=[\\\\/])");
@@ -62,7 +62,16 @@ class InterfaceUtils {
     if (packages.isEmpty()) {
       return;
     }
+
+    if (array.isEmpty()) {
+      throw new IllegalArgumentException("Array must contain at least one object");
+    }
     JSONObject original = (JSONObject) array.get(0);
+    if (!original.containsKey(PACKAGE_NAME_KEY)) {
+      throw new IllegalArgumentException(
+          "Object must contain the key \"" + PACKAGE_NAME_KEY + "\"");
+    }
+
     for (String packageName : packages) {
       JSONObject object = new JSONObject();
       for (Object key : original.keySet()) {

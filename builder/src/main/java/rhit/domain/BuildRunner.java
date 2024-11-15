@@ -31,12 +31,20 @@ public class BuildRunner {
     templateDir = new File(BuilderData.getTemplateDir());
     compileDir = new File(BuilderData.getOutputDir());
 
-    copyTemplateDir();
-    if (BuilderData.getTemplateType() == TemplateType.AUTO) {
-      copyHomeworkTestFiles();
+    if (!copyTemplateDir()) {
+      throw new RuntimeException("Failed to copy template directory");
     }
-    updateConfigFile();
-    compressOutput();
+    if (BuilderData.getTemplateType() == TemplateType.AUTO) {
+      if (!copyHomeworkTestFiles()) {
+        throw new RuntimeException("Failed to copy homework test files");
+      }
+    }
+    if (!updateConfigFile()) {
+      throw new RuntimeException("Failed to update configuration file");
+    }
+    if (!compressOutput()) {
+      throw new RuntimeException("Failed to compress output");
+    }
 
     logOutput.append(PropertiesLoader.get("buildSuccess") + "\n");
     try {
@@ -48,16 +56,16 @@ public class BuildRunner {
     logOutput.append(PropertiesLoader.get("closeWindowReminder"));
   }
 
-  private void copyTemplateDir() {
+  private boolean copyTemplateDir() {
     if (!templateDir.exists() || !templateDir.isDirectory()) {
       logOutput.append(
           String.format(PropertiesLoader.get("templateDirectoryDoesNotExist"), templateDir) + "\n");
-      return;
+      return false;
     }
     if (!compileDir.exists() && !compileDir.mkdirs()) {
       logOutput.append(
           String.format(PropertiesLoader.get("compileDirectoryFailure"), compileDir) + "\n");
-      return;
+      return false;
     }
 
     try {
@@ -65,12 +73,13 @@ public class BuildRunner {
     } catch (Exception e) {
       logOutput.append(
           String.format(PropertiesLoader.get("templateCopyError"), e.getMessage()) + "\n");
-      return;
+      return false;
     }
     logOutput.append(PropertiesLoader.get("templateCopied") + "\n");
+    return true;
   }
 
-  private void copyHomeworkTestFiles() {
+  private boolean copyHomeworkTestFiles() {
     Set<File> homeworkFiles =
         BuilderData.getTemplateFiles().stream().map(File::new).filter(File::isFile)
             .collect(Collectors.toSet());
@@ -82,14 +91,15 @@ public class BuildRunner {
       } catch (Exception e) {
         logOutput.append(
             String.format(PropertiesLoader.get("homeworkCopyError"), e.getMessage()) + "\n");
-        return;
+        return false;
       }
       logOutput.append(
           String.format(PropertiesLoader.get("homeworkCopied"), file.getName()) + "\n");
     }
+    return true;
   }
 
-  private void updateConfigFile() {
+  private boolean updateConfigFile() {
     File runnerFile = new File(compileDir, BuilderData.CONFIG_FILE);
     try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(runnerFile),
         StandardCharsets.UTF_8)) {
@@ -97,12 +107,13 @@ public class BuildRunner {
     } catch (Exception e) {
       logOutput.append(
           String.format(PropertiesLoader.get("configUpdateError"), e.getMessage()) + "\n");
-      return;
+      return false;
     }
     logOutput.append(PropertiesLoader.get("configUpdated") + "\n");
+    return true;
   }
 
-  public void compressOutput() {
+  public boolean compressOutput() {
     Path folder = compileDir.toPath();
     String zipFileName = PropertiesLoader.get("outputZipName") + ".zip";
     Path zipFilePath = new File(compileDir, zipFileName).toPath();
@@ -112,7 +123,7 @@ public class BuildRunner {
         Files.walkFileTree(folder, new SimpleFileVisitor<>() {
           public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
               throws IOException {
-            if (file.toString().contains(zipFileName)) {
+            if (file.getFileName().equals(zipFilePath.getFileName())) {
               return FileVisitResult.CONTINUE;
             }
             zos.putNextEntry(new ZipEntry(folder.relativize(file).toString().replace("\\", "/")));
@@ -125,8 +136,9 @@ public class BuildRunner {
     } catch (Exception e) {
       logOutput.append(
           String.format(PropertiesLoader.get("compressionError"), e.getMessage()) + "\n");
-      return;
+      return false;
     }
     logOutput.append(String.format(PropertiesLoader.get("compressionSuccess"), zipFileName) + "\n");
+    return true;
   }
 }

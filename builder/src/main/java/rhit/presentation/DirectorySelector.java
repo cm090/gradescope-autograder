@@ -30,6 +30,7 @@ public class DirectorySelector extends SwingGui {
 
   DirectorySelector() {
     this.frame = InterfaceUtils.getFrame();
+    super.verifyFrame(frame);
     this.radioButtons = new ArrayList<>();
   }
 
@@ -111,13 +112,22 @@ public class DirectorySelector extends SwingGui {
     fileChooser.setAcceptAllFileFilterUsed(false);
     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
       String path = fileChooser.getSelectedFile().getAbsolutePath();
+      int maxDepth = 10;
+      int depth = 0;
       while (new File(path).exists() &&
-          Objects.requireNonNull(new File(path).listFiles()).length > 0) {
+          Objects.requireNonNull(new File(path).listFiles()).length > 0 && depth++ < maxDepth) {
         JOptionPane.showMessageDialog(frame,
             String.format(PropertiesLoader.get("outputSelectDirectoryWarning"), path,
                 PropertiesLoader.get("outputActualDir")), PropertiesLoader.get("errorTitle"),
             JOptionPane.WARNING_MESSAGE);
         path = new File(path, PropertiesLoader.get("outputActualDir")).getAbsolutePath();
+      }
+      if (depth >= maxDepth) {
+        JOptionPane.showMessageDialog(frame,
+            PropertiesLoader.get("maxDepthExceededError"),
+            PropertiesLoader.get("errorTitle"),
+            JOptionPane.ERROR_MESSAGE);
+        return;
       }
       BuilderData.setOutputDir(path);
     }

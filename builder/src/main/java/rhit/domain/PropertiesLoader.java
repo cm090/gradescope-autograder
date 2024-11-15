@@ -27,6 +27,10 @@ public class PropertiesLoader {
   }
 
   private String getProperty(String key) {
-    return properties.getProperty(key);
+    String property = properties.getProperty(key);
+    if (property == null) {
+      throw new IllegalStateException("Property with key " + key + " is not defined");
+    }
+    return property;
   }
 }

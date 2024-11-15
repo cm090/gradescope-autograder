@@ -29,6 +29,7 @@ class ConfigurationOptions extends SwingGui {
 
   ConfigurationOptions() {
     this.frame = InterfaceUtils.getFrame();
+    super.verifyFrame(frame);
     this.formValues = new HashMap<>();
     BuilderData.parseConfigFile();
   }
@@ -72,7 +73,8 @@ class ConfigurationOptions extends SwingGui {
       }
       gbc.gridx = 0;
       String keyLabel = String.join(" ", key.toString().split("[-_]"));
-      keyLabel = keyLabel.substring(0, 1).toUpperCase() + keyLabel.substring(1);
+      keyLabel =
+          keyLabel.isEmpty() ? "" : keyLabel.substring(0, 1).toUpperCase() + keyLabel.substring(1);
       formPanel.add(new JLabel(keyLabel + ": "), gbc);
       gbc.gridx = 1;
       if (value instanceof JSONArray) {

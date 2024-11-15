@@ -16,6 +16,7 @@ public class BuildProgress extends SwingGui {
 
   BuildProgress() {
     this.frame = InterfaceUtils.getFrame();
+    super.verifyFrame(frame);
   }
 
   void show() {

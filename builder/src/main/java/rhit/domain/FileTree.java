@@ -18,6 +18,10 @@ public class FileTree {
   private final FileTreeNode root;
 
   public FileTree(String path) {
+    File rootPath = new File(path);
+    if (!(rootPath.exists() && rootPath.canRead())) {
+      throw new IllegalArgumentException("Unable to read path " + path);
+    }
     this.root = parseFileTree(path, 0, null);
   }
 
@@ -53,7 +57,7 @@ public class FileTree {
   private static class FileTreeNode implements TreeNode {
     private final List<FileTreeNode> children = new ArrayList<>();
     private FileTreeNode parent;
-    private int index;
+    private Integer index;
 
     @Getter
     private String path;
@@ -78,7 +82,7 @@ public class FileTree {
 
     @Override
     public int getIndex(TreeNode node) {
-      return index;
+      return index != null ? index : children.indexOf((FileTreeNode) node);
     }
 
     @Override

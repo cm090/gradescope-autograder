@@ -32,6 +32,11 @@ class ArrayEditorDialog extends JDialog {
     this.listModel = new DefaultListModel<>();
     array.forEach(item -> listModel.addElement(item.toString()));
     this.itemList = new JList<>(listModel);
+
+    if (array.isEmpty()) {
+      throw new IllegalArgumentException("Array cannot be empty");
+    }
+
     this.isObjectArray = array.get(0) instanceof JSONObject;
     buildInterface();
   }

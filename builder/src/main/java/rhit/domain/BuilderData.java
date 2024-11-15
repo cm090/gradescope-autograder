@@ -37,11 +37,18 @@ public class BuilderData {
   private static JSONObject configOptions;
 
   public static void addTemplateFile(String file) {
+    if (file == null || file.trim().isEmpty()) {
+      throw new IllegalArgumentException("Template file cannot be null or empty");
+    }
     templateFiles.add(file);
   }
 
   public static void parseConfigFile() {
     File configFile = new File(templateDir, CONFIG_FILE);
+    if (!configFile.exists()) {
+      throw new IllegalStateException("Configuration file does not exist");
+    }
+
     try (InputStreamReader reader = new InputStreamReader(new FileInputStream(configFile),
         StandardCharsets.UTF_8)) {
       configOptions = (JSONObject) new JSONParser().parse(reader);

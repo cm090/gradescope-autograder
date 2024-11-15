@@ -37,15 +37,10 @@ class FileTreeSelector extends SwingGui {
 
   FileTreeSelector() {
     this.frame = InterfaceUtils.getFrame();
+    super.verifyFrame(frame);
   }
 
   void show() {
-    String startingDir = BuilderData.getStarterCodeDir();
-    JButton startingDirectoryButton = new JButton(
-        startingDir == null ? PropertiesLoader.get("selectButtonHint") :
-            startingDir.substring(startingDir.lastIndexOf(File.separator) + 1));
-    startingDirectoryButton.addActionListener(e -> handleSelectStartingDirectory());
-
     JButton continueButton = new JButton(PropertiesLoader.get("continueButton"));
     continueButton.addActionListener(e -> handleContinue());
 
@@ -56,26 +51,9 @@ class FileTreeSelector extends SwingGui {
     gbc.fill = GridBagConstraints.HORIZONTAL;
     gbc.gridx = 0;
     gbc.gridy = 0;
-
-    JLabel label = new JLabel(PropertiesLoader.get("starterCodeDirPrompt") + ": ");
-    JPanel directorySelectorPanel = new JPanel(new GridLayout(NUM_ROWS, NUM_COLS));
-    directorySelectorPanel.add(label);
-    directorySelectorPanel.add(startingDirectoryButton);
-    formPanel.add(directorySelectorPanel, gbc);
-
-    if (checkboxTree != null) {
-      gbc.gridy++;
-      gbc.insets.top = TOP_PADDING;
-      formPanel.add(new JLabel(PropertiesLoader.get("includeFilesPrompt")), gbc);
-      gbc.gridy++;
-      gbc.weightx = EXPAND_SIZE;
-      gbc.weighty = EXPAND_SIZE;
-      gbc.insets.top = 0;
-      gbc.fill = GridBagConstraints.BOTH;
-      JScrollPane scrollPane = new JScrollPane(checkboxTree);
-      scrollPane.setPreferredSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
-      formPanel.add(scrollPane, gbc);
-    }
+    
+    addDirectorySelector(gbc, formPanel);
+    prepareCheckboxTree(gbc, formPanel);
 
     panel = new JPanel();
     panel.setLayout(new BorderLayout());
@@ -130,5 +108,35 @@ class FileTreeSelector extends SwingGui {
     this.checkboxTree.getCheckingModel().setCheckingMode(TreeCheckingModel.CheckingMode.PROPAGATE);
     this.checkboxTree.setCellRenderer(new TreeCellRenderer());
     this.checkboxTree.expandAll();
+  }
+
+  private void addDirectorySelector(GridBagConstraints gbc, JPanel formPanel) {
+    String startingDir = BuilderData.getStarterCodeDir();
+    JButton startingDirectoryButton = new JButton(
+        startingDir == null ? PropertiesLoader.get("selectButtonHint") :
+            startingDir.substring(startingDir.lastIndexOf(File.separator) + 1));
+    startingDirectoryButton.addActionListener(e -> handleSelectStartingDirectory());
+
+    JLabel label = new JLabel(PropertiesLoader.get("starterCodeDirPrompt") + ": ");
+    JPanel directorySelectorPanel = new JPanel(new GridLayout(NUM_ROWS, NUM_COLS));
+    directorySelectorPanel.add(label);
+    directorySelectorPanel.add(startingDirectoryButton);
+    formPanel.add(directorySelectorPanel, gbc);
+  }
+
+  private void prepareCheckboxTree(GridBagConstraints gbc, JPanel formPanel) {
+    if (checkboxTree != null) {
+      gbc.gridy++;
+      gbc.insets.top = TOP_PADDING;
+      formPanel.add(new JLabel(PropertiesLoader.get("includeFilesPrompt")), gbc);
+      gbc.gridy++;
+      gbc.weightx = EXPAND_SIZE;
+      gbc.weighty = EXPAND_SIZE;
+      gbc.insets.top = 0;
+      gbc.fill = GridBagConstraints.BOTH;
+      JScrollPane scrollPane = new JScrollPane(checkboxTree);
+      scrollPane.setPreferredSize(new Dimension(FRAME_WIDTH, FRAME_HEIGHT));
+      formPanel.add(scrollPane, gbc);
+    }
   }
 }
