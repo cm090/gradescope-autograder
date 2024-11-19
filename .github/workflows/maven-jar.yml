@@ -26,7 +26,7 @@ jobs:
         run: |
           cd file-tool
           mvn clean compile assembly:single
-          mv target/*-jar-with-dependencies.jar ../AutograderFileTool.jar
+          mv target/*.jar ../AutograderFileTool.jar
           cd ..
       - name: Publish to release
         env:
