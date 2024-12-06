@@ -24,9 +24,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 
 public class FileToolGui implements ActionListener, Runnable {
-  private static final String DEFAULT_TEXT = "Select a directory...";
-  private static final String DEFAULT_OUTPUT_TEXT =
-      "<html>Defaults to <code>(submissions)/projects</code>.</html>";
+  private static final String ELLIPSIS = "...";
+
   private final JPanel configPanes;
   private final JFrame frame;
   private final JButton masterButton;
@@ -36,7 +35,7 @@ public class FileToolGui implements ActionListener, Runnable {
   private final JButton startButton;
 
   public FileToolGui() {
-    frame = new JFrame("CSSE220 File Tool");
+    frame = new JFrame(PropertiesLoader.get("frameTitle"));
 
     configPanes = new JPanel();
     configPanes.setLayout(new BoxLayout(configPanes, BoxLayout.PAGE_AXIS));
@@ -45,21 +44,18 @@ public class FileToolGui implements ActionListener, Runnable {
     studentButton = new JButton();
     outputButton = new JButton();
 
-    addConfigButton(
-        "<html>Original assignment project directory, from 220 repo.<br>If not provided, will only rename folders.</html>",
-        masterButton);
-    addConfigButton("Student submission directory, unzipped from Moodle or Gradescope",
-        studentButton);
-    addConfigButton("Workspace output directory", outputButton);
-    outputButton.setText(DEFAULT_OUTPUT_TEXT);
+    addConfigButton(PropertiesLoader.get("starterCodeDirectoryDescription"), masterButton);
+    addConfigButton(PropertiesLoader.get("submissionDirectoryDescription"), studentButton);
+    addConfigButton(PropertiesLoader.get("outputDirectoryDescription"), outputButton);
+    outputButton.setText(PropertiesLoader.get("defaultOutputLocationHint"));
 
     JPanel bigButtonPanel = new JPanel();
     bigButtonPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-    startButton = new JButton("GENERATE STUDENT PROJECTS FOR GRADING");
+    startButton = new JButton(PropertiesLoader.get("generateButtonText"));
     startButton.addActionListener(e -> startGenerate());
     bigButtonPanel.add(startButton);
     configPanes.add(bigButtonPanel);
-    outputArea = new JTextArea("Enter directories and then GENERATE");
+    outputArea = new JTextArea(PropertiesLoader.get("outputAreaStartingMessage"));
     JScrollPane lowerPanel = new JScrollPane(outputArea);
 
     frame.add(configPanes, BorderLayout.NORTH);
@@ -78,7 +74,7 @@ public class FileToolGui implements ActionListener, Runnable {
     int labelHeight = label.getPreferredSize().height;
     label.setPreferredSize(new Dimension(400, labelHeight));
     panel.add(label, BorderLayout.WEST);
-    button.setText(DEFAULT_TEXT);
+    button.setText(PropertiesLoader.get("selectDirectoryHint") + ELLIPSIS);
     button.addActionListener(this);
     panel.add(button);
     configPanes.add(panel);
@@ -86,10 +82,9 @@ public class FileToolGui implements ActionListener, Runnable {
 
   @Override
   public void actionPerformed(ActionEvent e) {
-
     JFileChooser chooser = new JFileChooser();
     chooser.setCurrentDirectory(new File("."));
-    chooser.setDialogTitle("Choose a directory");
+    chooser.setDialogTitle(PropertiesLoader.get("directorySelectorTitle"));
     chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
 
     // disable the "All files" option.
@@ -100,14 +95,15 @@ public class FileToolGui implements ActionListener, Runnable {
   }
 
   private void startGenerate() {
-    if (masterButton.getText().equals(DEFAULT_TEXT)) {
-      outputArea.setText("Starting to generate files without using an assignment directory...");
+    if (masterButton.getText().equals(PropertiesLoader.get("selectDirectoryHint") + ELLIPSIS)) {
+      outputArea.setText(PropertiesLoader.get("generateWithoutAssigmentDirectory") + ELLIPSIS);
     }
-    if (studentButton.getText().equals(DEFAULT_TEXT)) {
-      outputArea.setText("You must choose a student submission directory");
+    if (studentButton.getText().equals(PropertiesLoader.get("selectDirectoryHint") + ELLIPSIS)) {
+      outputArea.setText(PropertiesLoader.get("noSubmissionDirectorySelected"));
+      return;
     }
 
-    outputArea.setText("Starting file generation...");
+    outputArea.setText(PropertiesLoader.get("startingGeneration") + ELLIPSIS);
     startButton.setEnabled(false);
     Thread t = new Thread(this);
     t.start();
@@ -123,9 +119,9 @@ public class FileToolGui implements ActionListener, Runnable {
 
     String outputText;
 
-    if (outputButton.getText().equals(DEFAULT_OUTPUT_TEXT)) {
+    if (outputButton.getText().equals(PropertiesLoader.get("defaultOutputLocationHint"))) {
       outputText = Paths.get(studentButton.getText(), "projects").toString();
-      ps.println("Using " + outputText + " as output dir");
+      ps.printf(PropertiesLoader.get("outputDirectoryMessage") + "\n", outputText);
     } else {
       outputText = outputButton.getText();
     }
@@ -140,14 +136,14 @@ public class FileToolGui implements ActionListener, Runnable {
       } catch (IOException e) {
         e.printStackTrace(ps);
       }
-      ps.println("Output directory exists, deleting contents...");
+      ps.println(PropertiesLoader.get("clearingOutputDirectoryMessage") + ELLIPSIS);
     }
     if (!output.mkdirs()) {
-        ps.println("Output directory could not be created");
+      ps.println(PropertiesLoader.get("outputDirectoryCreationError"));
     }
 
     FileToolCli cli = new FileToolCli();
-    if (masterButton.getText().equals(DEFAULT_TEXT)) {
+    if (masterButton.getText().equals(PropertiesLoader.get("selectDirectoryHint") + ELLIPSIS)) {
       try {
         cli.doRename(student, ps, output);
       } catch (Exception e) {
