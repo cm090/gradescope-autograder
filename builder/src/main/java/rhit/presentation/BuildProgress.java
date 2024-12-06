@@ -1,6 +1,7 @@
 package rhit.presentation;
 
 import java.awt.BorderLayout;
+import java.awt.EventQueue;
 import java.awt.GridLayout;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -59,6 +60,6 @@ public class BuildProgress extends SwingGui {
   protected void handleContinue() {
     frame.dispose();
     BuilderData.clear();
-    AutograderBuilder.main(new String[0]);
+    EventQueue.invokeLater(() -> AutograderBuilder.main(null));
   }
 }
