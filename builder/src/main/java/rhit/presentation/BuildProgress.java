@@ -60,6 +60,6 @@ public class BuildProgress extends SwingGui {
   protected void handleContinue() {
     frame.dispose();
     BuilderData.clear();
-    EventQueue.invokeLater(() -> AutograderBuilder.main(null));
+    EventQueue.invokeLater(() -> new AutograderBuilder().initialize());
   }
 }
