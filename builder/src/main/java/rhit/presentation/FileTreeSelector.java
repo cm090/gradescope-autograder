@@ -72,7 +72,7 @@ class FileTreeSelector extends SwingGui {
       startDir = new File(".");
     }
     fileChooser.setCurrentDirectory(startDir);
-    fileChooser.setDialogTitle(PropertiesLoader.get("selectButtonHint"));
+    fileChooser.setDialogTitle(PropertiesLoader.get("starterCodeDirPrompt"));
     fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     fileChooser.setAcceptAllFileFilterUsed(false);
     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {

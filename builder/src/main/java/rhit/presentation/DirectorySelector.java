@@ -82,7 +82,7 @@ public class DirectorySelector extends SwingGui {
       startDir = new File(".");
     }
     fileChooser.setCurrentDirectory(startDir);
-    fileChooser.setDialogTitle(PropertiesLoader.get("selectButtonHint"));
+    fileChooser.setDialogTitle(PropertiesLoader.get("templateDirPrompt"));
     fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     fileChooser.setAcceptAllFileFilterUsed(false);
     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
@@ -105,7 +105,7 @@ public class DirectorySelector extends SwingGui {
     InterfaceUtils.hideFrame(panel);
     JFileChooser fileChooser = new JFileChooser();
     fileChooser.setCurrentDirectory(new File("."));
-    fileChooser.setDialogTitle(String.format("%s (%s)", PropertiesLoader.get("selectButtonHint"),
+    fileChooser.setDialogTitle(String.format("%s (%s)", PropertiesLoader.get("outputDirPrompt"),
         String.format(PropertiesLoader.get("outputDirHint"),
             PropertiesLoader.get("outputActualDir"))));
     fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
