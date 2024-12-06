@@ -8,6 +8,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import rhit.domain.BuildRunner;
+import rhit.domain.BuilderData;
 import rhit.domain.PropertiesLoader;
 
 public class BuildProgress extends SwingGui {
@@ -33,7 +34,7 @@ public class BuildProgress extends SwingGui {
     scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
     scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 
-    JButton continueButton = new JButton(PropertiesLoader.get("continueButton"));
+    JButton continueButton = new JButton(PropertiesLoader.get("regenerateButton"));
     continueButton.addActionListener(e -> handleContinue());
 
     JButton closeButton = new JButton(PropertiesLoader.get("closeButton"));
@@ -57,6 +58,7 @@ public class BuildProgress extends SwingGui {
 
   protected void handleContinue() {
     frame.dispose();
+    BuilderData.clear();
     AutograderBuilder.main(new String[0]);
   }
 }

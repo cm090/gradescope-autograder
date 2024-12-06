@@ -64,4 +64,13 @@ public class BuilderData {
   public static Set<String> getTemplateFiles() {
     return new HashSet<>(templateFiles);
   }
+
+  public static void clear() {
+    templateFiles.clear();
+    templateDir = null;
+    outputDir = null;
+    starterCodeDir = null;
+    templateType = TemplateType.AUTO;
+    configOptions = null;
+  }
 }
