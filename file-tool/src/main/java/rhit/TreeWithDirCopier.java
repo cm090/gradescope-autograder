@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,15 +16,13 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 
 // Taken from java example. So verbose!
-class TreeWithDirCopier implements TreeVisitor {
+class TreeWithDirCopier implements FileVisitor<Path> {
   private final Path source;
   private final Path target;
-  private int numFilesCopied;
 
   TreeWithDirCopier(Path source, Path target) {
     this.source = source;
     this.target = target;
-    this.numFilesCopied = 0;
   }
 
   @Override
@@ -45,7 +44,7 @@ class TreeWithDirCopier implements TreeVisitor {
     String packageName = null;
     boolean found = false;
     try (InputStream in = Files.newInputStream(file);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+         BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
       String line;
       while ((line = reader.readLine()) != null && !found) {
         if (line.trim().startsWith("package")) {
@@ -58,7 +57,7 @@ class TreeWithDirCopier implements TreeVisitor {
             found = true;
           } else {
             reader.close();
-            throw new IOException("Invalid package declaration in file: " + file);
+            throw new IOException(PropertiesLoader.get("invalidPackageDeclaration") + ": " + file);
           }
         }
       }
@@ -76,7 +75,7 @@ class TreeWithDirCopier implements TreeVisitor {
       // if the directory does not exist, make it
       if (!(p.toFile()).exists()) {
         if (!p.toFile().mkdirs()) {
-          throw new IOException("Unable to create directory: " + p);
+          throw new IOException(PropertiesLoader.get("createDirectoryError") + ": " + p);
         }
       }
 
@@ -89,7 +88,6 @@ class TreeWithDirCopier implements TreeVisitor {
     }
 
     Files.copy(file, p, StandardCopyOption.REPLACE_EXISTING);
-    numFilesCopied++;
     return CONTINUE;
   }
 
@@ -100,11 +98,6 @@ class TreeWithDirCopier implements TreeVisitor {
 
   @Override
   public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-    String error = String.format("Unable to copy: %s: %s%n", file, exc);
-    throw new IOException(error);
-  }
-
-  public int getNumFilesCopied() {
-    return numFilesCopied;
+    throw new IOException(String.format(PropertiesLoader.get("copyError"), file), exc);
   }
 }

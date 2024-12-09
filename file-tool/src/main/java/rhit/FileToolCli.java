@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -46,7 +47,7 @@ public class FileToolCli {
     return source.resolve(Paths.get(addition));
   }
 
-  private void copyDirTree(Path source, TreeVisitor tc) throws IOException {
+  private void copyDirTree(Path source, FileVisitor<Path> tc) throws IOException {
     EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
     final int MAX_DIR_DEPTH = 20;
     try {
@@ -54,7 +55,6 @@ public class FileToolCli {
     } catch (Exception e) {
       throw new IOException(PropertiesLoader.get("directoryTreeCopyError"), e);
     }
-    tc.getNumFilesCopied();
   }
 
   /**
