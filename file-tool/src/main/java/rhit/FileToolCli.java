@@ -2,7 +2,6 @@ package rhit;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.FileVisitOption;
@@ -18,7 +17,7 @@ import java.util.HashSet;
 import java.util.Map;
 import org.yaml.snakeyaml.Yaml;
 
-public class FileToolCli {
+public final class FileToolCli {
   private static final String GRADESCOPE_METADATA_FILE = "submission_metadata.yml";
   private static final String OUTPUT_DIR_FORMAT = "submission_%d";
   private static final String NAME_FIELD = ":name";
@@ -27,6 +26,7 @@ public class FileToolCli {
   private static final String ELLIPSIS = "...";
   private static final String NEW_LINE = "\n";
   private static final String SEPARATOR = "-------------------------------------------";
+  private static final int MAX_DIR_DEPTH = 20;
 
   FileToolCli() {
   }
@@ -49,7 +49,6 @@ public class FileToolCli {
 
   private void copyDirTree(Path source, FileVisitor<Path> tc) throws IOException {
     EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-    final int MAX_DIR_DEPTH = 20;
     try {
       Files.walkFileTree(source, opts, MAX_DIR_DEPTH, tc);
     } catch (Exception e) {
@@ -62,33 +61,37 @@ public class FileToolCli {
    * the folders to the student's name and id
    */
   HashSet<String> copyFolders(File dir, File outputDir, PrintStream output,
-                              OutputDirectoryHandler copier) throws FileNotFoundException {
+                              OutputDirectoryHandler copier) throws IOException {
     output.println(PropertiesLoader.get("dataFileFound") + ELLIPSIS);
 
     boolean isAnonymous = false;
     Yaml yaml = new Yaml();
     File file = new File(dir, GRADESCOPE_METADATA_FILE);
-    Map<String, Object> o = yaml.load(new FileInputStream(file));
+    Map<String, Object> o;
+
+    try (FileInputStream stream = new FileInputStream(file)) {
+      o = yaml.load(stream);
+    }
 
     HashSet<String> failed = new HashSet<>();
 
-    for (String s : o.keySet()) {
+    for (Map.Entry<String, Object> entry : o.entrySet()) {
       @SuppressWarnings("unchecked") Map<String, Object> submission =
-          (Map<String, Object>) o.get(s);
+          (Map<String, Object>) entry.getValue();
       if (submission == null) {
-        output.printf(PropertiesLoader.get("submissionDataNull") + NEW_LINE, s);
+        output.printf(PropertiesLoader.get("submissionDataNull") + NEW_LINE, entry.getKey());
         continue;
       }
       @SuppressWarnings("unchecked") Map<String, Object> userData =
           ((Map<String, Object>) ((ArrayList<Object>) submission.get(":submitters")).get(0));
       if (userData == null) {
-        output.printf(PropertiesLoader.get("submissionMissingUserData") + NEW_LINE, s);
+        output.printf(PropertiesLoader.get("submissionMissingUserData") + NEW_LINE, entry.getKey());
         continue;
       }
       String name = Normalizer.normalize((String) userData.get(NAME_FIELD), Form.NFD)
           .replaceAll("\\p{M}", "");
       if (name.isEmpty()) {
-        output.printf(PropertiesLoader.get("submissionMissingName") + NEW_LINE, s);
+        output.printf(PropertiesLoader.get("submissionMissingName") + NEW_LINE, entry.getKey());
         name = DEFAULT_NAME;
       }
       String sid = "";
@@ -100,16 +103,17 @@ public class FileToolCli {
           isAnonymous = true;
         }
       }
-      String[] parts = s.split("_");
+      String[] parts = entry.getKey().split("_");
       if (parts.length < 2) {
-        output.printf(PropertiesLoader.get("submissionKeyFormatError") + NEW_LINE, s);
+        output.printf(PropertiesLoader.get("submissionKeyFormatError") + NEW_LINE, entry.getKey());
         continue;
       }
       int id;
       try {
         id = Integer.parseInt(parts[1]);
       } catch (NumberFormatException e) {
-        output.printf(PropertiesLoader.get("invalidSubmissionId") + NEW_LINE, parts[1], s);
+        output.printf(PropertiesLoader.get("invalidSubmissionId") + NEW_LINE, parts[1],
+            entry.getKey());
         continue;
       }
       Path inputDir = new File(dir, String.format(OUTPUT_DIR_FORMAT, id)).toPath();

@@ -8,6 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,6 +34,7 @@ public class FileToolGui implements ActionListener, Runnable {
   private final JButton outputButton;
   private final JTextArea outputArea;
   private final JButton startButton;
+  private final FileToolCli fileToolCli;
 
   public FileToolGui() {
     frame = new JFrame(PropertiesLoader.get("frameTitle"));
@@ -43,6 +45,8 @@ public class FileToolGui implements ActionListener, Runnable {
     masterButton = new JButton();
     studentButton = new JButton();
     outputButton = new JButton();
+
+    fileToolCli = new FileToolCli();
 
     addConfigButton(PropertiesLoader.get("starterCodeDirectoryDescription"), masterButton);
     addConfigButton(PropertiesLoader.get("submissionDirectoryDescription"), studentButton);
@@ -112,10 +116,9 @@ public class FileToolGui implements ActionListener, Runnable {
   @Override
   public void run() {
     ByteArrayOutputStream os = new ByteArrayOutputStream();
-    PrintStream ps = new PrintStream(os);
+    PrintStream ps = new PrintStream(os, false, Charset.defaultCharset());
 
     File master = new File(masterButton.getText());
-    File student = new File(studentButton.getText());
 
     String outputText;
 
@@ -142,21 +145,21 @@ public class FileToolGui implements ActionListener, Runnable {
       ps.println(PropertiesLoader.get("outputDirectoryCreationError"));
     }
 
-    FileToolCli cli = new FileToolCli();
+    File student = new File(studentButton.getText());
     if (masterButton.getText().equals(PropertiesLoader.get("selectDirectoryHint") + ELLIPSIS)) {
       try {
-        cli.doRename(student, ps, output);
+        fileToolCli.doRename(student, ps, output);
       } catch (Exception e) {
         e.printStackTrace(ps);
       }
     } else {
       try {
-        cli.doGenerate(master, student, output, ps);
+        fileToolCli.doGenerate(master, student, output, ps);
       } catch (Exception e) {
         e.printStackTrace(ps);
       }
     }
-    outputArea.setText(os.toString());
+    outputArea.setText(os.toString(Charset.defaultCharset()));
     startButton.setEnabled(true);
   }
 }

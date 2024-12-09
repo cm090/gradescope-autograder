@@ -6,6 +6,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -43,8 +44,8 @@ class TreeWithDirCopier implements FileVisitor<Path> {
     // first, read the file to see package info
     String packageName = null;
     boolean found = false;
-    try (InputStream in = Files.newInputStream(file);
-         BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+    try (InputStream in = Files.newInputStream(file); BufferedReader reader = new BufferedReader(
+        new InputStreamReader(in, Charset.defaultCharset()))) {
       String line;
       while ((line = reader.readLine()) != null && !found) {
         if (line.trim().startsWith("package")) {
@@ -63,31 +64,35 @@ class TreeWithDirCopier implements FileVisitor<Path> {
       }
     }
 
-    Path p;
+    Path p = null;
     Path preamble;
     if (found) {
       // create directory path object from root up to but not including the file name
       preamble = target.resolve(source.relativize(file)).getParent();
 
       // add the name of the package to the end of that path
-      p = preamble.resolve(Paths.get(packageName));
+      if (preamble != null) {
+        p = preamble.resolve(Paths.get(packageName));
 
-      // if the directory does not exist, make it
-      if (!(p.toFile()).exists()) {
-        if (!p.toFile().mkdirs()) {
-          throw new IOException(PropertiesLoader.get("createDirectoryError") + ": " + p);
+        // if the directory does not exist, make it
+        if (!(p.toFile()).exists()) {
+          if (!p.toFile().mkdirs()) {
+            throw new IOException(PropertiesLoader.get("createDirectoryError") + ": " + p);
+          }
         }
-      }
 
-      // add the file name to the end of the path.
-      p = p.resolve(file.getFileName());
+        // add the file name to the end of the path.
+        p = p.resolve(file.getFileName());
+      }
 
     } else {
       // otherwise, set p to the absolute path to the src directory
       p = target.resolve(source.relativize(file));
     }
 
-    Files.copy(file, p, StandardCopyOption.REPLACE_EXISTING);
+    if (p != null) {
+      Files.copy(file, p, StandardCopyOption.REPLACE_EXISTING);
+    }
     return CONTINUE;
   }
 

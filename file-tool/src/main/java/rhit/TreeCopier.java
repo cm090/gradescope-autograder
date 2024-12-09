@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitResult;
@@ -56,12 +57,16 @@ class TreeCopier implements FileVisitor<Path> {
 
   @Override
   public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-    if (file.getFileName().toString().equals(PROJECT_FILE)) {
+    Path currentFile = file.getFileName();
+    Path parentPath = file.getParent();
+    boolean shouldSkip = currentFile == null || parentPath == null;
+    Path parentFile = shouldSkip ? null : parentPath.getFileName();
+
+    if (!shouldSkip && currentFile.toString().equals(PROJECT_FILE) && parentFile != null) {
       Path newFile = target.resolve(source.relativize(file));
       Files.createFile(newFile);
-      String content = projectFileContents.replace(STRING_TO_REPLACE,
-          newFile.getParent().getFileName().toString());
-      Files.write(newFile, content.getBytes());
+      String content = projectFileContents.replace(STRING_TO_REPLACE, parentFile.toString());
+      Files.writeString(newFile, content, Charset.defaultCharset());
     } else {
       Files.copy(file, target.resolve(source.relativize(file)),
           StandardCopyOption.REPLACE_EXISTING);

@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-public class PropertiesLoader {
+public final class PropertiesLoader {
   private static final String FILE_NAME = "Strings.properties";
   private static final PropertiesLoader instance = new PropertiesLoader();
   private final Properties properties = new Properties();
