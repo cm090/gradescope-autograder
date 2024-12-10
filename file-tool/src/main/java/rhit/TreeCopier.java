@@ -65,7 +65,8 @@ class TreeCopier implements FileVisitor<Path> {
     if (!shouldSkip && currentFile.toString().equals(PROJECT_FILE) && parentFile != null) {
       Path newFile = target.resolve(source.relativize(file));
       Files.createFile(newFile);
-      String content = projectFileContents.replace(STRING_TO_REPLACE, parentFile.toString());
+      String content = projectFileContents.replace(STRING_TO_REPLACE,
+          String.format("%s_%s", parentFile, target.getFileName()));
       Files.writeString(newFile, content, Charset.defaultCharset());
     } else {
       Files.copy(file, target.resolve(source.relativize(file)),
