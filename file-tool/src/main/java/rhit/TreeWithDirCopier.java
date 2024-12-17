@@ -6,7 +6,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
@@ -45,7 +45,7 @@ class TreeWithDirCopier implements FileVisitor<Path> {
     String packageName = null;
     boolean found = false;
     try (InputStream in = Files.newInputStream(file); BufferedReader reader = new BufferedReader(
-        new InputStreamReader(in, Charset.defaultCharset()))) {
+        new InputStreamReader(in, StandardCharsets.UTF_8))) {
       String line;
       while ((line = reader.readLine()) != null && !found) {
         if (line.trim().startsWith("package")) {

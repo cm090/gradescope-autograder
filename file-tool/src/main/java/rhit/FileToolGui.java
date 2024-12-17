@@ -8,7 +8,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -116,7 +116,7 @@ public class FileToolGui implements ActionListener, Runnable {
   @Override
   public void run() {
     ByteArrayOutputStream os = new ByteArrayOutputStream();
-    PrintStream ps = new PrintStream(os, false, Charset.defaultCharset());
+    PrintStream ps = new PrintStream(os, false, StandardCharsets.UTF_8);
 
     File master = new File(masterButton.getText());
 
@@ -159,7 +159,7 @@ public class FileToolGui implements ActionListener, Runnable {
         e.printStackTrace(ps);
       }
     }
-    outputArea.setText(os.toString(Charset.defaultCharset()));
+    outputArea.setText(os.toString(StandardCharsets.UTF_8));
     startButton.setEnabled(true);
   }
 }

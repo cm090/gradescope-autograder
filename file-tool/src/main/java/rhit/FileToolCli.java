@@ -71,6 +71,9 @@ public final class FileToolCli {
 
     try (FileInputStream stream = new FileInputStream(file)) {
       o = yaml.load(stream);
+      if (o == null) {
+        throw new IOException(PropertiesLoader.get("submissionDataNull"));
+      }
     }
 
     HashSet<String> failed = new HashSet<>();
