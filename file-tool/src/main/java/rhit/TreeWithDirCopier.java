@@ -6,8 +6,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,15 +17,13 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 
 // Taken from java example. So verbose!
-class TreeWithDirCopier implements TreeVisitor {
+class TreeWithDirCopier implements FileVisitor<Path> {
   private final Path source;
   private final Path target;
-  private int numFilesCopied;
 
   TreeWithDirCopier(Path source, Path target) {
     this.source = source;
     this.target = target;
-    this.numFilesCopied = 0;
   }
 
   @Override
@@ -44,8 +44,8 @@ class TreeWithDirCopier implements TreeVisitor {
     // first, read the file to see package info
     String packageName = null;
     boolean found = false;
-    try (InputStream in = Files.newInputStream(file);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+    try (InputStream in = Files.newInputStream(file); BufferedReader reader = new BufferedReader(
+        new InputStreamReader(in, StandardCharsets.UTF_8))) {
       String line;
       while ((line = reader.readLine()) != null && !found) {
         if (line.trim().startsWith("package")) {
@@ -58,38 +58,41 @@ class TreeWithDirCopier implements TreeVisitor {
             found = true;
           } else {
             reader.close();
-            throw new IOException("Invalid package declaration in file: " + file);
+            throw new IOException(PropertiesLoader.get("invalidPackageDeclaration") + ": " + file);
           }
         }
       }
     }
 
-    Path p;
+    Path p = null;
     Path preamble;
     if (found) {
       // create directory path object from root up to but not including the file name
       preamble = target.resolve(source.relativize(file)).getParent();
 
       // add the name of the package to the end of that path
-      p = preamble.resolve(Paths.get(packageName));
+      if (preamble != null) {
+        p = preamble.resolve(Paths.get(packageName));
 
-      // if the directory does not exist, make it
-      if (!(p.toFile()).exists()) {
-        if (!p.toFile().mkdirs()) {
-          throw new IOException("Unable to create directory: " + p);
+        // if the directory does not exist, make it
+        if (!(p.toFile()).exists()) {
+          if (!p.toFile().mkdirs()) {
+            throw new IOException(PropertiesLoader.get("createDirectoryError") + ": " + p);
+          }
         }
-      }
 
-      // add the file name to the end of the path.
-      p = p.resolve(file.getFileName());
+        // add the file name to the end of the path.
+        p = p.resolve(file.getFileName());
+      }
 
     } else {
       // otherwise, set p to the absolute path to the src directory
       p = target.resolve(source.relativize(file));
     }
 
-    Files.copy(file, p, StandardCopyOption.REPLACE_EXISTING);
-    numFilesCopied++;
+    if (p != null) {
+      Files.copy(file, p, StandardCopyOption.REPLACE_EXISTING);
+    }
     return CONTINUE;
   }
 
@@ -100,11 +103,6 @@ class TreeWithDirCopier implements TreeVisitor {
 
   @Override
   public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
-    String error = String.format("Unable to copy: %s: %s%n", file, exc);
-    throw new IOException(error);
-  }
-
-  public int getNumFilesCopied() {
-    return numFilesCopied;
+    throw new IOException(String.format(PropertiesLoader.get("copyError"), file), exc);
   }
 }

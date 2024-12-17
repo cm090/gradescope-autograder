@@ -2,10 +2,10 @@ package rhit;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.nio.file.FileVisitOption;
+import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -17,13 +17,23 @@ import java.util.HashSet;
 import java.util.Map;
 import org.yaml.snakeyaml.Yaml;
 
-public class FileToolCli {
-  FileToolCli() {}
+public final class FileToolCli {
+  private static final String GRADESCOPE_METADATA_FILE = "submission_metadata.yml";
+  private static final String OUTPUT_DIR_FORMAT = "submission_%d";
+  private static final String NAME_FIELD = ":name";
+  private static final String EMAIL_FIELD = ":email";
+  private static final String DEFAULT_NAME = "Unknown";
+  private static final String ELLIPSIS = "...";
+  private static final String NEW_LINE = "\n";
+  private static final String SEPARATOR = "-------------------------------------------";
+  private static final int MAX_DIR_DEPTH = 20;
+
+  FileToolCli() {
+  }
 
   FileToolCli(String[] args) throws IOException {
     if (args.length != 3) {
-      throw new IllegalArgumentException(
-          "Usage: FileToolCli <masterDir> <studentSubmissionDir> <outputDir>");
+      throw new IllegalArgumentException(PropertiesLoader.get("argumentsHint"));
     }
 
     File masterDir = new File(args[0]);
@@ -37,15 +47,13 @@ public class FileToolCli {
     return source.resolve(Paths.get(addition));
   }
 
-  private void copyDirTree(Path source, TreeVisitor tc) throws IOException {
+  private void copyDirTree(Path source, FileVisitor<Path> tc) throws IOException {
     EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-    final int MAX_DIR_DEPTH = 20;
     try {
       Files.walkFileTree(source, opts, MAX_DIR_DEPTH, tc);
     } catch (Exception e) {
-      throw new IOException("Error copying directory tree", e);
+      throw new IOException(PropertiesLoader.get("directoryTreeCopyError"), e);
     }
-    tc.getNumFilesCopied();
   }
 
   /**
@@ -53,58 +61,65 @@ public class FileToolCli {
    * the folders to the student's name and id
    */
   HashSet<String> copyFolders(File dir, File outputDir, PrintStream output,
-      OutputDirectoryHandler copier) throws FileNotFoundException {
-    output.println("Found Gradescope data file. Copying folders...");
+                              OutputDirectoryHandler copier) throws IOException {
+    output.println(PropertiesLoader.get("dataFileFound") + ELLIPSIS);
 
     boolean isAnonymous = false;
     Yaml yaml = new Yaml();
-    File file = new File(dir, "submission_metadata.yml");
-    Map<String, Object> o = yaml.load(new FileInputStream(file));
+    File file = new File(dir, GRADESCOPE_METADATA_FILE);
+    Map<String, Object> o;
+
+    try (FileInputStream stream = new FileInputStream(file)) {
+      o = yaml.load(stream);
+      if (o == null) {
+        throw new IOException(PropertiesLoader.get("submissionDataNull"));
+      }
+    }
 
     HashSet<String> failed = new HashSet<>();
 
-    for (String s : o.keySet()) {
-      @SuppressWarnings("unchecked")
-      Map<String, Object> submission = (Map<String, Object>) o.get(s);
+    for (Map.Entry<String, Object> entry : o.entrySet()) {
+      @SuppressWarnings("unchecked") Map<String, Object> submission =
+          (Map<String, Object>) entry.getValue();
       if (submission == null) {
-        output.printf("Warning: Submission data for key %s is null.\n", s);
+        output.printf(PropertiesLoader.get("submissionDataNull") + NEW_LINE, entry.getKey());
         continue;
       }
-      @SuppressWarnings("unchecked")
-      Map<String, Object> userData =
+      @SuppressWarnings("unchecked") Map<String, Object> userData =
           ((Map<String, Object>) ((ArrayList<Object>) submission.get(":submitters")).get(0));
       if (userData == null) {
-        output.printf("Warning: User data is missing for submission %s.\n", s);
+        output.printf(PropertiesLoader.get("submissionMissingUserData") + NEW_LINE, entry.getKey());
         continue;
       }
-      String name =
-          Normalizer.normalize((String) userData.get(":name"), Form.NFD).replaceAll("\\p{M}", "");
-      if (name == null) {
-        output.printf("Warning: Name is missing for submission %s.\n", s);
-        name = "Unknown";
+      String name = Normalizer.normalize((String) userData.get(NAME_FIELD), Form.NFD)
+          .replaceAll("\\p{M}", "");
+      if (name.isEmpty()) {
+        output.printf(PropertiesLoader.get("submissionMissingName") + NEW_LINE, entry.getKey());
+        name = DEFAULT_NAME;
       }
       String sid = "";
       if (!isAnonymous) {
         try {
-          sid = ((String) userData.get(":email")).split("@")[0];
+          sid = ((String) userData.get(EMAIL_FIELD)).split("@")[0];
         } catch (Exception e) {
-          output.print("Grading is anonymous, ignoring student ID\n");
+          output.print(PropertiesLoader.get("anonymousGradingEnabled") + NEW_LINE);
           isAnonymous = true;
         }
       }
-      String[] parts = s.split("_");
+      String[] parts = entry.getKey().split("_");
       if (parts.length < 2) {
-        output.printf("Warning: Unexpected submission key format '%s'.\n", s);
+        output.printf(PropertiesLoader.get("submissionKeyFormatError") + NEW_LINE, entry.getKey());
         continue;
       }
       int id;
       try {
         id = Integer.parseInt(parts[1]);
       } catch (NumberFormatException e) {
-        output.printf("Warning: Invalid submission ID '%s' in key '%s'.\n", parts[1], s);
+        output.printf(PropertiesLoader.get("invalidSubmissionId") + NEW_LINE, parts[1],
+            entry.getKey());
         continue;
       }
-      Path inputDir = new File(dir, "submission_" + id).toPath();
+      Path inputDir = new File(dir, String.format(OUTPUT_DIR_FORMAT, id)).toPath();
       String outputDirRelative =
           String.format("%s_%s_%s", id, sid, name).replaceAll("[^a-zA-Z0-9_\\-]", "_");
       Path outputDirectory = new File(outputDir, outputDirRelative).toPath();
@@ -116,12 +131,11 @@ public class FileToolCli {
         }
         copyDirTree(inputDir, new TreeWithDirCopier(inputDir, trueOutputDir));
       } catch (IOException e) {
-        output.printf("Unable to copy files for student %s. Did they submit the correct files?\n",
-            name);
+        output.printf(PropertiesLoader.get("fileCopyError") + NEW_LINE, name);
         failed.add(name + " (" + id + ")");
         continue;
       }
-      output.printf("Copied submission_%d to %s\n", id, outputDirRelative);
+      output.printf(PropertiesLoader.get("fileCopySuccess") + NEW_LINE, id, outputDirRelative);
     }
 
     return failed;
@@ -130,16 +144,16 @@ public class FileToolCli {
   public void doRename(File studentSubmissionDir, PrintStream output, File outputDir)
       throws IOException {
     if (!studentSubmissionDir.exists()) {
-      throw new IOException(
-          "Student submission dir" + studentSubmissionDir.getName() + "does not exist");
+      throw new IOException(String.format(PropertiesLoader.get("submissionDirectoryNotFound"),
+          studentSubmissionDir.getName()));
     }
 
-    if (Files.exists(pathAppend(studentSubmissionDir.toPath(), "submission_metadata.yml"))) {
+    if (Files.exists(pathAppend(studentSubmissionDir.toPath(), GRADESCOPE_METADATA_FILE))) {
       HashSet<String> failed = copyFolders(studentSubmissionDir, outputDir, output, (o) -> false);
-      output.println("-------------------------------------------");
-      output.println("Rename completed successfully.");
+      output.println(SEPARATOR);
+      output.println(PropertiesLoader.get("renameSuccess"));
       if (!failed.isEmpty()) {
-        output.print("The following students could not be copied:\n");
+        output.println(PropertiesLoader.get("unableToCopyStudentsMessage") + ":");
         for (String s : failed) {
           output.println(s);
         }
@@ -148,34 +162,36 @@ public class FileToolCli {
   }
 
   public void doGenerate(File masterDir, File studentSubmissionDir, File outputDir,
-      PrintStream output) throws IOException {
+                         PrintStream output) throws IOException {
     if (!masterDir.exists()) {
-      throw new IOException("Master dir" + masterDir.getName() + "does not exist");
+      throw new IOException(
+          String.format(PropertiesLoader.get("masterDirectoryNotFound"), masterDir.getName()));
     }
     if (!studentSubmissionDir.exists()) {
-      throw new IOException(
-          "Student submission dir" + studentSubmissionDir.getName() + "does not exist");
+      throw new IOException(String.format(PropertiesLoader.get("submissionDirectoryNotFound"),
+          studentSubmissionDir.getName()));
     }
     if (!outputDir.exists()) {
-      throw new IOException("Output dir" + outputDir.getName() + "does not exist");
+      throw new IOException(
+          String.format(PropertiesLoader.get("outputDirectoryNotFound"), outputDir.getName()));
     }
 
     HashSet<String> failed = new HashSet<>();
-    if (Files.exists(pathAppend(studentSubmissionDir.toPath(), "submission_metadata.yml"))) {
+    if (Files.exists(pathAppend(studentSubmissionDir.toPath(), GRADESCOPE_METADATA_FILE))) {
       failed = copyFolders(studentSubmissionDir, outputDir, output, (oDir) -> {
         try {
           copyDirTree(masterDir.toPath(), new TreeCopier(masterDir.toPath(), oDir));
           return true;
         } catch (IOException e) {
-          throw new IOException("Error copying directory tree", e);
+          throw new IOException(PropertiesLoader.get("directoryTreeCopyError"), e);
         }
       });
     }
 
-    output.println("-------------------------------------------");
-    output.println("Generate completed successfully.");
+    output.println(SEPARATOR);
+    output.println(PropertiesLoader.get("generateSuccess"));
     if (!failed.isEmpty()) {
-      output.print("The following students could not be copied:\n");
+      output.println(PropertiesLoader.get("unableToCopyStudentsMessage") + ":");
       for (String s : failed) {
         output.println(s);
       }
