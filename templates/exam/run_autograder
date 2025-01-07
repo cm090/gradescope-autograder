@@ -16,6 +16,14 @@ fi
 output=$(jq -r '.tests[0].output' /autograder/source/results_error_template)
 jq --arg data "$output [$DOWNLOAD_LINK]($DOWNLOAD_LINK)" '.tests[0].output = $data' /autograder/source/results_error_template >/autograder/results/results.json
 
+# Move submission files to the root directory
+cd /autograder/submission
+# Flatten to submission directory
+find ./ -type f -exec mv {} ./ \; &>/dev/null
+# Remove empty directories
+find . -type d -empty -delete
+cd /autograder
+
 # Copy student code to source directory. Ignores all files with "Test" in the name
 for file in /autograder/submission/*; do
     file=${file##*./}
