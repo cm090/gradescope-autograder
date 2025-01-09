@@ -1,34 +1,91 @@
 package newAutograder;
 
-import java.io.File;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 public class Configuration {
-    private static final Pattern MAX_SCORE_PATTERN = null;
+    private static final Set<String> excludedClasses = Set.of("RunAllTests", "TestRunner");
     static Configuration instance = new Configuration();
 
-    private File configFile;
-    private File metadataFile;
-    private double maxScore;
+    private JSONObject configObject;
+    private JSONObject metadataObject;
+    private Double maxScore;
     private int extraCreditTests;
     private int testTimeoutSeconds;
     private Visibility testVisibility;
     private Set<Class<?>> classes;
+    private Map<String, Double> testWeights;
 
-    private Configuration() {}
+    private Configuration() {
+        classes = new HashSet<>();
+        testWeights = new HashMap<>();
+    }
 
-    static void build(String configFile, String metadataFile) {}
+    static void build(JSONObject configObject, JSONObject metadataObject) {
+        instance.configObject = configObject;
+        instance.metadataObject = metadataObject;
+        instance.parseMaxScore();
+        instance.parseExtraCreditTests();
+        instance.parseTestTimeoutSeconds();
+        instance.parseTestVisibility();
+        instance.parseClasses();
+    }
 
-    private void parseMaxScore() {}
+    private void parseMaxScore() {
+        JSONArray outline = metadataObject.getJSONObject("assignment").getJSONArray("outline");
+        for (Object question : outline) {
+            JSONObject questionObject = (JSONObject) question;
+            if (questionObject.getString("type").equals("ProgrammingQuestion")) {
+                maxScore = questionObject.getDouble("weight");
+                break;
+            }
+        }
+        if (maxScore == null) {
+            throw new RuntimeException("No programming question found in metadata file.");
+        }
+    }
 
-    private void parseExtraCreditTests() {}
+    private void parseExtraCreditTests() {
+        try {
+            extraCreditTests =
+                    configObject.getJSONObject("additional_options").getInt("extra_credit_amount");
+        } catch (JSONException e) {
+            extraCreditTests = 0;
+        }
+    }
 
-    private void parseTestTimeoutSeconds() {}
+    private void parseTestTimeoutSeconds() {
+        try {
+            testTimeoutSeconds =
+                    configObject.getJSONObject("additional_options").getInt("timeout_seconds");
+        } catch (JSONException e) {
+            testTimeoutSeconds = 30;
+        }
+    }
 
-    private void parseTestVisibility() {}
+    private void parseTestVisibility() {
+        String visibility;
+        try {
+            visibility =
+                    configObject.getJSONObject("additional_options").getString("test_visibility");
+        } catch (JSONException e) {
+            visibility = "visible";
+        }
+        testVisibility = Visibility.get(visibility.toLowerCase());
+    }
 
-    private void parseClasses() {}
+    private void parseClasses() {
+        configObject.getJSONArray("classes").forEach((cls) -> {
+            JSONObject classObject = (JSONObject) cls;
+            classes.addAll(ClassFinder.find(classObject.getString("name")));
+            testWeights.put(classObject.getString("name"), classObject.getDouble("weight"));
+        });
+    }
 
     double getMaxScore() {
         return maxScore;
@@ -48,5 +105,13 @@ public class Configuration {
 
     Set<Class<?>> getClasses() {
         return Set.copyOf(classes);
+    }
+
+    Map<String, Double> getTestWeights() {
+        return Map.copyOf(testWeights);
+    }
+
+    Set<String> getExcludedClasses() {
+        return Set.copyOf(excludedClasses);
     }
 }

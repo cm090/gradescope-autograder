@@ -1,13 +1,38 @@
 package newAutograder;
 
+import java.util.HashSet;
 import java.util.Set;
+import org.junit.runner.notification.RunNotifier;
+import org.junit.runners.model.InitializationError;
 
 public class Runner {
-    private Results results;
+    private Set<TestRunner> runners;
 
-    Runner(Set<Class<?>> classes) {}
+    Runner() {
+        runners = new HashSet<>();
+    }
 
-    void runTests() {}
+    void addRunners() {
+        for (Class<?> testClass : Configuration.instance.getClasses()) {
+            if (isClassExcluded(testClass.getName())) {
+                continue;
+            }
+            try {
+                runners.add(new TestRunner(testClass));
+            } catch (NoClassDefFoundError | InitializationError e) {
+                continue;
+            }
+        }
+    }
 
-    private void runTest(Class<?> testClass) {}
+    private boolean isClassExcluded(String testClass) {
+        Set<String> excludedClasses = Configuration.instance.getExcludedClasses();
+        return excludedClasses.contains(testClass);
+    }
+
+    void runTests() {
+        for (TestRunner t : runners) {
+            t.run(new RunNotifier());
+        }
+    }
 }
