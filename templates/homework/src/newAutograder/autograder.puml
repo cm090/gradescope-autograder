@@ -2,32 +2,43 @@
 
 package autograder {
     class Main {
+        -{static} {final} INCORRECT_ARGUMENTS: String
+        -{static} {final} INVALID_CONFIG_FILE: String
+        -{static} {final} INVALID_METADATA_FILE: String
+        -{static} configObject: JSONObject
+        -{static} metadataObject: JSONObject
         +{static} main(args: String[]): void
         -{static} checkArgs(args: String[]): void
+        -{static} parseConfiguration(): void
         -{static} runTests(): void
     }
     class Configuration {
-        -{static} {final} MAX_SCORE_PATTERN: Pattern
+        -{static} {final} EXCLUDED_CLASSES: Set<String>
+        -{static} {final} OUTPUT_FILE: String
         ~{static} instance: Configuration
-        -configFile: File
-        -metadataFile: File
+        -configObject: JSONObject
+        -metadataObject: JSONObject
         -maxScore: double
         -extraCreditTests: int
         -testTimeoutSeconds: int
         -testVisibility: Visibility
         -classes: Set<Class>
+        -testWeights: Map<String, Double>
         -Configuration()
-        ~{static} build(configFile: String, metadataFile: String): void
+        ~{static} build(configObject: JSONObject, metadataObject: JSONObject): void
         -parseMaxScore(): void
         -parseExtraCreditTests(): void
         -parseTestTimeoutSeconds(): void
         -parseTestVisibility(): void
         -parseClasses(): void
+        ~writeToOutput(json: JSONObject): void
         ~getMaxScore(): double
         ~getExtraCreditTests(): int
         ~getTestTimeoutSeconds(): int
         ~getTestVisibility(): String
         ~getClasses(): Set<Class>
+        ~getTestWeights(): Map<String, Double>
+        ~getExcludedClasses(): Set<String>
     }
     class ClassFinder {
         -{static} {final} PACKAGE_SEPARATOR: char

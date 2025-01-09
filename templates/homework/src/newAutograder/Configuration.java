@@ -12,7 +12,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Configuration {
-    private static final Set<String> excludedClasses = Set.of("RunAllTests", "TestRunner");
+    private static final Set<String> EXCLUDED_CLASSES = Set.of("RunAllTests", "TestRunner");
     private static final String OUTPUT_FILE = "results.json";
     static Configuration instance = new Configuration();
 
@@ -124,6 +124,6 @@ public class Configuration {
     }
 
     Set<String> getExcludedClasses() {
-        return Set.copyOf(excludedClasses);
+        return Set.copyOf(EXCLUDED_CLASSES);
     }
 }
