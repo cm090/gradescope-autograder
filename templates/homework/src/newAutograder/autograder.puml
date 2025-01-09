@@ -1,0 +1,110 @@
+@startuml autograder
+
+package autograder {
+    class Main {
+        +{static} main(args: String[]): void
+        -{static} checkArgs(args: String[]): void
+        -{static} runTests(): void
+    }
+    class Configuration {
+        -{static} {final} MAX_SCORE_PATTERN: Pattern
+        ~{static} instance: Configuration
+        -configFile: File
+        -metadataFile: File
+        -maxScore: double
+        -extraCreditTests: int
+        -testTimeoutSeconds: int
+        -testVisibility: Visibility
+        -classes: Set<Class>
+        -Configuration()
+        ~{static} build(configFile: String, metadataFile: String): void
+        -parseMaxScore(): void
+        -parseExtraCreditTests(): void
+        -parseTestTimeoutSeconds(): void
+        -parseTestVisibility(): void
+        -parseClasses(): void
+        ~getMaxScore(): double
+        ~getExtraCreditTests(): int
+        ~getTestTimeoutSeconds(): int
+        ~getTestVisibility(): String
+        ~getClasses(): Set<Class>
+    }
+    class ClassFinder {
+        -{static} {final} PACKAGE_SEPARATOR: char
+        -{static} {final} DIRECTORY_SEPARATOR: char
+        -{static} {final} CLASS_FILE_EXTENSION: String
+        -{static} {final} PACKAGE_ERROR: String
+        ~{static} find(packageName: String): Set<Class>
+        -{static} find(location: File, packageName: String): Set<Class>
+    }
+    class Runner {
+        -results: Results
+        ~Runner(classes: Set<Class>)
+        ~runTests(): void
+        -runTestFile(testClass: Class): void
+    }
+    class TestRunner extends BlockJUnit4ClassRunner {
+        -{static} {final} OUTPUT_FILE: String
+        -{static} isFirstRun: boolean
+        -{static} numRunners: int
+        -{static} numCompleted: int
+        -{static} totalTestsExecuted: int
+        -{static} totalTestsFailed: int
+        -{static} outputWriter: PrintWriter
+        -numTestsExecuted: int
+        -numTestsFailed: int
+        ~TestRunner(testClass: Class, results: Results)
+        #methodBlock(method: FrameworkMethod): Statement
+        +run(junitRunner: RunNotifier): void
+    }
+    class Results {
+        -totalScore: double
+        -testResults: Map<String, TestData>
+        -testWeights: Map<String, Double>
+        -testCounts: Map<String, Integer>
+        -outputMessage: OutputMessage
+        ~Results()
+        ~addTest(name: String, visibility: Visibility): void
+        ~addTestResult(name: String, numTests: int, numFailed: int): void
+        ~addTestFailure(name: String, output: String): void
+    }
+    class TestData {
+        -maxScore: double
+        -score: double
+        -name: String
+        -outputText: String
+        -visibility: Visibility
+        ~TestData(name: String, visibility: Visibility)
+        ~setMaxScore(maxScore: double): void
+        ~setScore(score: double): void
+        ~setOutputText(outputText: String): void
+        ~setVisibility(visibility: Visibility): void
+        ~getMaxScore(): double
+        ~getScore(): double
+        ~getName(): String
+        ~getOutputText(): String
+        ~getVisibility(): Visibility
+    }
+    enum Visibility {
+        HIDDEN
+        AFTER_DUE_DATE
+        AFTER_PUBLISHED
+        VISIBLE
+    }
+    enum OutputMessage {
+        DEFAULT
+        TEST_RUNNER_FAILED
+    }
+}
+
+Main ..> Configuration
+Main ..> Runner
+Configuration --> Configuration : <<singleton>>
+Configuration --> Visibility
+Configuration ..> ClassFinder
+Runner --> Results
+Runner ..> TestRunner
+Results --> "*" TestData
+Results --> OutputMessage
+TestData --> Visibility
+TestRunner ..> Results
