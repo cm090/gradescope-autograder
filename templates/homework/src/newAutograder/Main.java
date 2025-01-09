@@ -6,6 +6,13 @@ import java.nio.file.Paths;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * Given an input configuration file (config.json) and metadata file (submission_metadata.json), run
+ * all the JUnit test in the provided package(s) and output the results to a predefined JSON file.
+ *
+ * @author Canon Maranda
+ * @see https://github.com/cm090/gradescope-autograder
+ */
 public class Main {
     private static final String INCORRECT_ARGUMENTS =
             "Usage: java -jar autograder.jar <config_file> <metadata_file>";

@@ -1,5 +1,8 @@
 package newAutograder;
 
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.PrintStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -10,6 +13,7 @@ import org.json.JSONObject;
 
 public class Configuration {
     private static final Set<String> excludedClasses = Set.of("RunAllTests", "TestRunner");
+    private static final String OUTPUT_FILE = "results.json";
     static Configuration instance = new Configuration();
 
     private JSONObject configObject;
@@ -85,6 +89,14 @@ public class Configuration {
             classes.addAll(ClassFinder.find(classObject.getString("name")));
             testWeights.put(classObject.getString("name"), classObject.getDouble("weight"));
         });
+    }
+
+    void writeToOutput(JSONObject json) {
+        try (PrintStream ps = new PrintStream(new FileOutputStream(OUTPUT_FILE))) {
+            ps.append(json.toString());
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException("Could not write to output file.");
+        }
     }
 
     double getMaxScore() {

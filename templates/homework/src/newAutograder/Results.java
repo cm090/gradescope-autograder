@@ -88,7 +88,6 @@ public class Results {
         json.put("visibility", "visible");
         json.put("tests", tests);
 
-        // output.append(json.toString());
-        // output.close();
+        Configuration.instance.writeToOutput(json);
     }
 }
