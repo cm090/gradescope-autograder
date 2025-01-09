@@ -9,7 +9,6 @@ import org.json.JSONObject;
 public class Results {
     static Results instance = new Results();
 
-    private double totalScore;
     private Map<String, TestData> testResults;
     private Map<String, Double> testWeights;
     private Map<String, Integer> testCounts;
@@ -48,7 +47,7 @@ public class Results {
 
     void toJson(double percentage) {
         percentage /= 100.0;
-        double total = 0.0;
+        double totalScore = 0.0;
         boolean bypassScoreCalculation = false;
         JSONObject json = new JSONObject();
         JSONArray tests = new JSONArray();
@@ -77,13 +76,13 @@ public class Results {
                     // Calculate score based on number of tests
                     bypassScoreCalculation = true;
                 }
-                total += (entry.getValue().getScore() * currentWeight)
+                totalScore += (entry.getValue().getScore() * currentWeight)
                         / testCounts.getOrDefault(currentName, 1);
             }
         }
 
-        json.put("score",
-                bypassScoreCalculation ? percentage * totalScore : total);
+        json.put("score", bypassScoreCalculation ? percentage * Configuration.instance.getMaxScore()
+                : totalScore);
         json.put("output", outputMessage.getValue());
         json.put("output_format", "md");
         json.put("visibility", "visible");
