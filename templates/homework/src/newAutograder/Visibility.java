@@ -10,7 +10,7 @@ public enum Visibility {
         this.key = key;
     }
 
-    static Visibility get(String key) {
+    static Visibility getVisibility(String key) {
         for (Visibility visibility : Visibility.values()) {
             if (visibility.key.equals(key)) {
                 return visibility;

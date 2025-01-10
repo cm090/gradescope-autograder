@@ -80,7 +80,7 @@ public class Configuration {
         } catch (JSONException e) {
             visibility = "visible";
         }
-        testVisibility = Visibility.get(visibility.toLowerCase());
+        testVisibility = Visibility.getVisibility(visibility.toLowerCase());
     }
 
     private void parseClasses() {

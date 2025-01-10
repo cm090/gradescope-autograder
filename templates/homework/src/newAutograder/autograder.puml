@@ -49,10 +49,11 @@ package autograder {
         -{static} find(location: File, packageName: String): Set<Class>
     }
     class Runner {
-        -results: Results
+        -runners: Set<TestRunner>
         ~Runner(classes: Set<Class>)
+        ~addRunners(): void
+        -isClassExcluded(testClass: String): boolean
         ~runTests(): void
-        -runTestFile(testClass: Class): void
     }
     class TestRunner extends BlockJUnit4ClassRunner {
         -{static} {final} OUTPUT_FILE: String
@@ -64,12 +65,16 @@ package autograder {
         -{static} outputWriter: PrintWriter
         -numTestsExecuted: int
         -numTestsFailed: int
-        ~TestRunner(testClass: Class, results: Results)
+        ~TestRunner(testClass: Class)
         #methodBlock(method: FrameworkMethod): Statement
         +run(junitRunner: RunNotifier): void
+        -writeStartMessage(): void
+        -buildRunNotifier(junitRunner: RunNotifier): RunNotifier
+        -writePercentagePassed(): void
+        -writeEndMessage(): void
     }
     class Results {
-        -totalScore: double
+        ~{static} instance: Results
         -testResults: Map<String, TestData>
         -testWeights: Map<String, Double>
         -testCounts: Map<String, Integer>
@@ -78,6 +83,7 @@ package autograder {
         ~addTest(name: String, visibility: Visibility): void
         ~addTestResult(name: String, numTests: int, numFailed: int): void
         ~addTestFailure(name: String, output: String): void
+        ~toJson(percentage: double): void
     }
     class TestData {
         -maxScore: double
@@ -101,10 +107,17 @@ package autograder {
         AFTER_DUE_DATE
         AFTER_PUBLISHED
         VISIBLE
+        -key: String
+        -Visibility(key: String)
+        ~{static} getVisibility(key: String): Visibility
+        ~getValue(): String
     }
     enum OutputMessage {
         DEFAULT
         TEST_RUNNER_FAILED
+        -message: String
+        -OutputMessage(message: String)
+        ~getValue(): String
     }
 }
 
@@ -113,9 +126,13 @@ Main ..> Runner
 Configuration --> Configuration : <<singleton>>
 Configuration --> Visibility
 Configuration ..> ClassFinder
-Runner --> Results
-Runner ..> TestRunner
+Runner --> "*" TestRunner
+Runner ..> Configuration
+Results --> Results : <<singleton>>
 Results --> "*" TestData
 Results --> OutputMessage
+Results ..> Visibility
+Results ..> Configuration
 TestData --> Visibility
+TestRunner ..> Configuration
 TestRunner ..> Results

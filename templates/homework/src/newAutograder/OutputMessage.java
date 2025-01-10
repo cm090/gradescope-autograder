@@ -6,7 +6,7 @@ public enum OutputMessage {
 
     private String message;
 
-    OutputMessage(String message) {
+    private OutputMessage(String message) {
         this.message = message;
     }
 
