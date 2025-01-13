@@ -64,10 +64,8 @@ public class Results {
    */
   void addTestFailure(String name, String output) {
     TestData current = testResults.get(name);
-    String sb = current.getOutputText() +
-        output.replaceAll("\\(.*\\):", "").replaceAll("\n", " ").replaceAll("\\P{Print}", "") +
-        "\n";
-    current.setOutputText(sb);
+    current.appendToOutput(
+        output.replaceAll("\\(.*\\):", "").replaceAll("\n", " ").replaceAll("\\P{Print}", ""));
     current.setTestVisible();
   }
 

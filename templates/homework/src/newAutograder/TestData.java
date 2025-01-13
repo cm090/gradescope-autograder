@@ -5,13 +5,14 @@ package newAutograder;
  */
 public class TestData {
   private final String name;
+  private final StringBuilder outputText;
   private double maxScore;
   private double score;
-  private String outputText;
   private Visibility visibility;
 
   TestData(String name, Visibility visibility) {
     this.name = name;
+    this.outputText = new StringBuilder();
     this.visibility = visibility;
   }
 
@@ -40,11 +41,11 @@ public class TestData {
   }
 
   String getOutputText() {
-    return outputText;
+    return outputText.toString();
   }
 
-  void setOutputText(String outputText) {
-    this.outputText = outputText;
+  void appendToOutput(String output) {
+    this.outputText.append(output).append('\n');
   }
 
   Visibility getVisibility() {
