@@ -16,14 +16,14 @@ package autograder {
         -{static} {final} EXCLUDED_CLASSES: Set<String>
         -{static} {final} OUTPUT_FILE: String
         ~{static} instance: Configuration
+        -{final} classes: Set<Class>
+        -{final} testWeights: Map<String, Double>
         -configObject: JSONObject
         -metadataObject: JSONObject
-        -maxScore: double
+        -maxScore: Double
         -extraCreditTests: int
         -testTimeoutSeconds: int
         -testVisibility: Visibility
-        -classes: Set<Class>
-        -testWeights: Map<String, Double>
         -Configuration()
         ~{static} build(configObject: JSONObject, metadataObject: JSONObject): void
         -parseMaxScore(): void
@@ -49,7 +49,7 @@ package autograder {
         -{static} find(location: File, packageName: String): Set<Class>
     }
     class Runner {
-        -runners: Set<TestRunner>
+        -{final} runners: Set<TestRunner>
         ~Runner(classes: Set<Class>)
         ~addRunners(): void
         -isClassExcluded(testClass: String): boolean
@@ -70,32 +70,38 @@ package autograder {
         +run(junitRunner: RunNotifier): void
         -writeStartMessage(): void
         -buildRunNotifier(junitRunner: RunNotifier): RunNotifier
+        -decrementTotalTestFailed(int numDecrease): void
         -writePercentagePassed(): void
         -writeEndMessage(): void
     }
     class Results {
         ~{static} instance: Results
-        -testResults: Map<String, TestData>
-        -testWeights: Map<String, Double>
-        -testCounts: Map<String, Integer>
+        -{final} testResults: Map<String, TestData>
+        -{final} testWeights: Map<String, Double>
+        -{final} testCounts: Map<String, Integer>
         -outputMessage: OutputMessage
+        -bypassScoreCalculation: boolean
+        -totalScore: double
         ~Results()
         ~addTest(name: String, visibility: Visibility): void
         ~addTestResult(name: String, numTests: int, numFailed: int): void
         ~addTestFailure(name: String, output: String): void
         ~toJson(percentage: double): void
+        -buildTestResultObject(entry: Entry<String, TestData>, tests: JSONArray): void
+        -checkAlternateScoreCalculation(entry: Entry<String, TestData>): void
+        -writeGlobalResults(json: JSONObject, tests: JSONArray, percentage: double): void
     }
     class TestData {
+        -{final} name: String
+        -{final} outputText: StringBuilder
         -maxScore: double
         -score: double
-        -name: String
-        -outputText: String
         -visibility: Visibility
+        ~setTestVisible(): void
         ~TestData(name: String, visibility: Visibility)
         ~setMaxScore(maxScore: double): void
         ~setScore(score: double): void
-        ~setOutputText(outputText: String): void
-        ~setVisibility(visibility: Visibility): void
+        ~appendToOutput(output: String): void
         ~getMaxScore(): double
         ~getScore(): double
         ~getName(): String
@@ -107,7 +113,7 @@ package autograder {
         AFTER_DUE_DATE
         AFTER_PUBLISHED
         VISIBLE
-        -key: String
+        -{final} key: String
         -Visibility(key: String)
         ~{static} getVisibility(key: String): Visibility
         ~getValue(): String
@@ -115,7 +121,7 @@ package autograder {
     enum OutputMessage {
         DEFAULT
         TEST_RUNNER_FAILED
-        -message: String
+        -{final} message: String
         -OutputMessage(message: String)
         ~getValue(): String
     }
