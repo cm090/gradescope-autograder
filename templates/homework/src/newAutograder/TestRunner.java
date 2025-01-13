@@ -2,6 +2,7 @@ package newAutograder;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 import org.junit.internal.runners.statements.FailOnTimeout;
 import org.junit.runner.Description;
@@ -32,7 +33,7 @@ public class TestRunner extends BlockJUnit4ClassRunner {
     }
     try {
       if (isFirstRun) {
-        outputWriter = new PrintWriter(new FileWriter(OUTPUT_FILE));
+        outputWriter = new PrintWriter(new FileWriter(OUTPUT_FILE, StandardCharsets.UTF_8));
       }
     } catch (Exception e) {
       System.err.println("Unable to open output file");
@@ -56,7 +57,7 @@ public class TestRunner extends BlockJUnit4ClassRunner {
 
     if (numTestsFailed > numTestsExecuted) {
       synchronized (TestRunner.class) {
-        totalTestsFailed -= numTestsFailed - numTestsExecuted;
+        decrementTotalTestsFailed(numTestsFailed - numTestsExecuted);
       }
       numTestsFailed = numTestsExecuted;
     }
@@ -105,12 +106,17 @@ public class TestRunner extends BlockJUnit4ClassRunner {
     };
   }
 
+  private void decrementTotalTestsFailed(int numDecrease) {
+    totalTestsFailed -= numDecrease;
+  }
+
   private void writePercentagePassed() {
     double percentagePassed = (numTestsExecuted == 0) ? 0 :
         (double) (numTestsExecuted - numTestsFailed) / (double) numTestsExecuted * 100.0;
-    outputWriter.printf("%5d   %8d   %10.1f%%   %-15s\n", numTestsExecuted,
+    outputWriter.printf("%5d   %8d   %10.1f%%   %-15s", numTestsExecuted,
         (numTestsExecuted - numTestsFailed), percentagePassed, this.getTestClass().getName()
             .substring(this.getTestClass().getName().lastIndexOf(".") + 1));
+    outputWriter.println();
   }
 
   private void writeEndMessage() {
@@ -121,8 +127,9 @@ public class TestRunner extends BlockJUnit4ClassRunner {
         double allPercentagePassed = (double) allTestsPassedCount /
             ((double) totalTestsExecuted - Configuration.instance.getExtraCreditTests()) * 100.0;
         outputWriter.println("------------------------------------------------------------------");
-        outputWriter.printf("%5d   %8d   %10.1f%%   %-15s\n", totalTestsExecuted,
-            allTestsPassedCount, allPercentagePassed, "<-- Grand Totals");
+        outputWriter.printf("%5d   %8d   %10.1f%%   %-15s", totalTestsExecuted, allTestsPassedCount,
+            allPercentagePassed, "<-- Grand Totals");
+        outputWriter.println();
         outputWriter.println("------------------------------------------------------------------");
         outputWriter.close();
         Results.instance.toJson(allPercentagePassed);

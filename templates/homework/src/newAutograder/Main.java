@@ -32,12 +32,12 @@ public class Main {
       throw new RuntimeException(INCORRECT_ARGUMENTS);
     }
     try {
-      configObject = new JSONObject(new String(Files.readAllBytes(Paths.get(args[0]))));
+      configObject = new JSONObject(Files.readString(Paths.get(args[0])));
     } catch (JSONException | IOException e) {
       throw new RuntimeException(INVALID_CONFIG_FILE);
     }
     try {
-      metadataObject = new JSONObject(new String(Files.readAllBytes(Paths.get(args[1]))));
+      metadataObject = new JSONObject(Files.readString(Paths.get(args[1])));
     } catch (JSONException | IOException e) {
       throw new RuntimeException(INVALID_METADATA_FILE);
     }

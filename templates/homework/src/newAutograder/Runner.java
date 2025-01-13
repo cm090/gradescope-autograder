@@ -20,6 +20,7 @@ public class Runner {
       try {
         runners.add(new TestRunner(testClass));
       } catch (NoClassDefFoundError | InitializationError ignored) {
+        // Do nothing
       }
     }
   }

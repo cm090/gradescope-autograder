@@ -3,6 +3,7 @@ package newAutograder;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -90,7 +91,8 @@ public class Configuration {
   }
 
   void writeToOutput(JSONObject json) {
-    try (PrintStream ps = new PrintStream(new FileOutputStream(OUTPUT_FILE))) {
+    try (PrintStream ps = new PrintStream(new FileOutputStream(OUTPUT_FILE), false,
+        StandardCharsets.UTF_8)) {
       ps.append(json.toString());
     } catch (FileNotFoundException e) {
       throw new RuntimeException("Could not write to output file.");

@@ -40,6 +40,7 @@ public class ClassFinder {
       try {
         classes.add(Class.forName(className));
       } catch (ClassNotFoundException ignore) {
+        // Do nothing
       }
     }
     return classes;
