@@ -6,6 +6,11 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
+/**
+ * A utility class that finds all classes in a given package.
+ *
+ * @see <a href="https://stackoverflow.com/a/15519745">source</a>
+ */
 public class ClassFinder {
   private static final char PACKAGE_SEPARATOR = '.';
   private static final char DIRECTORY_SEPARATOR = '/';

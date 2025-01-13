@@ -14,6 +14,11 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
+/**
+ * Runs a single test class and writes the results to the output file.
+ *
+ * @see BlockJUnit4ClassRunner
+ */
 public class TestRunner extends BlockJUnit4ClassRunner {
   private static final String OUTPUT_FILE = "results.out";
   private static boolean isFirstRun = true;
@@ -26,6 +31,13 @@ public class TestRunner extends BlockJUnit4ClassRunner {
   private int numTestsExecuted = 0;
   private int numTestsFailed = 0;
 
+  /**
+   * Constructs a TestRunner object, updates the global number of runners, and prepares the output
+   * file.
+   *
+   * @param testClass the test class to run
+   * @throws InitializationError if the test class is malformed
+   */
   TestRunner(Class<?> testClass) throws InitializationError {
     super(testClass);
     synchronized (TestRunner.class) {
@@ -40,6 +52,12 @@ public class TestRunner extends BlockJUnit4ClassRunner {
     }
   }
 
+  /**
+   * Extends the method configuration to include a timeout.
+   *
+   * @param method the method to run
+   * @return the statement to run the method
+   */
   @Override
   protected Statement methodBlock(FrameworkMethod method) {
     return FailOnTimeout.builder()
@@ -47,6 +65,11 @@ public class TestRunner extends BlockJUnit4ClassRunner {
         .build(super.methodBlock(method));
   }
 
+  /**
+   * Runs the test class and writes the results to the output file.
+   *
+   * @param junitRunner the notifier to report test results to
+   */
   @Override
   public void run(RunNotifier junitRunner) {
     writeStartMessage();
@@ -81,6 +104,12 @@ public class TestRunner extends BlockJUnit4ClassRunner {
 
   private RunNotifier buildRunNotifier(RunNotifier junitRunner) {
     return new RunNotifier() {
+      /**
+       * Updates the number of test executed when a new test is started.
+       *
+       * @param description the description of the test
+       * @throws StoppedByUserException if the user stops the test
+       */
       @Override
       public void fireTestStarted(Description description) throws StoppedByUserException {
         numTestsExecuted++;
@@ -90,6 +119,11 @@ public class TestRunner extends BlockJUnit4ClassRunner {
         junitRunner.fireTestStarted(description);
       }
 
+      /**
+       * Reports a test failure if a test fails.
+       *
+       * @param failure the failure that occurred
+       */
       @Override
       public void fireTestFailure(Failure failure) {
         numTestsFailed++;

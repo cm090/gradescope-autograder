@@ -5,6 +5,9 @@ import java.util.Set;
 import org.junit.runner.notification.RunNotifier;
 import org.junit.runners.model.InitializationError;
 
+/**
+ * Create test runners and run all the JUnit tests.
+ */
 public class Runner {
   private final Set<TestRunner> runners;
 
@@ -12,6 +15,9 @@ public class Runner {
     runners = new HashSet<>();
   }
 
+  /**
+   * For each class in the configuration, create a test runner and add it to the set of runners.
+   */
   void addRunners() {
     for (Class<?> testClass : Configuration.instance.getClasses()) {
       if (isClassExcluded(testClass.getName())) {
@@ -25,11 +31,21 @@ public class Runner {
     }
   }
 
+  /**
+   * Determine whether a test class should be excluded from the test suite.
+   *
+   * @param testClass the name of the class
+   * @return true if the class should be excluded, false otherwise
+   * @see Configuration#getExcludedClasses()
+   */
   private boolean isClassExcluded(String testClass) {
     Set<String> excludedClasses = Configuration.instance.getExcludedClasses();
     return excludedClasses.contains(testClass);
   }
 
+  /**
+   * Run all the JUnit tests.
+   */
   void runTests() {
     for (TestRunner t : runners) {
       t.run(new RunNotifier());

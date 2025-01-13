@@ -1,5 +1,8 @@
 package newAutograder;
 
+/**
+ * Represents a single test case.
+ */
 public class TestData {
   private final String name;
   private double maxScore;

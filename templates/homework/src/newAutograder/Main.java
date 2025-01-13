@@ -27,6 +27,12 @@ public class Main {
     runTests();
   }
 
+  /**
+   * Determine whether valid configuration and metadata JSON files were provided.
+   *
+   * @param args the command line arguments
+   * @throws RuntimeException if the number of arguments is incorrect or the files are invalid
+   */
   private static void checkArgs(String[] args) {
     if (args.length != 2) {
       throw new RuntimeException(INCORRECT_ARGUMENTS);
@@ -43,10 +49,21 @@ public class Main {
     }
   }
 
+  /**
+   * Add the configuration and metadata objects to the Configuration class.
+   *
+   * @see Configuration#build(JSONObject, JSONObject)
+   */
   private static void parseConfiguration() {
     Configuration.build(configObject, metadataObject);
   }
 
+  /**
+   * Create test runners and run all the JUnit tests.
+   *
+   * @see Runner#addRunners()
+   * @see Runner#runTests()
+   */
   private static void runTests() {
     Runner runner = new Runner();
     runner.addRunners();

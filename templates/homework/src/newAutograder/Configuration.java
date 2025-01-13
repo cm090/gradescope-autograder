@@ -12,6 +12,9 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/**
+ * Stores the input configuration data.
+ */
 public class Configuration {
   private static final Set<String> EXCLUDED_CLASSES = Set.of("RunAllTests", "TestRunner");
   private static final String OUTPUT_FILE = "results.json";
@@ -30,6 +33,12 @@ public class Configuration {
     testWeights = new HashMap<>();
   }
 
+  /**
+   * Parse the configuration and metadata objects.
+   *
+   * @param configObject   the configuration object
+   * @param metadataObject the metadata object
+   */
   static void build(JSONObject configObject, JSONObject metadataObject) {
     instance.configObject = configObject;
     instance.metadataObject = metadataObject;
@@ -40,6 +49,11 @@ public class Configuration {
     instance.parseClasses();
   }
 
+  /**
+   * Look for the weight of the programming question in the metadata file.
+   *
+   * @throws RuntimeException if no programming question is found
+   */
   private void parseMaxScore() {
     JSONArray outline = metadataObject.getJSONObject("assignment").getJSONArray("outline");
     for (Object question : outline) {
@@ -54,6 +68,10 @@ public class Configuration {
     }
   }
 
+  /**
+   * Look for the number of extra credit tests in the configuration file. If not found, use the
+   * default value.
+   */
   private void parseExtraCreditTests() {
     try {
       extraCreditTests =
@@ -63,6 +81,9 @@ public class Configuration {
     }
   }
 
+  /**
+   * Look for the test timeout in the configuration file. If not found, use the default value.
+   */
   private void parseTestTimeoutSeconds() {
     try {
       testTimeoutSeconds =
@@ -72,6 +93,9 @@ public class Configuration {
     }
   }
 
+  /**
+   * Look for the test visibility in the configuration file. If not found, use the default value.
+   */
   private void parseTestVisibility() {
     String visibility;
     try {
@@ -82,6 +106,12 @@ public class Configuration {
     testVisibility = Visibility.getVisibility(visibility.toLowerCase());
   }
 
+  /**
+   * Given a list of classes in the configuration file, find the corresponding Class objects and
+   * update the test weights.
+   *
+   * @see ClassFinder#find(String)
+   */
   private void parseClasses() {
     configObject.getJSONArray("classes").forEach((cls) -> {
       JSONObject classObject = (JSONObject) cls;
@@ -90,6 +120,12 @@ public class Configuration {
     });
   }
 
+  /**
+   * Write the JSON object to the output file.
+   *
+   * @param json JSON object to write
+   * @throws RuntimeException if the file cannot be written to
+   */
   void writeToOutput(JSONObject json) {
     try (PrintStream ps = new PrintStream(new FileOutputStream(OUTPUT_FILE), false,
         StandardCharsets.UTF_8)) {

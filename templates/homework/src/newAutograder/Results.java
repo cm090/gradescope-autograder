@@ -6,6 +6,9 @@ import java.util.Map.Entry;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+/**
+ * Stores the test result data.
+ */
 public class Results {
   static Results instance = new Results();
 
@@ -25,10 +28,23 @@ public class Results {
     totalScore = 0.0;
   }
 
+  /**
+   * Adds a test to the list of results.
+   *
+   * @param name       the name of the test
+   * @param visibility the visibility of the test
+   */
   void addTest(String name, Visibility visibility) {
     testResults.put(name, new TestData(name, visibility));
   }
 
+  /**
+   * Updates an existing test with its execution results.
+   *
+   * @param name      the name of the test
+   * @param numTests  the total number of tests
+   * @param numFailed the number of failed tests
+   */
   void addTestResult(String name, int numTests, int numFailed) {
     TestData current = testResults.get(name);
     current.setMaxScore(numTests);
@@ -40,6 +56,12 @@ public class Results {
     testCounts.put(packageName, testCounts.getOrDefault(packageName, 0) + numTests);
   }
 
+  /**
+   * Adds a test failure to the output.
+   *
+   * @param name   the name of the test
+   * @param output failure output to append
+   */
   void addTestFailure(String name, String output) {
     TestData current = testResults.get(name);
     String sb = current.getOutputText() +
@@ -49,6 +71,11 @@ public class Results {
     current.setTestVisible();
   }
 
+  /**
+   * Converts the test results to a JSON object.
+   *
+   * @param percentage the percentage of the total score
+   */
   void toJson(double percentage) {
     percentage /= 100.0;
     JSONObject json = new JSONObject();
@@ -63,6 +90,12 @@ public class Results {
     Configuration.instance.writeToOutput(json);
   }
 
+  /**
+   * Creates a JSON object for a single test.
+   *
+   * @param entry the test name and data
+   * @param tests the JSON array to add the test to
+   */
   private void buildTestResultObject(Entry<String, TestData> entry, JSONArray tests) {
     JSONObject test = new JSONObject();
     test.put("score", entry.getValue().getScore());
@@ -77,6 +110,11 @@ public class Results {
     tests.put(test);
   }
 
+  /**
+   * Checks if the score should be calculated based on the number of tests.
+   *
+   * @param entry the test name and data
+   */
   private void checkAlternateScoreCalculation(Entry<String, TestData> entry) {
     if (!bypassScoreCalculation) {
       // Calculate score based on test weight
@@ -92,6 +130,13 @@ public class Results {
     }
   }
 
+  /**
+   * Writes the overall results to the JSON object.
+   *
+   * @param json       the JSON object to write to
+   * @param tests      the JSON array of test results
+   * @param percentage the percentage of the total score
+   */
   private void writeGlobalResults(JSONObject json, JSONArray tests, double percentage) {
     json.put("score",
         bypassScoreCalculation ? percentage * Configuration.instance.getMaxScore() : totalScore);
