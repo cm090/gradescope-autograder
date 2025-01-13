@@ -1,50 +1,50 @@
 package newAutograder;
 
 public class TestData {
-    private double maxScore;
-    private double score;
-    private String name;
-    private String outputText;
-    private Visibility visibility;
+  private final String name;
+  private double maxScore;
+  private double score;
+  private String outputText;
+  private Visibility visibility;
 
-    TestData(String name, Visibility visibility) {
-        this.name = name;
-        this.visibility = visibility;
-    }
+  TestData(String name, Visibility visibility) {
+    this.name = name;
+    this.visibility = visibility;
+  }
 
-    void setMaxScore(double maxScore) {
-        this.maxScore = maxScore;
-    }
+  void setTestVisible() {
+    this.visibility = Visibility.VISIBLE;
+  }
 
-    void setScore(double score) {
-        this.score = score;
-    }
+  double getMaxScore() {
+    return maxScore;
+  }
 
-    void setOutputText(String outputText) {
-        this.outputText = outputText;
-    }
+  void setMaxScore(double maxScore) {
+    this.maxScore = maxScore;
+  }
 
-    void setVisibility(Visibility visibility) {
-        this.visibility = visibility;
-    }
+  double getScore() {
+    return score;
+  }
 
-    double getMaxScore() {
-        return maxScore;
-    }
+  void setScore(double score) {
+    this.score = score;
+  }
 
-    double getScore() {
-        return score;
-    }
+  String getName() {
+    return name;
+  }
 
-    String getName() {
-        return name;
-    }
+  String getOutputText() {
+    return outputText;
+  }
 
-    String getOutputText() {
-        return outputText;
-    }
+  void setOutputText(String outputText) {
+    this.outputText = outputText;
+  }
 
-    Visibility getVisibility() {
-        return visibility;
-    }
+  Visibility getVisibility() {
+    return visibility;
+  }
 }
