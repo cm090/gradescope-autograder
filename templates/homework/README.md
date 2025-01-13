@@ -22,10 +22,24 @@
 - src/
   - Location of all uploaded Java files
   - AutoGrader/
-    - AutoGrader.java
-      - Stores JUnit results into `results.json`
+    - Main.java
+      - Takes in configuration and metadata files to generate test results
+    - ClassFinder.java
+      - Determines classes based on package name
+    - Configuration.java
+      - Singleton class with input data
+    - OutputMessage.java
+      - Possible success/error messages based on results
+    - Results.java
+      - Singleton class with test run data
+    - Runner.java
+      - Prepares test files for processing
+    - TestData.java
+      - Data corresponding to each test file
     - TestRunner.java
-      - Runs all unit test files
+      - Wraps test files to process successes/failures
+    - Visibility.java
+      - Parameters corresponding to when results are shown on Gradescope
 
 ## Prerequisites
 - Assignment JUnit tests can be graded without intervention

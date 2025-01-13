@@ -19,6 +19,7 @@ public class Configuration {
   private static final Set<String> EXCLUDED_CLASSES = Set.of("RunAllTests", "TestRunner");
   private static final String OUTPUT_FILE = "results.json";
   static Configuration instance = new Configuration();
+  
   private final Set<Class<?>> classes;
   private final Map<String, Double> testWeights;
   private JSONObject configObject;
