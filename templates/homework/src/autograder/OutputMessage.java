@@ -1,4 +1,4 @@
-package newAutograder;
+package autograder;
 
 public enum OutputMessage {
   DEFAULT(

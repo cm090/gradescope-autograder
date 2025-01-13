@@ -1,4 +1,4 @@
-package newAutograder;
+package autograder;
 
 import java.io.IOException;
 import java.nio.file.Files;

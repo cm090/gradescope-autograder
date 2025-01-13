@@ -1,4 +1,4 @@
-package newAutograder;
+package autograder;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;

@@ -1,4 +1,4 @@
-package newAutograder;
+package autograder;
 
 import java.util.HashMap;
 import java.util.Map;

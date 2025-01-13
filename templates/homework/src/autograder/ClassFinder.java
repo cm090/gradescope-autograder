@@ -1,4 +1,4 @@
-package newAutograder;
+package autograder;
 
 import java.io.File;
 import java.net.URL;

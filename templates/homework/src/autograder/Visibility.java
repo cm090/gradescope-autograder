@@ -1,4 +1,4 @@
-package newAutograder;
+package autograder;
 
 public enum Visibility {
   HIDDEN("hidden"), AFTER_DUE_DATE("after_due_date"), AFTER_PUBLISHED("after_published"),

@@ -1,4 +1,4 @@
-package newAutograder;
+package autograder;
 
 /**
  * Represents a single test case.

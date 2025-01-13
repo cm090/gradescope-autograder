@@ -1,4 +1,4 @@
-package newAutograder;
+package autograder;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;

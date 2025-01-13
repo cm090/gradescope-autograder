@@ -1,4 +1,4 @@
-package newAutograder;
+package autograder;
 
 import java.util.HashSet;
 import java.util.Set;
