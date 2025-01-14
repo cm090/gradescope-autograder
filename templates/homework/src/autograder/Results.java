@@ -31,7 +31,7 @@ public class Results {
   /**
    * Adds a test to the list of results.
    *
-   * @param name       the name of the test
+   * @param name the name of the test
    * @param visibility the visibility of the test
    */
   void addTest(String name, Visibility visibility) {
@@ -41,8 +41,8 @@ public class Results {
   /**
    * Updates an existing test with its execution results.
    *
-   * @param name      the name of the test
-   * @param numTests  the total number of tests
+   * @param name the name of the test
+   * @param numTests the total number of tests
    * @param numFailed the number of failed tests
    */
   void addTestResult(String name, int numTests, int numFailed) {
@@ -59,7 +59,7 @@ public class Results {
   /**
    * Adds a test failure to the output.
    *
-   * @param name   the name of the test
+   * @param name the name of the test
    * @param output failure output to append
    */
   void addTestFailure(String name, String output) {
@@ -115,8 +115,8 @@ public class Results {
   private void checkAlternateScoreCalculation(Entry<String, TestData> entry) {
     if (!bypassScoreCalculation) {
       // Calculate score based on test weight
-      String currentName = !entry.getValue().getName().contains(".") ? entry.getValue().getName() :
-          entry.getValue().getName().substring(0, entry.getValue().getName().lastIndexOf("."));
+      String currentName = !entry.getValue().getName().contains(".") ? entry.getValue().getName()
+          : entry.getValue().getName().substring(0, entry.getValue().getName().lastIndexOf("."));
       double currentWeight = testWeights.get(currentName);
       if (currentWeight < 0) {
         // Calculate score based on number of tests
@@ -130,8 +130,8 @@ public class Results {
   /**
    * Writes the overall results to the JSON object.
    *
-   * @param json       the JSON object to write to
-   * @param tests      the JSON array of test results
+   * @param json the JSON object to write to
+   * @param tests the JSON array of test results
    * @param percentage the percentage of the total score
    */
   private void writeGlobalResults(JSONObject json, JSONArray tests, double percentage) {

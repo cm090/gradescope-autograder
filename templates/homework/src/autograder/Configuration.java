@@ -18,7 +18,7 @@ public class Configuration {
   private static final Set<String> EXCLUDED_CLASSES = Set.of("RunAllTests", "TestRunner");
   private static final String OUTPUT_FILE = "results.json";
   static Configuration instance = new Configuration();
-  
+
   private final Set<Class<?>> classes;
   private final Map<String, Double> testWeights;
   private JSONObject configObject;
@@ -36,7 +36,7 @@ public class Configuration {
   /**
    * Parse the configuration and metadata objects.
    *
-   * @param configObject   the configuration object
+   * @param configObject the configuration object
    * @param metadataObject the metadata object
    */
   static void build(JSONObject configObject, JSONObject metadataObject) {
@@ -127,8 +127,8 @@ public class Configuration {
    * @throws RuntimeException if the file cannot be written to
    */
   void writeToOutput(JSONObject json) {
-    try (PrintStream ps = new PrintStream(new FileOutputStream(OUTPUT_FILE), false,
-        StandardCharsets.UTF_8)) {
+    try (PrintStream ps =
+        new PrintStream(new FileOutputStream(OUTPUT_FILE), false, StandardCharsets.UTF_8)) {
       ps.append(json.toString());
     } catch (Exception e) {
       throw new RuntimeException("Could not write to output file.");
