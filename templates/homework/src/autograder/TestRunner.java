@@ -42,13 +42,13 @@ public class TestRunner extends BlockJUnit4ClassRunner {
     super(testClass);
     synchronized (TestRunner.class) {
       numRunners++;
-    }
-    try {
-      if (isFirstRun) {
-        outputWriter = new PrintWriter(new FileWriter(OUTPUT_FILE, StandardCharsets.UTF_8));
+      try {
+        if (isFirstRun) {
+          outputWriter = new PrintWriter(new FileWriter(OUTPUT_FILE, StandardCharsets.UTF_8));
+        }
+      } catch (Exception e) {
+        System.err.println("Unable to open output file");
       }
-    } catch (Exception e) {
-      System.err.println("Unable to open output file");
     }
   }
 
@@ -91,9 +91,12 @@ public class TestRunner extends BlockJUnit4ClassRunner {
   }
 
   private void writeStartMessage() {
+    if (outputWriter == null) {
+      System.err.println("Unable to open output file");
+      return;
+    }
     synchronized (TestRunner.class) {
       if (isFirstRun) {
-        isFirstRun = false;
         outputWriter.println("------------------------------------------------------------------");
         outputWriter.println("                   Gradescope Autograder Output");
         outputWriter.println("                      Running all unit tests");
@@ -145,8 +148,12 @@ public class TestRunner extends BlockJUnit4ClassRunner {
   }
 
   private void writePercentagePassed() {
-    double percentagePassed = (numTestsExecuted == 0) ? 0 :
-        (double) (numTestsExecuted - numTestsFailed) / (double) numTestsExecuted * 100.0;
+    if (outputWriter == null) {
+      System.err.println("Unable to open output file");
+      return;
+    }
+    double percentagePassed = (numTestsExecuted == 0) ? 0
+        : (double) (numTestsExecuted - numTestsFailed) / (double) numTestsExecuted * 100.0;
     outputWriter.printf("%5d   %8d   %10.1f%%   %-15s", numTestsExecuted,
         (numTestsExecuted - numTestsFailed), percentagePassed, this.getTestClass().getName()
             .substring(this.getTestClass().getName().lastIndexOf(".") + 1));
@@ -154,12 +161,17 @@ public class TestRunner extends BlockJUnit4ClassRunner {
   }
 
   private void writeEndMessage() {
+    if (outputWriter == null) {
+      System.err.println("Unable to open output file");
+      return;
+    }
     synchronized (TestRunner.class) {
       numCompleted++;
       if (numCompleted == numRunners) {
         int allTestsPassedCount = totalTestsExecuted - totalTestsFailed;
-        double allPercentagePassed = (double) allTestsPassedCount /
-            ((double) totalTestsExecuted - Configuration.instance.getExtraCreditTests()) * 100.0;
+        int allTestsRanCount = totalTestsExecuted - Configuration.instance.getExtraCreditTests();
+        double allPercentagePassed = allTestsRanCount == 0 ? 0
+            : ((double) allTestsPassedCount / (double) allTestsRanCount) * 100.0;
         outputWriter.println("------------------------------------------------------------------");
         outputWriter.printf("%5d   %8d   %10.1f%%   %-15s", totalTestsExecuted, allTestsPassedCount,
             allPercentagePassed, "<-- Grand Totals");

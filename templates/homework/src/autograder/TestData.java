@@ -25,6 +25,9 @@ public class TestData {
   }
 
   void setMaxScore(double maxScore) {
+    if (maxScore < 0) {
+      throw new RuntimeException("Max score cannot be negative.");
+    }
     this.maxScore = maxScore;
   }
 
@@ -33,6 +36,12 @@ public class TestData {
   }
 
   void setScore(double score) {
+    if (score < 0) {
+      throw new RuntimeException("Score cannot be negative.");
+    }
+    if (score > maxScore) {
+      throw new RuntimeException("Score cannot be greater than max score.");
+    }
     this.score = score;
   }
 

@@ -1,6 +1,5 @@
 package autograder;
 
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -131,7 +130,7 @@ public class Configuration {
     try (PrintStream ps = new PrintStream(new FileOutputStream(OUTPUT_FILE), false,
         StandardCharsets.UTF_8)) {
       ps.append(json.toString());
-    } catch (FileNotFoundException e) {
+    } catch (Exception e) {
       throw new RuntimeException("Could not write to output file.");
     }
   }
