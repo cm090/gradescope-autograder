@@ -39,8 +39,7 @@ public class Runner {
    * @see Configuration#getExcludedClasses()
    */
   private boolean isClassExcluded(String testClass) {
-    Set<String> excludedClasses = Configuration.instance.getExcludedClasses();
-    return excludedClasses.contains(testClass);
+    return Configuration.instance.getExcludedClasses().stream().anyMatch(testClass::contains);
   }
 
   /**

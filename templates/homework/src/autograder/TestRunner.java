@@ -97,6 +97,7 @@ public class TestRunner extends BlockJUnit4ClassRunner {
     }
     synchronized (TestRunner.class) {
       if (isFirstRun) {
+        isFirstRun = false;
         outputWriter.println("------------------------------------------------------------------");
         outputWriter.println("                   Gradescope Autograder Output");
         outputWriter.println("                      Running all unit tests");

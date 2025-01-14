@@ -99,7 +99,6 @@ public class Results {
     test.put("score", entry.getValue().getScore());
     test.put("max_score", entry.getValue().getMaxScore());
     test.put("name", entry.getValue().getName());
-    test.put("number", entry.getKey());
     test.put("output", entry.getValue().getOutputText().replaceAll("\t", " "));
     test.put("visibility", entry.getValue().getVisibility().getValue());
     if (!entry.getValue().getOutputText().isEmpty()) {
