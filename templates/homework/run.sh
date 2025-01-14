@@ -2,6 +2,7 @@
 
 # Constants
 CONFIG_FILE="config.json"
+METADATA_FILE="/autograder/submission_metadata.json"
 IMPORT_ERROR="# ERROR: Grading Failed
 **We were unable to locate one or more files.** Please make sure of the following:
 1. You have uploaded all required *.java* files
@@ -12,7 +13,7 @@ If you're still having trouble, please contact an instructor or TA."
 shopt -s globstar &>/dev/null
 # Allows us to compile code while ignoring errors (very important)
 ecj -cp lib/hamcrest-core-1.3.jar:lib/junit-4.13.2.jar:lib/json-20231013.jar -d bin/ -Xlint -nowarn -1.9 -proceedOnError src/ &>java.out
-java -cp bin/:lib/* AutoGrader.GradescopeAutoGrader $CONFIG_FILE &>java.stdout
+java -cp bin/:lib/* autograder.Main $CONFIG_FILE $METADATA_FILE &>java.stdout
 
 # Parse results as JSON and confirm successful operation
 if json_pp <results.json >results.json.tmp; then

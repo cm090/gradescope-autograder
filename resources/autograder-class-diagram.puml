@@ -1,0 +1,144 @@
+@startuml autograder
+
+package autograder {
+    class Main {
+        -{static} {final} INCORRECT_ARGUMENTS: String
+        -{static} {final} INVALID_CONFIG_FILE: String
+        -{static} {final} INVALID_METADATA_FILE: String
+        -{static} configObject: JSONObject
+        -{static} metadataObject: JSONObject
+        +{static} main(args: String[]): void
+        -{static} checkArgs(args: String[]): void
+        -{static} parseConfiguration(): void
+        -{static} runTests(): void
+    }
+    class Configuration {
+        -{static} {final} EXCLUDED_CLASSES: Set<String>
+        -{static} {final} OUTPUT_FILE: String
+        ~{static} instance: Configuration
+        -{final} classes: Set<Class>
+        -{final} testWeights: Map<String, Double>
+        -configObject: JSONObject
+        -metadataObject: JSONObject
+        -maxScore: Double
+        -extraCreditTests: int
+        -testTimeoutSeconds: int
+        -testVisibility: Visibility
+        -Configuration()
+        ~{static} build(configObject: JSONObject, metadataObject: JSONObject): void
+        -parseMaxScore(): void
+        -parseExtraCreditTests(): void
+        -parseTestTimeoutSeconds(): void
+        -parseTestVisibility(): void
+        -parseClasses(): void
+        ~writeToOutput(json: JSONObject): void
+        ~getMaxScore(): double
+        ~getExtraCreditTests(): int
+        ~getTestTimeoutSeconds(): int
+        ~getTestVisibility(): String
+        ~getClasses(): Set<Class>
+        ~getTestWeights(): Map<String, Double>
+        ~getExcludedClasses(): Set<String>
+    }
+    class ClassFinder {
+        -{static} {final} PACKAGE_SEPARATOR: char
+        -{static} {final} DIRECTORY_SEPARATOR: char
+        -{static} {final} CLASS_FILE_EXTENSION: String
+        -{static} {final} PACKAGE_ERROR: String
+        ~{static} find(packageName: String): Set<Class>
+        -{static} find(location: File, packageName: String): Set<Class>
+    }
+    class Runner {
+        -{final} runners: Set<TestRunner>
+        ~Runner(classes: Set<Class>)
+        ~addRunners(): void
+        -isClassExcluded(testClass: String): boolean
+        ~runTests(): void
+    }
+    class TestRunner extends BlockJUnit4ClassRunner {
+        -{static} {final} OUTPUT_FILE: String
+        -{static} isFirstRun: boolean
+        -{static} numRunners: int
+        -{static} numCompleted: int
+        -{static} totalTestsExecuted: int
+        -{static} totalTestsFailed: int
+        -{static} outputWriter: PrintWriter
+        -numTestsExecuted: int
+        -numTestsFailed: int
+        ~TestRunner(testClass: Class)
+        #methodBlock(method: FrameworkMethod): Statement
+        +run(junitRunner: RunNotifier): void
+        -writeStartMessage(): void
+        -buildRunNotifier(junitRunner: RunNotifier): RunNotifier
+        -decrementTotalTestFailed(int numDecrease): void
+        -writePercentagePassed(): void
+        -writeEndMessage(): void
+    }
+    class Results {
+        ~{static} instance: Results
+        -{final} testResults: Map<String, TestData>
+        -{final} testWeights: Map<String, Double>
+        -{final} testCounts: Map<String, Integer>
+        -outputMessage: OutputMessage
+        -bypassScoreCalculation: boolean
+        -totalScore: double
+        ~Results()
+        ~addTest(name: String, visibility: Visibility): void
+        ~addTestResult(name: String, numTests: int, numFailed: int): void
+        ~addTestFailure(name: String, output: String): void
+        ~toJson(percentage: double): void
+        -buildTestResultObject(entry: Entry<String, TestData>, tests: JSONArray): void
+        -checkAlternateScoreCalculation(entry: Entry<String, TestData>): void
+        -writeGlobalResults(json: JSONObject, tests: JSONArray, percentage: double): void
+    }
+    class TestData {
+        -{final} name: String
+        -{final} outputText: StringBuilder
+        -maxScore: double
+        -score: double
+        -visibility: Visibility
+        ~setTestVisible(): void
+        ~TestData(name: String, visibility: Visibility)
+        ~setMaxScore(maxScore: double): void
+        ~setScore(score: double): void
+        ~appendToOutput(output: String): void
+        ~getMaxScore(): double
+        ~getScore(): double
+        ~getName(): String
+        ~getOutputText(): String
+        ~getVisibility(): Visibility
+    }
+    enum Visibility {
+        HIDDEN
+        AFTER_DUE_DATE
+        AFTER_PUBLISHED
+        VISIBLE
+        -{final} key: String
+        -Visibility(key: String)
+        ~{static} getVisibility(key: String): Visibility
+        ~getValue(): String
+    }
+    enum OutputMessage {
+        DEFAULT
+        TEST_RUNNER_FAILED
+        -{final} message: String
+        -OutputMessage(message: String)
+        ~getValue(): String
+    }
+}
+
+Main ..> Configuration
+Main ..> Runner
+Configuration --> Configuration : <<singleton>>
+Configuration --> Visibility
+Configuration ..> ClassFinder
+Runner --> "*" TestRunner
+Runner ..> Configuration
+Results --> Results : <<singleton>>
+Results --> "*" TestData
+Results --> OutputMessage
+Results ..> Visibility
+Results ..> Configuration
+TestData --> Visibility
+TestRunner ..> Configuration
+TestRunner ..> Results
