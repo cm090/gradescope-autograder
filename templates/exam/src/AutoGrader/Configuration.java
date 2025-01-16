@@ -102,7 +102,7 @@ public class Configuration {
       starterCodeDownload =
           configObject.getJSONObject("additional_options").getString("starter_code_download");
     } catch (JSONException e) {
-      starterCodeDownload = "https://link.canon.click/autograder/startercode";
+      starterCodeDownload = "";
     }
   }
 
