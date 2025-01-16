@@ -1,12 +1,8 @@
 package autograder;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -20,6 +16,7 @@ public class Results {
   private final Map<String, Double> testWeights;
   private final Map<String, Integer> testCounts;
   private OutputMessage outputMessage;
+  private boolean bypassScoreCalculation;
   private double totalScore;
 
   private Results() {
@@ -27,6 +24,7 @@ public class Results {
     testWeights = Configuration.instance.getTestWeights();
     testCounts = new HashMap<>();
     outputMessage = OutputMessage.DEFAULT;
+    bypassScoreCalculation = false;
     totalScore = 0.0;
   }
 
@@ -71,51 +69,24 @@ public class Results {
     current.setTestVisible();
   }
 
-  void toJson() {
+  /**
+   * Converts the test results to a JSON object.
+   *
+   * @param percentage the percentage of the total score
+   */
+  void toJson(double percentage) {
+    percentage /= 100.0;
     JSONObject json = new JSONObject();
     JSONArray tests = new JSONArray();
-    totalScore = 0;
 
     createDownloadLink(tests);
-    for (Entry<String, Double> entry : testWeights.entrySet()) {
-      int testsToDrop = Configuration.instance.getNumTestsToDrop().get(entry.getKey());
-      Set<Entry<String, TestData>> testData = testResults.entrySet().stream()
-          .filter(e -> e.getKey().startsWith(entry.getKey())).collect(Collectors.toSet());
-      double scoreMultiplier = entry.getValue() / (testData.size() - testsToDrop);
 
-      if (entry.getValue() == 0) {
-        testData.forEach(test -> buildTestResultObject(test, tests));
-      } else if (testsToDrop <= 0) {
-        // Calculate scores normally
-        // If there are more tests to drop than there are tests, prevent negative scores
-        int testsCount = testCounts.getOrDefault(entry.getKey(), 0);
-        double testsPassed = testData.stream().mapToDouble(test -> {
-          buildTestResultObject(test, tests);
-          return test.getValue().getScore();
-        }).sum();
-        if (testsPassed > 0) {
-          totalScore += (testsPassed / testsCount) * Configuration.instance.getMaxScore();
-        }
-      } else {
-        // Drop lowest test classes
-        List<Double> testScores = new ArrayList<Double>();
-        double testSum = testData.stream().mapToDouble(test -> {
-          buildTestResultObject(test, tests);
-          double currentScore = test.getValue().getScore() / test.getValue().getMaxScore();
-          testScores.add(currentScore);
-          return currentScore;
-        }).sum();
-        if (!testScores.isEmpty()) {
-          testScores.sort(Double::compareTo);
-          for (int i = 0; i < testsToDrop; i++) {
-            testSum -= testScores.get(i);
-          }
-        }
-        totalScore += testSum * scoreMultiplier;
-      }
-    }
+    testResults.entrySet().forEach((entry) -> {
+      buildTestResultObject(entry, tests);
+      checkAlternateScoreCalculation(entry);
+    });
 
-    writeGlobalResults(json, tests);
+    writeGlobalResults(json, tests, percentage);
     Configuration.instance.writeToOutput(json);
   }
 
@@ -156,16 +127,38 @@ public class Results {
   }
 
   /**
+   * Checks if the score should be calculated based on the number of tests.
+   *
+   * @param entry the test name and data
+   */
+  private void checkAlternateScoreCalculation(Entry<String, TestData> entry) {
+    if (!bypassScoreCalculation) {
+      // Calculate score based on test weight
+      String currentName = !entry.getValue().getName().contains(".") ? entry.getValue().getName()
+          : entry.getValue().getName().substring(0, entry.getValue().getName().lastIndexOf("."));
+      double currentWeight = testWeights.get(currentName);
+      if (currentWeight < 0) {
+        // Calculate score based on number of tests
+        bypassScoreCalculation = true;
+      }
+      totalScore +=
+          (entry.getValue().getScore() * currentWeight) / testCounts.getOrDefault(currentName, 1);
+    }
+  }
+
+  /**
    * Writes the overall results to the JSON object.
    *
    * @param json the JSON object to write to
    * @param tests the JSON array of test results
+   * @param percentage the percentage of the total score
    */
-  private void writeGlobalResults(JSONObject json, JSONArray tests) {
-    json.put("score", totalScore);
+  private void writeGlobalResults(JSONObject json, JSONArray tests, double percentage) {
+    json.put("score",
+        bypassScoreCalculation ? percentage * Configuration.instance.getMaxScore() : totalScore);
     json.put("output", outputMessage.getValue());
     json.put("output_format", "md");
-    json.put("visibility", Visibility.VISIBLE.getValue());
+    json.put("visibility", "visible");
     json.put("tests", tests);
   }
 }
