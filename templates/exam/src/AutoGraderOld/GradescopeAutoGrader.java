@@ -1,4 +1,4 @@
-package AutoGrader;
+package AutoGraderOld;
 
 import java.io.File;
 import java.io.FileNotFoundException;

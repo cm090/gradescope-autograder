@@ -1,9 +1,9 @@
-package AutoGrader;
+package autograder;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
-
 import org.junit.internal.runners.statements.FailOnTimeout;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
@@ -11,127 +11,176 @@ import org.junit.runner.notification.RunNotifier;
 import org.junit.runner.notification.StoppedByUserException;
 import org.junit.runners.BlockJUnit4ClassRunner;
 import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.InitializationError;
 import org.junit.runners.model.Statement;
 
 /**
- * Interfaces with JUnit tests. Provided by RHIT CSSE Department.
+ * Runs a single test class and writes the results to the output file.
+ *
+ * @see BlockJUnit4ClassRunner
  */
-class TestRunner extends BlockJUnit4ClassRunner {
-    // Updated in the configuration file
-    static int extraCreditTests = 0;
-    static int testTimeoutSeconds = 30;
+public class TestRunner extends BlockJUnit4ClassRunner {
+  private static final String OUTPUT_FILE = "results.out";
+  private static boolean isFirstRun = true;
+  private static int numRunners = 0;
+  private static int numCompleted = 0;
+  private static int totalTestsExecuted = 0;
+  private static int totalTestsFailed = 0;
+  private static PrintWriter outputWriter;
 
-    private static boolean firstRun = true;
-    private static int runners = 0;
-    private static int completed = 0;
-    private static int allTestsFailedCount = 0;
-    private static int allTestsExecutedCount = 0;
-    private static PrintWriter output;
+  private int numTestsExecuted = 0;
+  private int numTestsFailed = 0;
 
-    private int testCount = 0;
-    private int testFailure = 0;
-    private String visibility;
-    private GradescopeAutoGrader g;
-
-    TestRunner(Class<?> testClass, GradescopeAutoGrader g, String visibility)
-            throws org.junit.runners.model.InitializationError {
-        super(testClass);
-        this.g = g;
-        this.visibility = visibility;
-        synchronized (TestRunner.class) {
-            runners++;
+  /**
+   * Constructs a TestRunner object, updates the global number of runners, and prepares the output
+   * file.
+   *
+   * @param testClass the test class to run
+   * @throws InitializationError if the test class is malformed
+   */
+  TestRunner(Class<?> testClass) throws InitializationError {
+    super(testClass);
+    synchronized (TestRunner.class) {
+      numRunners++;
+      try {
+        if (isFirstRun) {
+          outputWriter = new PrintWriter(new FileWriter(OUTPUT_FILE, StandardCharsets.UTF_8));
         }
-        try {
-            if (firstRun) {
-                // Scores will be written to this file to avoid mixing with print statements from
-                // the student's code
-                output = new PrintWriter(new FileWriter("results.out"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+      } catch (Exception e) {
+        System.err.println("Unable to open output file");
+      }
+    }
+  }
+
+  /**
+   * Extends the method configuration to include a timeout.
+   *
+   * @param method the method to run
+   * @return the statement to run the method
+   */
+  @Override
+  protected Statement methodBlock(FrameworkMethod method) {
+    return FailOnTimeout.builder()
+        .withTimeout(Configuration.instance.getTestTimeoutSeconds(), TimeUnit.SECONDS)
+        .build(super.methodBlock(method));
+  }
+
+  /**
+   * Runs the test class and writes the results to the output file.
+   *
+   * @param junitRunner the notifier to report test results to
+   */
+  @Override
+  public void run(RunNotifier junitRunner) {
+    writeStartMessage();
+    Results.instance.addTest(getName(), Configuration.instance.getTestVisibility());
+
+    RunNotifier decorator = buildRunNotifier(junitRunner);
+    super.run(decorator);
+
+    if (numTestsFailed > numTestsExecuted) {
+      synchronized (TestRunner.class) {
+        decrementTotalTestsFailed(numTestsFailed - numTestsExecuted);
+      }
+      numTestsFailed = numTestsExecuted;
     }
 
-    @Override
-    protected Statement methodBlock(FrameworkMethod method) {
-        // Sets the timeout for each test
-        Statement statement = super.methodBlock(method);
-        return FailOnTimeout.builder().withTimeout(testTimeoutSeconds, TimeUnit.SECONDS)
-                .build(statement);
+    Results.instance.addTestResult(getName(), numTestsExecuted, numTestsFailed);
+    writePercentagePassed();
+    writeEndMessage();
+  }
+
+  private void writeStartMessage() {
+    if (outputWriter == null) {
+      System.err.println("Unable to open output file");
+      return;
     }
-
-    @Override
-    public void run(RunNotifier ideJUnitRunner) {
-        synchronized (TestRunner.class) {
-            if (firstRun) {
-                firstRun = false;
-                output.println(
-                        "------------------------------------------------------------------");
-                output.println("                   Gradescope Autograder Output");
-                output.println("                      Running all unit tests");
-                output.println(
-                        "------------------------------------------------------------------");
-            }
-        }
-
-        this.g.addTest(getName(), visibility);
-
-        // Count tests with Decorator Pattern
-        RunNotifier decorator = new RunNotifier() {
-            @Override
-            public void fireTestStarted(Description description) throws StoppedByUserException {
-                testCount++;
-                synchronized (TestRunner.class) {
-                    allTestsExecutedCount++;
-                }
-                ideJUnitRunner.fireTestStarted(description);
-            }
-
-            @Override
-            public void fireTestFailure(Failure failure) {
-                testFailure++;
-                synchronized (TestRunner.class) {
-                    allTestsFailedCount++;
-                }
-                if (failure.getMessage() != null)
-                    g.addFailure(getName(), failure.toString().replace("\"", "'"));
-                else
-                    g.addFailure(getName(), failure.getTestHeader() + ": Test failed");
-                ideJUnitRunner.fireTestFailure(failure);
-            }
-        };
-
-        super.run(decorator);
-        if (this.testFailure > this.testCount) {
-            // Error in test, prevent over-counting
-            synchronized (TestRunner.class) {
-                allTestsFailedCount -= this.testFailure - this.testCount;
-            }
-            this.testFailure = this.testCount;
-        }
-        this.g.addResult(getName(), this.testCount, this.testFailure);
-
-        double percentagePassed = (this.testCount == 0) ? 0
-                : (double) (this.testCount - this.testFailure) / (double) this.testCount * 100.0;
-        output.printf("%5d   %8d   %10.1f%%   %-15s\n", this.testCount,
-                (this.testCount - this.testFailure), percentagePassed, this.getTestClass().getName()
-                        .substring(this.getTestClass().getName().lastIndexOf(".") + 1));
-
-        synchronized (TestRunner.class) {
-            completed++;
-            if (completed == runners) {
-                int allTestsPassedCount = allTestsExecutedCount - allTestsFailedCount;
-                double allPercentagePassed = (double) allTestsPassedCount
-                        / ((double) allTestsExecutedCount - extraCreditTests) * 100.0;
-                output.println(
-                        "------------------------------------------------------------------");
-                output.printf("%5d   %8d   %10.1f%%   %-15s\n", allTestsExecutedCount,
-                        allTestsPassedCount, allPercentagePassed, "<-- Grand Totals");
-                output.println(
-                        "------------------------------------------------------------------");
-                output.close();
-                this.g.toJson();
-            }
-        }
+    synchronized (TestRunner.class) {
+      if (isFirstRun) {
+        isFirstRun = false;
+        outputWriter.println("------------------------------------------------------------------");
+        outputWriter.println("                   Gradescope Autograder Output");
+        outputWriter.println("                      Running all unit tests");
+        outputWriter.println("------------------------------------------------------------------");
+      }
     }
+  }
+
+  private RunNotifier buildRunNotifier(RunNotifier junitRunner) {
+    return new RunNotifier() {
+      /**
+       * Updates the number of test executed when a new test is started.
+       *
+       * @param description the description of the test
+       * @throws StoppedByUserException if the user stops the test
+       */
+      @Override
+      public void fireTestStarted(Description description) throws StoppedByUserException {
+        numTestsExecuted++;
+        synchronized (TestRunner.class) {
+          totalTestsExecuted++;
+        }
+        junitRunner.fireTestStarted(description);
+      }
+
+      /**
+       * Reports a test failure if a test fails.
+       *
+       * @param failure the failure that occurred
+       */
+      @Override
+      public void fireTestFailure(Failure failure) {
+        numTestsFailed++;
+        synchronized (TestRunner.class) {
+          totalTestsFailed++;
+        }
+        if (failure.getMessage() != null) {
+          Results.instance.addTestFailure(getName(), failure.toString().replace("\"", "'"));
+        } else {
+          Results.instance.addTestFailure(getName(), failure.getTestHeader() + ": Test failed");
+        }
+        junitRunner.fireTestFailure(failure);
+      }
+    };
+  }
+
+  private void decrementTotalTestsFailed(int numDecrease) {
+    totalTestsFailed -= numDecrease;
+  }
+
+  private void writePercentagePassed() {
+    if (outputWriter == null) {
+      System.err.println("Unable to open output file");
+      return;
+    }
+    double percentagePassed = (numTestsExecuted == 0) ? 0
+        : (double) (numTestsExecuted - numTestsFailed) / (double) numTestsExecuted * 100.0;
+    outputWriter.printf("%5d   %8d   %10.1f%%   %-15s", numTestsExecuted,
+        (numTestsExecuted - numTestsFailed), percentagePassed, this.getTestClass().getName()
+            .substring(this.getTestClass().getName().lastIndexOf(".") + 1));
+    outputWriter.println();
+  }
+
+  private void writeEndMessage() {
+    if (outputWriter == null) {
+      System.err.println("Unable to open output file");
+      return;
+    }
+    synchronized (TestRunner.class) {
+      numCompleted++;
+      if (numCompleted == numRunners) {
+        int allTestsPassedCount = totalTestsExecuted - totalTestsFailed;
+        int allTestsRanCount = totalTestsExecuted - Configuration.instance.getExtraCreditTests();
+        double allPercentagePassed = allTestsRanCount == 0 ? 0
+            : ((double) allTestsPassedCount / (double) allTestsRanCount) * 100.0;
+        outputWriter.println("------------------------------------------------------------------");
+        outputWriter.printf("%5d   %8d   %10.1f%%   %-15s", totalTestsExecuted, allTestsPassedCount,
+            allPercentagePassed, "<-- Grand Totals");
+        outputWriter.println();
+        outputWriter.println("------------------------------------------------------------------");
+        outputWriter.close();
+        Results.instance.toJson(allPercentagePassed);
+      }
+    }
+  }
 }
