@@ -20,7 +20,7 @@ public class TestData {
     this.visibility = Visibility.VISIBLE;
   }
 
-  double getMaxScore() {
+  public double getMaxScore() {
     return maxScore;
   }
 
@@ -31,7 +31,7 @@ public class TestData {
     this.maxScore = maxScore;
   }
 
-  double getScore() {
+  public double getScore() {
     return score;
   }
 
@@ -45,11 +45,11 @@ public class TestData {
     this.score = score;
   }
 
-  String getName() {
+  public String getName() {
     return name;
   }
 
-  String getOutputText() {
+  public String getOutputText() {
     return outputText.toString();
   }
 
@@ -57,7 +57,7 @@ public class TestData {
     this.outputText.append(output).append('\n');
   }
 
-  Visibility getVisibility() {
+  public Visibility getVisibility() {
     return visibility;
   }
 }

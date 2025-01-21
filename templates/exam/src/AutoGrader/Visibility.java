@@ -21,7 +21,7 @@ public enum Visibility {
     throw new RuntimeException("Invalid visibility key: " + key);
   }
 
-  String getValue() {
+  public String getValue() {
     return key;
   }
 }
