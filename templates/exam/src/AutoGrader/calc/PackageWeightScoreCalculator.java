@@ -5,6 +5,9 @@ import java.util.Set;
 import org.json.JSONArray;
 import autograder.TestData;
 
+/**
+ * Calculates test scores based on the weight of each package.
+ */
 public class PackageWeightScoreCalculator extends ScoreCalculator {
   private final Map<String, Double> testWeights;
 

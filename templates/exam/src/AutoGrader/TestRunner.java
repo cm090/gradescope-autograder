@@ -90,6 +90,9 @@ public class TestRunner extends BlockJUnit4ClassRunner {
     writeEndMessage();
   }
 
+  /**
+   * Prints the test runner header to the output file.
+   */
   private void writeStartMessage() {
     if (outputWriter == null) {
       System.err.println("Unable to open output file");
@@ -106,6 +109,12 @@ public class TestRunner extends BlockJUnit4ClassRunner {
     }
   }
 
+  /**
+   * Builds a RunNotifier object that updates the number of tests executed and failed.
+   * 
+   * @param junitRunner the original RunNotifier object
+   * @return the new RunNotifier object
+   */
   private RunNotifier buildRunNotifier(RunNotifier junitRunner) {
     return new RunNotifier() {
       /**
@@ -144,10 +153,18 @@ public class TestRunner extends BlockJUnit4ClassRunner {
     };
   }
 
+  /**
+   * Decrements the total number of tests failed if necessary.
+   * 
+   * @param numDecrease
+   */
   private void decrementTotalTestsFailed(int numDecrease) {
     totalTestsFailed -= numDecrease;
   }
 
+  /**
+   * Writes the percentage of tests passed to the output file.
+   */
   private void writePercentagePassed() {
     if (outputWriter == null) {
       System.err.println("Unable to open output file");
@@ -161,6 +178,9 @@ public class TestRunner extends BlockJUnit4ClassRunner {
     outputWriter.println();
   }
 
+  /**
+   * Writes the results message to the output file.
+   */
   private void writeEndMessage() {
     if (outputWriter == null) {
       System.err.println("Unable to open output file");

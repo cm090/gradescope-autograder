@@ -7,11 +7,15 @@ import java.util.Set;
 import org.json.JSONArray;
 import autograder.TestData;
 
+/**
+ * Calculates test scores by dropping the lowest scores where applicable.
+ */
 public class DropLowestScoreCalculator extends ScoreCalculator {
   private final Map<String, Double> testWeights;
   private final Map<String, Integer> numTestsToDrop;
 
-  public DropLowestScoreCalculator(Map<String, Double> testWeights, Map<String, Integer> numTestsToDrop) {
+  public DropLowestScoreCalculator(Map<String, Double> testWeights,
+      Map<String, Integer> numTestsToDrop) {
     this.testWeights = testWeights;
     this.numTestsToDrop = numTestsToDrop;
   }

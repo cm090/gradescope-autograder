@@ -4,6 +4,9 @@ import java.util.Set;
 import org.json.JSONArray;
 import autograder.TestData;
 
+/**
+ * Calculates test scores based on the number of tests run and passed.
+ */
 public class TestCountScoreCalculator extends ScoreCalculator {
   private double testsRun;
   private double testsPassed;

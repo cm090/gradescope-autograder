@@ -103,6 +103,10 @@ public class Configuration {
     }
   }
 
+  /**
+   * Look for the starter code download link in the configuration file. If not found, use the
+   * default value.
+   */
   private void parseStarterCodeDownload() {
     try {
       starterCodeDownload =
@@ -146,9 +150,20 @@ public class Configuration {
     });
   }
 
+  /**
+   * Set the score calculator based on configuration data.
+   * 
+   * <ul>
+   * <li>If any package has a positive number of tests to drop, use DropLowestScoreCalculator.
+   * <li>If any package has a positive non-negative score weight, use PackageWeightScoreCalculator.
+   * <li>Otherwise, use TestCountScoreCalculator.
+   * </ul>
+   * 
+   * @see ScoreCalculator
+   */
   private void prepareScoreCalculator() {
     boolean hasTestsToDrop = numTestsToDrop.values().stream().anyMatch(toDrop -> toDrop > 0);
-    boolean hasPositiveTestWeight = testWeights.values().stream().anyMatch(weight -> weight > 0);
+    boolean hasPositiveTestWeight = testWeights.values().stream().anyMatch(weight -> weight >= 0);
     scoreCalculator = hasTestsToDrop ? new DropLowestScoreCalculator(testWeights, numTestsToDrop)
         : hasPositiveTestWeight ? new PackageWeightScoreCalculator(testWeights)
             : new TestCountScoreCalculator();

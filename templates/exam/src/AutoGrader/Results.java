@@ -89,6 +89,11 @@ public class Results {
     Configuration.instance.writeToOutput(json);
   }
 
+  /**
+   * Adds the starter code download link to the list of tests.
+   * 
+   * @param tests the JSON array of test results
+   */
   private void createDownloadLink(JSONArray tests) {
     String downloadLink = Configuration.instance.getStarterCodeDownload();
     if (downloadLink.isBlank()) {

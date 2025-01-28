@@ -1,5 +1,12 @@
 package autograder;
 
+/**
+ * The output message of a submission.
+ * 
+ * <ul>
+ * <li>{@link #DEFAULT}: The default message shown to students after grading.</li>
+ * <li>{@link #TEST_RUNNER_FAILED}: The message shown to students when the test runner fails.</li>
+ */
 public enum OutputMessage {
   DEFAULT(
       "# Your submission has been successfully graded \nYour estimated grade is shown to the right under *\"Autograder Score\"*"),

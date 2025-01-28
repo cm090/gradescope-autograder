@@ -6,6 +6,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import autograder.TestData;
 
+/**
+ * Calculates the score for a set of test results.
+ */
 public abstract class ScoreCalculator {
   protected Map<String, Integer> testCounts;
   protected double score;
@@ -15,6 +18,12 @@ public abstract class ScoreCalculator {
     this.score = 0;
   }
 
+  /**
+   * Calculates the score for a package of test results.
+   * 
+   * @param tests the test results
+   * @return the JSON representation of the test results
+   */
   public abstract JSONArray parseTestResults(Set<TestData> tests);
 
   public abstract double getScore();
@@ -27,6 +36,12 @@ public abstract class ScoreCalculator {
     this.packageName = packageName;
   }
 
+  /**
+   * Converts a test data object to a JSON object.
+   * 
+   * @param testData the test data object
+   * @return the JSON object
+   */
   protected JSONObject toJsonObject(TestData testData) {
     JSONObject test = new JSONObject();
     test.put("score", testData.getScore());
