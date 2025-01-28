@@ -1,11 +1,13 @@
 package autograder.calc;
 
+import java.util.Map;
 import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import autograder.TestData;
 
 public abstract class ScoreCalculator {
+  protected Map<String, Integer> testCounts;
   protected double score;
 
   protected ScoreCalculator() {
@@ -15,6 +17,10 @@ public abstract class ScoreCalculator {
   public abstract JSONArray parseTestResults(Set<TestData> tests);
 
   public abstract double getScore();
+
+  public void setTestCounts(Map<String, Integer> testCounts) {
+    this.testCounts = testCounts;
+  }
 
   protected JSONObject toJsonObject(TestData testData) {
     JSONObject test = new JSONObject();

@@ -10,6 +10,10 @@ import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import autograder.calc.DropLowestScoreCalculator;
+import autograder.calc.PackageWeightScoreCalculator;
+import autograder.calc.ScoreCalculator;
+import autograder.calc.TestCountScoreCalculator;
 
 /**
  * Stores the input configuration data.
@@ -22,6 +26,7 @@ public class Configuration {
   private final Set<Class<?>> classes;
   private final Map<String, Double> testWeights;
   private final Map<String, Integer> numTestsToDrop;
+  private ScoreCalculator scoreCalculator;
   private JSONObject configObject;
   private JSONObject metadataObject;
   private Double maxScore;
@@ -51,6 +56,7 @@ public class Configuration {
     instance.parseStarterCodeDownload();
     instance.parseTestVisibility();
     instance.parseClasses();
+    instance.prepareScoreCalculator();
   }
 
   /**
@@ -140,6 +146,14 @@ public class Configuration {
     });
   }
 
+  private void prepareScoreCalculator() {
+    boolean hasTestsToDrop = numTestsToDrop.values().stream().anyMatch(toDrop -> toDrop > 0);
+    boolean hasPositiveTestWeight = testWeights.values().stream().anyMatch(weight -> weight > 0);
+    scoreCalculator = hasTestsToDrop ? new DropLowestScoreCalculator(testWeights, numTestsToDrop)
+        : hasPositiveTestWeight ? new PackageWeightScoreCalculator(testWeights)
+            : new TestCountScoreCalculator();
+  }
+
   /**
    * Write the JSON object to the output file.
    *
@@ -185,6 +199,10 @@ public class Configuration {
 
   Map<String, Integer> getNumTestsToDrop() {
     return Map.copyOf(numTestsToDrop);
+  }
+
+  ScoreCalculator getScoreCalculator() {
+    return scoreCalculator;
   }
 
   Set<String> getExcludedClasses() {

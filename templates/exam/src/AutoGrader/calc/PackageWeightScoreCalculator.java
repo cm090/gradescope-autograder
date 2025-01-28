@@ -7,13 +7,10 @@ import autograder.TestData;
 
 public class PackageWeightScoreCalculator extends ScoreCalculator {
   private final Map<String, Double> testWeights;
-  private final Map<String, Integer> testCounts;
 
-  public PackageWeightScoreCalculator(Map<String, Double> testWeights,
-      Map<String, Integer> testCounts) {
+  public PackageWeightScoreCalculator(Map<String, Double> testWeights) {
     super();
     this.testWeights = testWeights;
-    this.testCounts = testCounts;
   }
 
   @Override

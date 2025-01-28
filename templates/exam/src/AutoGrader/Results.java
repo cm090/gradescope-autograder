@@ -1,10 +1,13 @@
 package autograder;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import autograder.calc.ScoreCalculator;
 
 /**
  * Stores the test result data.
@@ -13,7 +16,6 @@ public class Results {
   static Results instance = new Results();
 
   private final Map<String, TestData> testResults;
-  private final Map<String, Double> testWeights;
   private final Map<String, Integer> testCounts;
   private OutputMessage outputMessage;
   private boolean bypassScoreCalculation;
@@ -21,7 +23,6 @@ public class Results {
 
   private Results() {
     testResults = new HashMap<>();
-    testWeights = Configuration.instance.getTestWeights();
     testCounts = new HashMap<>();
     outputMessage = OutputMessage.DEFAULT;
     bypassScoreCalculation = false;
@@ -71,20 +72,23 @@ public class Results {
 
   /**
    * Converts the test results to a JSON object.
-   *
+   * 
    * @param percentage the percentage of the total score
    */
   void toJson(double percentage) {
-    percentage /= 100.0;
+    ScoreCalculator scoreCalculator = Configuration.instance.getScoreCalculator();
+    scoreCalculator.setTestCounts(testCounts);
     JSONObject json = new JSONObject();
     JSONArray tests = new JSONArray();
 
     createDownloadLink(tests);
 
-    testResults.entrySet().forEach((entry) -> {
-      buildTestResultObject(entry, tests);
-      checkAlternateScoreCalculation(entry);
-    });
+    Configuration.instance.getClasses().stream().map(Class::getPackageName).distinct()
+        .forEach((pkg) -> {
+          List<TestData> results = testResults.entrySet().stream()
+              .filter(entry -> entry.getKey().startsWith(pkg)).map(Entry::getValue).toList();
+          scoreCalculator.parseTestResults(Set.copyOf(results)).forEach(tests::put);
+        });
 
     writeGlobalResults(json, tests, percentage);
     Configuration.instance.writeToOutput(json);
@@ -105,45 +109,6 @@ public class Results {
     download.put("output_format", "md");
     download.put("visibility", Visibility.VISIBLE.getValue());
     tests.put(download);
-  }
-
-  /**
-   * Creates a JSON object for a single test.
-   *
-   * @param entry the test name and data
-   * @param tests the JSON array to add the test to
-   */
-  private void buildTestResultObject(Entry<String, TestData> entry, JSONArray tests) {
-    JSONObject test = new JSONObject();
-    test.put("score", entry.getValue().getScore());
-    test.put("max_score", entry.getValue().getMaxScore());
-    test.put("name", entry.getValue().getName());
-    test.put("output", entry.getValue().getOutputText().replaceAll("\t", " "));
-    test.put("visibility", entry.getValue().getVisibility().getValue());
-    if (!entry.getValue().getOutputText().isEmpty()) {
-      test.put("status", "failed");
-    }
-    tests.put(test);
-  }
-
-  /**
-   * Checks if the score should be calculated based on the number of tests.
-   *
-   * @param entry the test name and data
-   */
-  private void checkAlternateScoreCalculation(Entry<String, TestData> entry) {
-    if (!bypassScoreCalculation) {
-      // Calculate score based on test weight
-      String currentName = !entry.getValue().getName().contains(".") ? entry.getValue().getName()
-          : entry.getValue().getName().substring(0, entry.getValue().getName().lastIndexOf("."));
-      double currentWeight = testWeights.get(currentName);
-      if (currentWeight < 0) {
-        // Calculate score based on number of tests
-        bypassScoreCalculation = true;
-      }
-      totalScore +=
-          (entry.getValue().getScore() * currentWeight) / testCounts.getOrDefault(currentName, 1);
-    }
   }
 
   /**
