@@ -87,6 +87,7 @@ public class Results {
         .forEach((pkg) -> {
           List<TestData> results = testResults.entrySet().stream()
               .filter(entry -> entry.getKey().startsWith(pkg)).map(Entry::getValue).toList();
+          scoreCalculator.setPackageName(pkg);
           scoreCalculator.parseTestResults(Set.copyOf(results)).forEach(tests::put);
         });
 

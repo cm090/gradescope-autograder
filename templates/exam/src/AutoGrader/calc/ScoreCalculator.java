@@ -9,6 +9,7 @@ import autograder.TestData;
 public abstract class ScoreCalculator {
   protected Map<String, Integer> testCounts;
   protected double score;
+  protected String packageName;
 
   protected ScoreCalculator() {
     this.score = 0;
@@ -20,6 +21,10 @@ public abstract class ScoreCalculator {
 
   public void setTestCounts(Map<String, Integer> testCounts) {
     this.testCounts = testCounts;
+  }
+
+  public void setPackageName(String packageName) {
+    this.packageName = packageName;
   }
 
   protected JSONObject toJsonObject(TestData testData) {

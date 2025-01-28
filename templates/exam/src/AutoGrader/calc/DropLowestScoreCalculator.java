@@ -10,15 +10,10 @@ import autograder.TestData;
 public class DropLowestScoreCalculator extends ScoreCalculator {
   private final Map<String, Double> testWeights;
   private final Map<String, Integer> numTestsToDrop;
-  private String packageName;
 
   public DropLowestScoreCalculator(Map<String, Double> testWeights, Map<String, Integer> numTestsToDrop) {
     this.testWeights = testWeights;
     this.numTestsToDrop = numTestsToDrop;
-  }
-
-  public void setPackageName(String packageName) {
-    this.packageName = packageName;
   }
 
   @Override
