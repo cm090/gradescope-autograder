@@ -20,6 +20,9 @@ public class DropLowestScoreCalculator extends ScoreCalculator {
     this.numTestsToDrop = numTestsToDrop;
   }
 
+  /**
+   * @throws IllegalStateException if the package name is not set
+   */
   @Override
   public JSONArray parseTestResults(Set<TestData> tests) {
     if (packageName == null) {
