@@ -18,15 +18,11 @@ public class Results {
   private final Map<String, TestData> testResults;
   private final Map<String, Integer> testCounts;
   private OutputMessage outputMessage;
-  private boolean bypassScoreCalculation;
-  private double totalScore;
 
   private Results() {
     testResults = new HashMap<>();
     testCounts = new HashMap<>();
     outputMessage = OutputMessage.DEFAULT;
-    bypassScoreCalculation = false;
-    totalScore = 0.0;
   }
 
   /**
@@ -72,10 +68,8 @@ public class Results {
 
   /**
    * Converts the test results to a JSON object.
-   * 
-   * @param percentage the percentage of the total score
    */
-  void toJson(double percentage) {
+  void toJson() {
     ScoreCalculator scoreCalculator = Configuration.instance.getScoreCalculator();
     scoreCalculator.setTestCounts(testCounts);
     JSONObject json = new JSONObject();
@@ -91,7 +85,7 @@ public class Results {
           scoreCalculator.parseTestResults(Set.copyOf(results)).forEach(tests::put);
         });
 
-    writeGlobalResults(json, tests, percentage);
+    writeGlobalResults(json, tests, scoreCalculator.getScore());
     Configuration.instance.writeToOutput(json);
   }
 
@@ -119,9 +113,8 @@ public class Results {
    * @param tests the JSON array of test results
    * @param percentage the percentage of the total score
    */
-  private void writeGlobalResults(JSONObject json, JSONArray tests, double percentage) {
-    json.put("score",
-        bypassScoreCalculation ? percentage * Configuration.instance.getMaxScore() : totalScore);
+  private void writeGlobalResults(JSONObject json, JSONArray tests, double score) {
+    json.put("score", score);
     json.put("output", outputMessage.getValue());
     json.put("output_format", "md");
     json.put("visibility", "visible");

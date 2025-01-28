@@ -179,7 +179,7 @@ public class TestRunner extends BlockJUnit4ClassRunner {
         outputWriter.println();
         outputWriter.println("------------------------------------------------------------------");
         outputWriter.close();
-        Results.instance.toJson(allPercentagePassed);
+        Results.instance.toJson();
       }
     }
   }
