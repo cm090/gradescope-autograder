@@ -220,6 +220,10 @@ public class Configuration {
     return scoreCalculator;
   }
 
+  String getCalculationType() {
+    return scoreCalculator.getClass().getSimpleName();
+  }
+
   Set<String> getExcludedClasses() {
     return Set.copyOf(EXCLUDED_CLASSES);
   }

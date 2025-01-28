@@ -24,7 +24,7 @@ public class Runner {
         continue;
       }
       try {
-        runners.add(new TestRunner(testClass));
+        runners.add(new TestRunner(testClass, Configuration.instance.getCalculationType()));
       } catch (NoClassDefFoundError | InitializationError ignored) {
         // Do nothing
       }

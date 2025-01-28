@@ -30,6 +30,7 @@ public class TestRunner extends BlockJUnit4ClassRunner {
 
   private int numTestsExecuted = 0;
   private int numTestsFailed = 0;
+  private String calculationType;
 
   /**
    * Constructs a TestRunner object, updates the global number of runners, and prepares the output
@@ -38,8 +39,9 @@ public class TestRunner extends BlockJUnit4ClassRunner {
    * @param testClass the test class to run
    * @throws InitializationError if the test class is malformed
    */
-  TestRunner(Class<?> testClass) throws InitializationError {
+  TestRunner(Class<?> testClass, String calculationType) throws InitializationError {
     super(testClass);
+    this.calculationType = calculationType;
     synchronized (TestRunner.class) {
       numRunners++;
       try {
@@ -104,6 +106,8 @@ public class TestRunner extends BlockJUnit4ClassRunner {
         outputWriter.println("------------------------------------------------------------------");
         outputWriter.println("                   Gradescope Autograder Output");
         outputWriter.println("                      Running all unit tests");
+        outputWriter.println("------------------------------------------------------------------");
+        outputWriter.println("Calculation Type: " + calculationType);
         outputWriter.println("------------------------------------------------------------------");
       }
     }
