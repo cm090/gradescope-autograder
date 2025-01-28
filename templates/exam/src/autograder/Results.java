@@ -1,5 +1,7 @@
 package autograder;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -119,7 +121,7 @@ public class Results {
    * @param percentage the percentage of the total score
    */
   private void writeGlobalResults(JSONObject json, JSONArray tests, double score) {
-    json.put("score", score);
+    json.put("score", BigDecimal.valueOf(score).setScale(2, RoundingMode.HALF_UP).doubleValue());
     json.put("output", outputMessage.getValue());
     json.put("output_format", "md");
     json.put("visibility", "visible");
