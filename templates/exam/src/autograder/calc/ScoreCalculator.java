@@ -12,10 +12,12 @@ import autograder.TestData;
 public abstract class ScoreCalculator {
   protected Map<String, Integer> testCounts;
   protected double score;
+  protected double totalPossibleScore;
   protected String packageName;
 
-  protected ScoreCalculator() {
+  protected ScoreCalculator(double totalPossibleScore) {
     this.score = 0;
+    this.totalPossibleScore = totalPossibleScore;
   }
 
   /**

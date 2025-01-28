@@ -12,7 +12,7 @@ public class PackageWeightScoreCalculator extends ScoreCalculator {
   private final Map<String, Double> testWeights;
 
   public PackageWeightScoreCalculator(Map<String, Double> testWeights) {
-    super();
+    super(0);
     this.testWeights = testWeights;
   }
 

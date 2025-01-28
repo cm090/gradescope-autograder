@@ -166,7 +166,7 @@ public class Configuration {
     boolean hasPositiveTestWeight = testWeights.values().stream().anyMatch(weight -> weight >= 0);
     scoreCalculator = hasTestsToDrop ? new DropLowestScoreCalculator(testWeights, numTestsToDrop)
         : hasPositiveTestWeight ? new PackageWeightScoreCalculator(testWeights)
-            : new TestCountScoreCalculator();
+            : new TestCountScoreCalculator(maxScore);
   }
 
   /**

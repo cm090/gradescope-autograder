@@ -16,6 +16,7 @@ public class DropLowestScoreCalculator extends ScoreCalculator {
 
   public DropLowestScoreCalculator(Map<String, Double> testWeights,
       Map<String, Integer> numTestsToDrop) {
+    super(0);
     this.testWeights = testWeights;
     this.numTestsToDrop = numTestsToDrop;
   }

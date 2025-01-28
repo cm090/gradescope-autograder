@@ -11,8 +11,8 @@ public class TestCountScoreCalculator extends ScoreCalculator {
   private double testsRun;
   private double testsPassed;
 
-  public TestCountScoreCalculator() {
-    super();
+  public TestCountScoreCalculator(double totalPossibleScore) {
+    super(totalPossibleScore);
     testsRun = 0;
     testsPassed = 0;
   }
@@ -32,7 +32,7 @@ public class TestCountScoreCalculator extends ScoreCalculator {
 
   @Override
   public double getScore() {
-    score = testsRun == 0 ? 0 : testsPassed / testsRun;
+    score = testsRun == 0 ? 0 : (testsPassed / testsRun) * totalPossibleScore;
     return score;
   }
 }
