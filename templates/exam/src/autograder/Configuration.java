@@ -159,11 +159,21 @@ public class Configuration {
    * <li>Otherwise, use TestCountScoreCalculator.
    * </ul>
    * 
+   * @throws RuntimeException if the test weight configuration is invalid
    * @see ScoreCalculator
    */
   private void prepareScoreCalculator() {
     boolean hasTestsToDrop = numTestsToDrop.values().stream().anyMatch(toDrop -> toDrop > 0);
     boolean hasPositiveTestWeight = testWeights.values().stream().anyMatch(weight -> weight >= 0);
+
+    if (hasTestsToDrop && !hasPositiveTestWeight) {
+      throw new RuntimeException("Test weights must not be negative if tests are to be dropped.");
+    } else if (hasPositiveTestWeight
+        && testWeights.values().stream().anyMatch(weight -> weight < 0)) {
+      throw new RuntimeException(
+          "All test weights must not be negative if at least one is non-negative.");
+    }
+
     scoreCalculator = hasTestsToDrop ? new DropLowestScoreCalculator(testWeights, numTestsToDrop)
         : hasPositiveTestWeight ? new PackageWeightScoreCalculator(testWeights)
             : new TestCountScoreCalculator(maxScore);
