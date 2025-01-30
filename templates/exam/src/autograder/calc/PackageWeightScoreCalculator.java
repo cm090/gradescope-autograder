@@ -24,7 +24,7 @@ public class PackageWeightScoreCalculator extends ScoreCalculator {
       results.put(toJsonObject(test));
       String name = test.getName();
       String packageName = name.contains(".") ? name.substring(0, name.lastIndexOf(".")) : name;
-      double weight = testWeights.get(packageName);
+      double weight = testWeights.getOrDefault(packageName, 0.0);
       score += (test.getScore() * weight) / testCounts.getOrDefault(packageName, 1);
     }
 

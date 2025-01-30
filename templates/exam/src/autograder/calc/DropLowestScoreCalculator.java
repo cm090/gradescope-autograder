@@ -19,6 +19,10 @@ public class DropLowestScoreCalculator extends ScoreCalculator {
     super(0);
     this.testWeights = testWeights;
     this.numTestsToDrop = numTestsToDrop;
+    if (!testWeights.keySet().equals(numTestsToDrop.keySet())) {
+      throw new IllegalArgumentException(
+          "Test weights and number of tests to drop must have the same keys");
+    }
   }
 
   /**
@@ -33,7 +37,8 @@ public class DropLowestScoreCalculator extends ScoreCalculator {
     JSONArray testResults = new JSONArray();
     double packagePoints = testWeights.get(packageName);
     int testsToDrop = numTestsToDrop.get(packageName);
-    double scoreMultiplier = packagePoints / (tests.size() - testsToDrop);
+    double scoreMultiplier =
+        tests.size() > testsToDrop ? packagePoints / (tests.size() - testsToDrop) : 0;
     double testSum = 0;
     List<Double> testScores = new ArrayList<Double>();
     for (TestData test : tests) {

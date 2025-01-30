@@ -25,6 +25,9 @@ public class ClassFinder {
       throw new IllegalArgumentException(String.format(PACKAGE_ERROR, scannedPath, packageName));
     }
     File scannedDir = new File(scannedUrl.getFile());
+    if (!scannedDir.canRead()) {
+      throw new IllegalArgumentException(String.format(PACKAGE_ERROR, scannedPath, packageName));
+    }
     Set<Class<?>> classes = new HashSet<>();
     for (File file : Objects.requireNonNull(scannedDir.listFiles())) {
       classes.addAll(find(file, packageName));

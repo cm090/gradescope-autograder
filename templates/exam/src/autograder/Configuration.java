@@ -65,16 +65,20 @@ public class Configuration {
    * @throws RuntimeException if no programming question is found
    */
   private void parseMaxScore() {
-    JSONArray outline = metadataObject.getJSONObject("assignment").getJSONArray("outline");
-    for (Object question : outline) {
-      JSONObject questionObject = (JSONObject) question;
-      if (questionObject.getString("type").equals("ProgrammingQuestion")) {
-        maxScore = questionObject.getDouble("weight");
-        break;
+    try {
+      JSONArray outline = metadataObject.getJSONObject("assignment").getJSONArray("outline");
+      for (Object question : outline) {
+        JSONObject questionObject = (JSONObject) question;
+        if (questionObject.getString("type").equals("ProgrammingQuestion")) {
+          maxScore = questionObject.getDouble("weight");
+          break;
+        }
       }
-    }
-    if (maxScore == null) {
-      throw new RuntimeException("No programming question found in metadata file.");
+      if (maxScore == null) {
+        throw new RuntimeException("No programming question found in metadata file.");
+      }
+    } catch (JSONException e) {
+      throw new RuntimeException("The metadata file is poorly formatted.");
     }
   }
 
