@@ -18,6 +18,7 @@ output=$(jq -r '.tests[0].output' /autograder/source/results_error_template)
 if [ "$type" == "exam" ]; then
     jq --arg data "$output [$DOWNLOAD_LINK]($DOWNLOAD_LINK)" '.tests[0].output = $data' /autograder/source/results_error_template >/autograder/results/results.json
 else
+    # TODO: Copy homework error template instead
     jq 'del(.tests[0])' /autograder/source/results_error_template >/autograder/results/results.json
 fi
 
