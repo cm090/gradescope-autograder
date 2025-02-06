@@ -29,6 +29,7 @@ public class Configuration {
   private ScoreCalculator scoreCalculator;
   private JSONObject configObject;
   private JSONObject metadataObject;
+  private String autograderType;
   private Double maxScore;
   private int extraCreditTests;
   private int testTimeoutSeconds;
@@ -50,6 +51,7 @@ public class Configuration {
   static void build(JSONObject configObject, JSONObject metadataObject) {
     instance.configObject = configObject;
     instance.metadataObject = metadataObject;
+    instance.parseAutograderType();
     instance.parseMaxScore();
     instance.parseExtraCreditTests();
     instance.parseTestTimeoutSeconds();
@@ -57,6 +59,19 @@ public class Configuration {
     instance.parseTestVisibility();
     instance.parseClasses();
     instance.prepareScoreCalculator();
+  }
+
+  /**
+   * Look for the autograder type in the metadata file.
+   * 
+   * @throws RuntimeException if the assignment type is missing
+   */
+  private void parseAutograderType() {
+    try {
+      autograderType = configObject.getJSONObject("additional_options").getString("type");
+    } catch (JSONException e) {
+      throw new RuntimeException("The configuration file is missing the assignment type.");
+    }
   }
 
   /**
@@ -113,8 +128,9 @@ public class Configuration {
    */
   private void parseStarterCodeDownload() {
     try {
-      starterCodeDownload =
-          configObject.getJSONObject("additional_options").getString("starter_code_download");
+      starterCodeDownload = autograderType.equals("exam")
+          ? configObject.getJSONObject("additional_options").getString("starter_code_download")
+          : "";
     } catch (JSONException e) {
       starterCodeDownload = "";
     }

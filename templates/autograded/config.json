@@ -1,0 +1,10 @@
+{
+  "classes": [{ "name": "testPackage", "weight": -1.0, "drop_lowest": 0 }],
+  "additional_options": {
+    "type": "exam",
+    "test_visibility": "visible",
+    "timeout_seconds": 30,
+    "starter_code_download": "https://link.canon.click/autograder/startercode",
+    "extra_credit_amount": 0
+  }
+}

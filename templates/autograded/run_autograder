@@ -4,7 +4,8 @@ DOWNLOAD_LINK=$(jq -r '.additional_options.starter_code_download' /autograder/so
 
 # If this is the first submission, provide the download link
 prev=$(jq '.previous_submissions' submission_metadata.json)
-if [ "$prev" == "[]" ]; then
+type=$(jq -r '.additional_options.type' /autograder/source/config.json)
+if [ "$type" == "exam" ] && [ "$prev" == "[]" ]; then
     cd /autograder/source
     output=$(jq -r '.tests[0].output' download_starter_code_template)
     jq --arg data "$output [$DOWNLOAD_LINK]($DOWNLOAD_LINK)" '.tests[0].output = $data' download_starter_code_template >/autograder/results/results.json
@@ -14,7 +15,11 @@ fi
 # Continue if this isn't the first submission
 # Copy the general failure results file just in case
 output=$(jq -r '.tests[0].output' /autograder/source/results_error_template)
-jq --arg data "$output [$DOWNLOAD_LINK]($DOWNLOAD_LINK)" '.tests[0].output = $data' /autograder/source/results_error_template >/autograder/results/results.json
+if [ "$type" == "exam" ]; then
+    jq --arg data "$output [$DOWNLOAD_LINK]($DOWNLOAD_LINK)" '.tests[0].output = $data' /autograder/source/results_error_template >/autograder/results/results.json
+else
+    jq 'del(.tests[0])' /autograder/source/results_error_template >/autograder/results/results.json
+fi
 
 # Move submission files to the root directory
 cd /autograder/submission
