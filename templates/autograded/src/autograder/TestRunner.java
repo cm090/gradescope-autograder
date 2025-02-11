@@ -28,9 +28,9 @@ public class TestRunner extends BlockJUnit4ClassRunner {
   private static int totalTestsFailed = 0;
   private static PrintWriter outputWriter;
 
+  private final String calculationType;
   private int numTestsExecuted = 0;
   private int numTestsFailed = 0;
-  private String calculationType;
 
   /**
    * Constructs a TestRunner object, updates the global number of runners, and prepares the output
