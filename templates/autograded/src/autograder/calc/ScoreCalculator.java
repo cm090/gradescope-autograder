@@ -14,6 +14,7 @@ public abstract class ScoreCalculator {
   protected double score;
   protected double totalPossibleScore;
   protected String packageName;
+  protected int extraCreditTests;
 
   protected ScoreCalculator(double totalPossibleScore) {
     this.score = 0;
@@ -36,6 +37,10 @@ public abstract class ScoreCalculator {
 
   public void setPackageName(String packageName) {
     this.packageName = packageName;
+  }
+
+  public void setExtraCreditTests(int extraCreditTests) {
+    this.extraCreditTests = extraCreditTests;
   }
 
   /**

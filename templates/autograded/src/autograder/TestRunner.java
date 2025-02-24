@@ -193,8 +193,15 @@ public class TestRunner extends BlockJUnit4ClassRunner {
     synchronized (TestRunner.class) {
       numCompleted++;
       if (numCompleted == numRunners) {
+        int extraCreditTests = Configuration.instance.getExtraCreditTests();
+        if (extraCreditTests != 0) {
+          outputWriter.println("Extra Credit Tests: " + extraCreditTests);
+          outputWriter
+              .println("------------------------------------------------------------------");
+        }
+
         int allTestsPassedCount = totalTestsExecuted - totalTestsFailed;
-        int allTestsRanCount = totalTestsExecuted - Configuration.instance.getExtraCreditTests();
+        int allTestsRanCount = totalTestsExecuted - extraCreditTests;
         double allPercentagePassed = allTestsRanCount == 0 ? 0
             : ((double) allTestsPassedCount / (double) allTestsRanCount) * 100.0;
         outputWriter.println("------------------------------------------------------------------");
