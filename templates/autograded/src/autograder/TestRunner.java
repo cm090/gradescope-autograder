@@ -195,9 +195,9 @@ public class TestRunner extends BlockJUnit4ClassRunner {
       if (numCompleted == numRunners) {
         int extraCreditTests = Configuration.instance.getExtraCreditTests();
         if (extraCreditTests != 0) {
-          outputWriter.println("Extra Credit Tests: " + extraCreditTests);
           outputWriter
               .println("------------------------------------------------------------------");
+          outputWriter.println("Extra Credit Tests: " + extraCreditTests);
         }
 
         int allTestsPassedCount = totalTestsExecuted - totalTestsFailed;

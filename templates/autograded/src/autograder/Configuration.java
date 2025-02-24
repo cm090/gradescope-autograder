@@ -197,6 +197,7 @@ public class Configuration {
     scoreCalculator = hasTestsToDrop ? new DropLowestScoreCalculator(testWeights, numTestsToDrop)
         : hasPositiveTestWeight ? new PackageWeightScoreCalculator(testWeights)
             : new TestCountScoreCalculator(maxScore);
+    scoreCalculator.setExtraCreditTests(extraCreditTests);
   }
 
   /**
