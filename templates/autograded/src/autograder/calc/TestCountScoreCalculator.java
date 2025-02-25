@@ -32,7 +32,8 @@ public class TestCountScoreCalculator extends ScoreCalculator {
 
   @Override
   public double getScore() {
-    score = testsRun == 0 ? 0 : (testsPassed / (testsRun - extraCreditTests)) * totalPossibleScore;
+    double denominator = testsRun - extraCreditTests;
+    score = denominator >= 0 ? 0 : (testsPassed / denominator) * totalPossibleScore;
     return score;
   }
 }

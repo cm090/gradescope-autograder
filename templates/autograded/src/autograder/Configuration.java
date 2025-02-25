@@ -105,6 +105,9 @@ public class Configuration {
     try {
       extraCreditTests =
           configObject.getJSONObject("additional_options").getInt("extra_credit_amount");
+      if (extraCreditTests < 0) {
+        throw new RuntimeException("Extra credit amount must be non-negative.");
+      }
     } catch (JSONException e) {
       extraCreditTests = 0;
     }
@@ -117,6 +120,9 @@ public class Configuration {
     try {
       testTimeoutSeconds =
           configObject.getJSONObject("additional_options").getInt("timeout_seconds");
+      if (testTimeoutSeconds < 0) {
+        throw new RuntimeException("Timeout seconds must be non-negative.");
+      }
     } catch (JSONException e) {
       testTimeoutSeconds = 30;
     }
