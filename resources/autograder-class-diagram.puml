@@ -140,11 +140,13 @@ package autograder {
             #score: double
             #totalPossibleScore: double
             #packageName: string
+            #extraCreditTests: int
             #ScoreCalculator(totalPossibleScore: double)
             +{abstract} parseTestResults(tests: Set<TestData>): JSONArray
             +{abstract} getScore(): double
             +setTestCounts(testCounts: Map<String, Integer>): void
             +setPackageName(packageName: string): void
+            +setExtraCreditTests(extraCreditTests: int): void
             #toJsonObject(testData: TestData): JSONObject
         }
         class DropLowestScoreCalculator extends ScoreCalculator {
