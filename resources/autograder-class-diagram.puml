@@ -18,26 +18,37 @@ package autograder {
         ~{static} instance: Configuration
         -{final} classes: Set<Class>
         -{final} testWeights: Map<String, Double>
+        -{final} numTestsToDrop: Map<String, Integer>
+        -scoreCalculator: ScoreCalculator
         -configObject: JSONObject
         -metadataObject: JSONObject
+        -autograderType: String
         -maxScore: Double
         -extraCreditTests: int
         -testTimeoutSeconds: int
+        -starterCodeDownload: String
         -testVisibility: Visibility
         -Configuration()
         ~{static} build(configObject: JSONObject, metadataObject: JSONObject): void
+        -parseAutograderType(): void
         -parseMaxScore(): void
         -parseExtraCreditTests(): void
         -parseTestTimeoutSeconds(): void
+        -parseStarterCodeDownload(): void
         -parseTestVisibility(): void
         -parseClasses(): void
+        -prepareScoreCalculator(): void
         ~writeToOutput(json: JSONObject): void
         ~getMaxScore(): double
         ~getExtraCreditTests(): int
         ~getTestTimeoutSeconds(): int
+        ~getStarterCodeDownload(): String
         ~getTestVisibility(): String
         ~getClasses(): Set<Class>
         ~getTestWeights(): Map<String, Double>
+        ~getNumTestsToDrop(): Map<String, Integer>
+        ~getScoreCalculator(): ScoreCalculator
+        ~getCalculationType(): String
         ~getExcludedClasses(): Set<String>
     }
     class ClassFinder {
@@ -55,17 +66,19 @@ package autograder {
         -isClassExcluded(testClass: String): boolean
         ~runTests(): void
     }
-    class TestRunner extends BlockJUnit4ClassRunner {
+    class TestRunner {
         -{static} {final} OUTPUT_FILE: String
+        -{static} {final} LINE_SEPARATOR: String
         -{static} isFirstRun: boolean
         -{static} numRunners: int
         -{static} numCompleted: int
         -{static} totalTestsExecuted: int
         -{static} totalTestsFailed: int
         -{static} outputWriter: PrintWriter
+        -{final} calculationType: String
         -numTestsExecuted: int
         -numTestsFailed: int
-        ~TestRunner(testClass: Class)
+        ~TestRunner(testClass: Class, calculationType: String)
         #methodBlock(method: FrameworkMethod): Statement
         +run(junitRunner: RunNotifier): void
         -writeStartMessage(): void
@@ -77,19 +90,15 @@ package autograder {
     class Results {
         ~{static} instance: Results
         -{final} testResults: Map<String, TestData>
-        -{final} testWeights: Map<String, Double>
         -{final} testCounts: Map<String, Integer>
         -outputMessage: OutputMessage
-        -bypassScoreCalculation: boolean
-        -totalScore: double
         ~Results()
         ~addTest(name: String, visibility: Visibility): void
         ~addTestResult(name: String, numTests: int, numFailed: int): void
         ~addTestFailure(name: String, output: String): void
-        ~toJson(percentage: double): void
-        -buildTestResultObject(entry: Entry<String, TestData>, tests: JSONArray): void
-        -checkAlternateScoreCalculation(entry: Entry<String, TestData>): void
-        -writeGlobalResults(json: JSONObject, tests: JSONArray, percentage: double): void
+        ~toJson(): void
+        -createDownloadLink(tests: JSONArray): void
+        -writeGlobalResults(json: JSONObject, tests: JSONArray, score: double): void
     }
     class TestData {
         -{final} name: String
@@ -97,8 +106,8 @@ package autograder {
         -maxScore: double
         -score: double
         -visibility: Visibility
-        ~setTestVisible(): void
         ~TestData(name: String, visibility: Visibility)
+        ~setTestVisible(): void
         ~setMaxScore(maxScore: double): void
         ~setScore(score: double): void
         ~appendToOutput(output: String): void
@@ -125,20 +134,60 @@ package autograder {
         -OutputMessage(message: String)
         ~getValue(): String
     }
+
+    package calc {
+        abstract class ScoreCalculator {
+            #testCounts: Map<String, Integer>
+            #score: double
+            #totalPossibleScore: double
+            #packageName: string
+            #extraCreditTests: int
+            #ScoreCalculator(totalPossibleScore: double)
+            +{abstract} parseTestResults(tests: Set<TestData>): JSONArray
+            +{abstract} getScore(): double
+            +setTestCounts(testCounts: Map<String, Integer>): void
+            +setPackageName(packageName: string): void
+            +setExtraCreditTests(extraCreditTests: int): void
+            #toJsonObject(testData: TestData): JSONObject
+        }
+        class DropLowestScoreCalculator extends ScoreCalculator {
+            -{final} testWeights: Map<String, Double>
+            -{final} numTestsToDrop: Map<String, Integer>
+            +DropLowestScoreCalculator(testWeights: Map<String, Double>, numTestsToDrop: Map<String, Integer>)
+            +parseTestResults(tests: Set<TestData>): JSONArray
+            +getScore(): double
+        }
+        class PackageWeightScoreCalculator extends ScoreCalculator {
+            -{final} testWeights: Map<String, Double>
+            +PackageWeightScoreCalculator(testWeights: Map<String, Double>)
+            +parseTestResults(tests: Set<TestData>): JSONArray
+            +getScore(): double
+        }
+        class TestCountScoreCalculator extends ScoreCalculator {
+            -testsRun: double
+            -testsPassed: double
+            +TestCountScoreCalculator(totalPossibleScore: double)
+            +parseTestResults(tests: Set<TestData>): JSONArray
+            +getScore(): double
+        }
+    }
 }
 
 Main ..> Configuration
 Main ..> Runner
 Configuration --> Configuration : <<singleton>>
-Configuration --> Visibility
-Configuration ..> ClassFinder
+Configuration --> ScoreCalculator
+Configuration -l-> Visibility
+Configuration .l.> ClassFinder
 Runner --> "*" TestRunner
 Runner ..> Configuration
+TestRunner ..> Configuration
+Runner ..> Results
 Results --> Results : <<singleton>>
 Results --> "*" TestData
-Results --> OutputMessage
+Results -u-> OutputMessage
 Results ..> Visibility
 Results ..> Configuration
+Results ..> ScoreCalculator
 TestData --> Visibility
-TestRunner ..> Configuration
-TestRunner ..> Results
+ScoreCalculator .u.> TestData
