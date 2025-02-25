@@ -68,6 +68,7 @@ package autograder {
     }
     class TestRunner {
         -{static} {final} OUTPUT_FILE: String
+        -{static} {final} LINE_SEPARATOR: String
         -{static} isFirstRun: boolean
         -{static} numRunners: int
         -{static} numCompleted: int

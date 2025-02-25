@@ -21,6 +21,8 @@ import org.junit.runners.model.Statement;
  */
 public class TestRunner extends BlockJUnit4ClassRunner {
   private static final String OUTPUT_FILE = "results.out";
+  private static final String LINE_SEPARATOR =
+      "------------------------------------------------------------------";
   private static boolean isFirstRun = true;
   private static int numRunners = 0;
   private static int numCompleted = 0;
@@ -103,12 +105,12 @@ public class TestRunner extends BlockJUnit4ClassRunner {
     synchronized (TestRunner.class) {
       if (isFirstRun) {
         isFirstRun = false;
-        outputWriter.println("------------------------------------------------------------------");
+        outputWriter.println(LINE_SEPARATOR);
         outputWriter.println("                   Gradescope Autograder Output");
         outputWriter.println("                      Running all unit tests");
-        outputWriter.println("------------------------------------------------------------------");
+        outputWriter.println(LINE_SEPARATOR);
         outputWriter.println("Calculation Type: " + calculationType);
-        outputWriter.println("------------------------------------------------------------------");
+        outputWriter.println(LINE_SEPARATOR);
       }
     }
   }
@@ -195,8 +197,7 @@ public class TestRunner extends BlockJUnit4ClassRunner {
       if (numCompleted == numRunners) {
         int extraCreditTests = Configuration.instance.getExtraCreditTests();
         if (extraCreditTests != 0) {
-          outputWriter
-              .println("------------------------------------------------------------------");
+          outputWriter.println(LINE_SEPARATOR);
           outputWriter.println("Extra Credit Tests: " + extraCreditTests);
         }
 
@@ -204,11 +205,11 @@ public class TestRunner extends BlockJUnit4ClassRunner {
         int allTestsRanCount = totalTestsExecuted - extraCreditTests;
         double allPercentagePassed = allTestsRanCount == 0 ? 0
             : ((double) allTestsPassedCount / (double) allTestsRanCount) * 100.0;
-        outputWriter.println("------------------------------------------------------------------");
+        outputWriter.println(LINE_SEPARATOR);
         outputWriter.printf("%5d   %8d   %10.1f%%   %-15s", totalTestsExecuted, allTestsPassedCount,
             allPercentagePassed, "<-- Grand Totals");
         outputWriter.println();
-        outputWriter.println("------------------------------------------------------------------");
+        outputWriter.println(LINE_SEPARATOR);
         outputWriter.close();
         Results.instance.toJson();
       }
