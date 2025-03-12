@@ -33,7 +33,7 @@ public class TestCountScoreCalculator extends ScoreCalculator {
   @Override
   public double getScore() {
     double denominator = testsRun - extraCreditTests;
-    score = denominator >= 0 ? 0 : (testsPassed / denominator) * totalPossibleScore;
+    score = denominator <= 0 ? 0 : (testsPassed / denominator) * totalPossibleScore;
     return score;
   }
 }
