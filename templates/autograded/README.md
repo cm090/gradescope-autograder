@@ -47,6 +47,6 @@
 
 ## Questions
 
-Check out the [resources folder](../../resources/)
+Check out the [wiki](https://github.com/cm090/gradescope-autograder/wiki)
 
-If you need help using this program, contact me [(Canon Maranda)](https://link.canon.click/from/github).
+If you need help using this program, [send a message](https://link.canon.click/from/github).
