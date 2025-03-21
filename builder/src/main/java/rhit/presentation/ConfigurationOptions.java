@@ -25,12 +25,14 @@ class ConfigurationOptions extends SwingGui {
 
   private final JFrame frame;
   private final Map<String, String> formValues;
+  private final Map<String, Boolean> didVisitArrayEditor;
   private JPanel panel;
 
   ConfigurationOptions() {
     this.frame = InterfaceUtils.getFrame();
     super.verifyFrame(frame);
     this.formValues = new HashMap<>();
+    this.didVisitArrayEditor = new HashMap<>();
     BuilderData.parseConfigFile();
   }
 
@@ -65,7 +67,7 @@ class ConfigurationOptions extends SwingGui {
 
   @SuppressWarnings("unchecked")
   private void iterativeFormPanel(JSONObject configOptions, JPanel formPanel,
-                                  GridBagConstraints gbc) {
+      GridBagConstraints gbc) {
     configOptions.forEach((key, value) -> {
       if (value instanceof JSONObject) {
         iterativeFormPanel((JSONObject) value, formPanel, gbc);
@@ -78,50 +80,26 @@ class ConfigurationOptions extends SwingGui {
       formPanel.add(new JLabel(keyLabel + ": "), gbc);
       gbc.gridx = 1;
       if (value instanceof JSONArray) {
-        if (key.toString().equals("classes")) {
-          InterfaceUtils.createClassObjectsFromPackages((JSONArray) value,
-              BuilderData.getTemplateFiles());
-        }
-        JButton button = new JButton(PropertiesLoader.get("editButton"));
-        button.addActionListener(e -> displayArrayEditor((JSONArray) value));
-        formPanel.add(button, gbc);
+        addArrayEditOption(key.toString(), (JSONArray) value, formPanel, gbc);
       } else {
-        JTextField textField = new JTextField(value.toString());
-        formValues.put(key.toString(), value.toString());
-        textField.getDocument().addDocumentListener(new DocumentListener() {
-          @Override
-          public void insertUpdate(DocumentEvent e) {
-            handleChange();
-          }
-
-          @Override
-          public void removeUpdate(DocumentEvent e) {
-            handleChange();
-          }
-
-          @Override
-          public void changedUpdate(DocumentEvent e) {
-            handleChange();
-          }
-
-          private void handleChange() {
-            Object newValue = textField.getText();
-            formValues.put(key.toString(), (String) newValue);
-            if (((String) newValue).isEmpty()) {
-              return;
-            }
-            if (value instanceof Long) {
-              newValue = Long.parseLong((String) newValue);
-            } else if (value instanceof Boolean) {
-              newValue = Boolean.parseBoolean((String) newValue);
-            }
-            configOptions.put(key, newValue);
-          }
-        });
-        formPanel.add(textField, gbc);
+        addTextFieldOption(key, value, configOptions, formPanel, gbc);
       }
       gbc.gridy++;
     });
+  }
+
+  private void addArrayEditOption(String label, JSONArray array, JPanel formPanel,
+      GridBagConstraints gbc) {
+    if (label.equals("classes")) {
+      InterfaceUtils.createClassObjectsFromPackages(array, BuilderData.getTemplateFiles());
+    }
+    JButton button = new JButton(PropertiesLoader.get("editButton"));
+    didVisitArrayEditor.put(label, false);
+    button.addActionListener(e -> {
+      didVisitArrayEditor.put(label, true);
+      displayArrayEditor(array);
+    });
+    formPanel.add(button, gbc);
   }
 
   private void displayArrayEditor(JSONArray array) {
@@ -129,9 +107,51 @@ class ConfigurationOptions extends SwingGui {
     dialog.setVisible(true);
   }
 
+  private void addTextFieldOption(Object label, Object value, JSONObject configOptions,
+      JPanel formPanel, GridBagConstraints gbc) {
+    JTextField textField = new JTextField(value.toString());
+    formValues.put(label.toString(), value.toString());
+    textField.getDocument().addDocumentListener(new DocumentListener() {
+      @Override
+      public void insertUpdate(DocumentEvent e) {
+        handleChange();
+      }
+
+      @Override
+      public void removeUpdate(DocumentEvent e) {
+        handleChange();
+      }
+
+      @Override
+      public void changedUpdate(DocumentEvent e) {
+        handleChange();
+      }
+
+      @SuppressWarnings("unchecked")
+      private void handleChange() {
+        Object newValue = textField.getText();
+        formValues.put(label.toString(), (String) newValue);
+        if (((String) newValue).isEmpty()) {
+          return;
+        }
+        if (value instanceof Long) {
+          newValue = Long.parseLong((String) newValue);
+        } else if (value instanceof Boolean) {
+          newValue = Boolean.parseBoolean((String) newValue);
+        }
+        configOptions.put(label, newValue);
+      }
+    });
+    formPanel.add(textField, gbc);
+  }
+
   protected void handleContinue() {
     if (formValues.values().stream().anyMatch(String::isEmpty)) {
       JOptionPane.showMessageDialog(frame, PropertiesLoader.get("emptyFieldError"));
+      return;
+    }
+    if (didVisitArrayEditor.values().stream().anyMatch(visited -> !visited)) {
+      JOptionPane.showMessageDialog(frame, PropertiesLoader.get("arrayEditorError"));
       return;
     }
     InterfaceUtils.hideFrame(panel);
