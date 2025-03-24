@@ -1,4 +1,5 @@
 {
+  "type": "exam",
   "download-link": "https://link.canon.click/autograder/startercode",
   "required-files": [
     "Example.java"

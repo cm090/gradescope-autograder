@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+
+# Link for students to download starter code
+DOWNLOAD_LINK=$(jq -r '.["download-link"]' /autograder/source/config.json)
+# Default to success template
+RESULTS_TEMPLATE="results_template_success.json"
+
+# Check if file names match config
+missing_files=()
+mkdir -p tmp
+while read -r required_file; do
+    matches=$(find submission -type f -iname "$required_file")
+    if [ -z $matches ]; then
+        missing_files+=("$required_file")
+    else
+        # Remove file from directory if found
+        echo "$matches" | while IFS= read -r file; do
+            [ -n "$file" ] && mv "$file" tmp/
+        done
+    fi
+done < <(jq -r '.["required-files"][]' /autograder/source/config.json | sort -r)
+
+# Restore submission directory
+mv tmp/* submission/ &>/dev/null
+rmdir tmp &>/dev/null
+
+type=$(jq -r '.additional_options.type' /autograder/source/config.json)
+if [ ${#missing_files[@]} -gt 0 ]; then
+    # Missing files
+    prev=$(jq '.previous_submissions' submission_metadata.json)
+    if [ "$type" == "exam" ] && [ "$prev" == "[]" ] && [ ${#missing_files[@]} -eq $(jq -r '.["required-files"] | length' /autograder/source/config.json) ]; then
+        # First submission and no required files submitted
+        RESULTS_TEMPLATE="download_starter_code_template.json"
+    else
+        # Not the first submission
+        file_count=$(find submission -type f -iname "*.java" | wc -l)
+        if [ $file_count -eq 0 ]; then
+            RESULTS_TEMPLATE="results_template_no_java_files.json"
+        else
+            RESULTS_TEMPLATE="results_template_missing_files.json"
+            missing_files_out=""
+            for missing_file in "${missing_files[@]}"; do
+                missing_files_out+="- $missing_file\\\\n"
+            done
+            sed -i "s/\[list\]/$missing_files_out/g" /autograder/source/results_template_missing_files
+        fi
+    fi
+fi
+
+cd /autograder/source
+if [ "$type" == "exam" ]; then
+    output=$(jq -r '.tests[0].output' $RESULTS_TEMPLATE)
+    jq --arg data "$output [$DOWNLOAD_LINK]($DOWNLOAD_LINK)" '.tests[0].output = $data' $RESULTS_TEMPLATE >/autograder/results/results.json
+else
+    # Remove exam-specific outputs
+    jq "del(.tests[3], .tests[1], .tests[0])" $RESULTS_TEMPLATE >/autograder/results/results.json
+fi
