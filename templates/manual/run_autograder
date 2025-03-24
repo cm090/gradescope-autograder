@@ -7,14 +7,16 @@ RESULTS_TEMPLATE="results_template_success.json"
 
 # Check if file names match config
 missing_files=()
+mkdir -p tmp
 while read -r required_file; do
     matches=$(find submission -type f -iname "$required_file")
     if [ -z $matches ]; then
         missing_files+=("$required_file")
     else
         # Remove file from directory if found
-        mkdir -p tmp
-        mv $matches tmp/
+        echo "$matches" | while IFS= read -r file; do
+            [ -n "$file" ] && mv "$file" tmp/
+        done
     fi
 done < <(jq -r '.["required-files"][]' /autograder/source/config.json | sort -r)
 
