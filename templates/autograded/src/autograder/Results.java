@@ -118,7 +118,7 @@ public class Results {
    *
    * @param json the JSON object to write to
    * @param tests the JSON array of test results
-   * @param percentage the percentage of the total score
+   * @param score the total score
    */
   private void writeGlobalResults(JSONObject json, JSONArray tests, double score) {
     json.put("score", BigDecimal.valueOf(score).setScale(2, RoundingMode.HALF_UP).doubleValue());

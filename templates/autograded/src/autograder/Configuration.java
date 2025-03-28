@@ -1,5 +1,6 @@
 package autograder;
 
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
@@ -216,13 +217,9 @@ public class Configuration {
     try (PrintStream ps =
         new PrintStream(new FileOutputStream(OUTPUT_FILE), false, StandardCharsets.UTF_8)) {
       ps.append(json.toString());
-    } catch (Exception e) {
+    } catch (FileNotFoundException e) {
       throw new RuntimeException("Could not write to output file.");
     }
-  }
-
-  double getMaxScore() {
-    return maxScore;
   }
 
   int getExtraCreditTests() {
@@ -243,14 +240,6 @@ public class Configuration {
 
   Set<Class<?>> getClasses() {
     return Set.copyOf(classes);
-  }
-
-  Map<String, Double> getTestWeights() {
-    return Map.copyOf(testWeights);
-  }
-
-  Map<String, Integer> getNumTestsToDrop() {
-    return Map.copyOf(numTestsToDrop);
   }
 
   ScoreCalculator getScoreCalculator() {

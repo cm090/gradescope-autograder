@@ -39,14 +39,11 @@ package autograder {
         -parseClasses(): void
         -prepareScoreCalculator(): void
         ~writeToOutput(json: JSONObject): void
-        ~getMaxScore(): double
         ~getExtraCreditTests(): int
         ~getTestTimeoutSeconds(): int
         ~getStarterCodeDownload(): String
         ~getTestVisibility(): String
         ~getClasses(): Set<Class>
-        ~getTestWeights(): Map<String, Double>
-        ~getNumTestsToDrop(): Map<String, Integer>
         ~getScoreCalculator(): ScoreCalculator
         ~getCalculationType(): String
         ~getExcludedClasses(): Set<String>

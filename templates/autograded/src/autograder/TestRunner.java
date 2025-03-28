@@ -162,7 +162,7 @@ public class TestRunner extends BlockJUnit4ClassRunner {
   /**
    * Decrements the total number of tests failed if necessary.
    * 
-   * @param numDecrease
+   * @param numDecrease the number of tests to decrement
    */
   private void decrementTotalTestsFailed(int numDecrease) {
     totalTestsFailed -= numDecrease;

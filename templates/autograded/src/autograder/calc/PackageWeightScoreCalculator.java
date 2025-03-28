@@ -13,7 +13,7 @@ public class PackageWeightScoreCalculator extends ScoreCalculator {
 
   public PackageWeightScoreCalculator(Map<String, Double> testWeights) {
     super(0);
-    this.testWeights = testWeights;
+    this.testWeights = Map.copyOf(testWeights);
   }
 
   @Override
