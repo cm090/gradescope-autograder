@@ -32,7 +32,7 @@ public abstract class ScoreCalculator {
   public abstract double getScore();
 
   public void setTestCounts(Map<String, Integer> testCounts) {
-    this.testCounts = testCounts;
+    this.testCounts = Map.copyOf(testCounts);
   }
 
   public void setPackageName(String packageName) {
