@@ -10,7 +10,7 @@ missing_files=()
 mkdir -p tmp
 while read -r required_file; do
     matches=$(find submission -type f -iname "$required_file")
-    if [ -z $matches ]; then
+    if [ -z "$matches" ]; then
         missing_files+=("$required_file")
     else
         # Remove file from directory if found
@@ -42,7 +42,7 @@ if [ ${#missing_files[@]} -gt 0 ]; then
             for missing_file in "${missing_files[@]}"; do
                 missing_files_out+="- $missing_file\\\\n"
             done
-            sed -i "s/\[list\]/$missing_files_out/g" /autograder/source/results_template_missing_files
+            sed -i "s/\[list\]/$missing_files_out/g" /autograder/source/results_template_missing_files.json
         fi
     fi
 fi
