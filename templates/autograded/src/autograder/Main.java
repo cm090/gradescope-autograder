@@ -6,6 +6,24 @@ import java.nio.file.Paths;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+/*
+  Gradescope Autograder: JUnit Test Runner
+  Copyright (C) 2025 Canon Maranda <https://about.canon.click>
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program. If not, see <https://www.gnu.org/licenses/>.
+*/
+
 /**
  * Given an input configuration file (config.json) and metadata file (submission_metadata.json), run
  * all the JUnit test in the provided package(s) and output the results to a predefined JSON file.
