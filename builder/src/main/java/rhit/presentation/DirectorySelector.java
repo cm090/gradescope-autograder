@@ -67,9 +67,9 @@ public class DirectorySelector extends SwingGui {
 
   private JButton createTemplateButton() {
     String templateDir = BuilderData.getTemplateDir();
-    JButton templateButton = new JButton(
-        templateDir == null ? PropertiesLoader.get("selectButtonHint") :
-            templateDir.substring(templateDir.lastIndexOf(File.separator) + 1));
+    JButton templateButton =
+        new JButton(templateDir == null ? PropertiesLoader.get("selectButtonHint")
+            : templateDir.substring(templateDir.lastIndexOf(File.separator) + 1));
     templateButton.addActionListener(e -> handleSelectTemplate());
     return templateButton;
   }
@@ -77,11 +77,7 @@ public class DirectorySelector extends SwingGui {
   private void handleSelectTemplate() {
     InterfaceUtils.hideFrame(panel);
     JFileChooser fileChooser = new JFileChooser();
-    File startDir = new File(PropertiesLoader.get("templateSelectStartingDir"));
-    if (!startDir.exists()) {
-      startDir = new File(".");
-    }
-    fileChooser.setCurrentDirectory(startDir);
+    fileChooser.setCurrentDirectory(InterfaceUtils.setStartDirectory(BuilderData.getTemplateDir()));
     fileChooser.setDialogTitle(PropertiesLoader.get("templateDirPrompt"));
     fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     fileChooser.setAcceptAllFileFilterUsed(false);
@@ -94,9 +90,9 @@ public class DirectorySelector extends SwingGui {
 
   private JButton createOutputButton() {
     String outputDir = BuilderData.getOutputDir();
-    JButton templateButton = new JButton(
-        outputDir == null ? PropertiesLoader.get("selectButtonHint") :
-            outputDir.substring(outputDir.lastIndexOf(File.separator) + 1));
+    JButton templateButton =
+        new JButton(outputDir == null ? PropertiesLoader.get("selectButtonHint")
+            : outputDir.substring(outputDir.lastIndexOf(File.separator) + 1));
     templateButton.addActionListener(e -> handleSelectOutput());
     return templateButton;
   }
@@ -104,29 +100,27 @@ public class DirectorySelector extends SwingGui {
   private void handleSelectOutput() {
     InterfaceUtils.hideFrame(panel);
     JFileChooser fileChooser = new JFileChooser();
-    fileChooser.setCurrentDirectory(new File("."));
-    fileChooser.setDialogTitle(String.format("%s (%s)", PropertiesLoader.get("outputDirPrompt"),
-        String.format(PropertiesLoader.get("outputDirHint"),
-            PropertiesLoader.get("outputActualDir"))));
+    fileChooser.setCurrentDirectory(InterfaceUtils.setStartDirectory(BuilderData.getOutputDir()));
+    fileChooser.setDialogTitle(
+        String.format("%s (%s)", PropertiesLoader.get("outputDirPrompt"), String.format(
+            PropertiesLoader.get("outputDirHint"), PropertiesLoader.get("outputActualDir"))));
     fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     fileChooser.setAcceptAllFileFilterUsed(false);
     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
       String path = fileChooser.getSelectedFile().getAbsolutePath();
       int maxDepth = 10;
       int depth = 0;
-      while (new File(path).exists() &&
-          Objects.requireNonNull(new File(path).listFiles()).length > 0 && depth++ < maxDepth) {
+      while (new File(path).exists()
+          && Objects.requireNonNull(new File(path).listFiles()).length > 0 && depth++ < maxDepth) {
         JOptionPane.showMessageDialog(frame,
             String.format(PropertiesLoader.get("outputSelectDirectoryWarning"), path,
-                PropertiesLoader.get("outputActualDir")), PropertiesLoader.get("errorTitle"),
-            JOptionPane.WARNING_MESSAGE);
+                PropertiesLoader.get("outputActualDir")),
+            PropertiesLoader.get("errorTitle"), JOptionPane.WARNING_MESSAGE);
         path = new File(path, PropertiesLoader.get("outputActualDir")).getAbsolutePath();
       }
       if (depth >= maxDepth) {
-        JOptionPane.showMessageDialog(frame,
-            PropertiesLoader.get("maxDepthExceededError"),
-            PropertiesLoader.get("errorTitle"),
-            JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(frame, PropertiesLoader.get("maxDepthExceededError"),
+            PropertiesLoader.get("errorTitle"), JOptionPane.ERROR_MESSAGE);
         return;
       }
       BuilderData.setOutputDir(path);

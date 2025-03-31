@@ -67,10 +67,8 @@ public class BuilderData {
 
   public static void clear() {
     templateFiles.clear();
-    templateDir = null;
     outputDir = null;
     starterCodeDir = null;
-    templateType = TemplateType.AUTO;
     configOptions = null;
   }
 }

@@ -68,11 +68,8 @@ class FileTreeSelector extends SwingGui {
   private void handleSelectStartingDirectory() {
     InterfaceUtils.hideFrame(panel);
     JFileChooser fileChooser = new JFileChooser();
-    File startDir = new File(PropertiesLoader.get("starterCodeSelectStartingDir"));
-    if (!startDir.exists()) {
-      startDir = new File(".");
-    }
-    fileChooser.setCurrentDirectory(startDir);
+    fileChooser
+        .setCurrentDirectory(InterfaceUtils.setStartDirectory(BuilderData.getStarterCodeDir()));
     fileChooser.setDialogTitle(PropertiesLoader.get("starterCodeDirPrompt"));
     fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
     fileChooser.setAcceptAllFileFilterUsed(false);

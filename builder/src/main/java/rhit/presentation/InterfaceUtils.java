@@ -39,11 +39,11 @@ final class InterfaceUtils {
   }
 
   static void invokeClassMethod(Object object, String key, String stringText, String objectText,
-                                Consumer<Object> callback) {
+      Consumer<Object> callback) {
     Class<?> type = object.getClass();
     try {
-      Object value = type == String.class ? stringText :
-          type.getDeclaredMethod("valueOf", String.class).invoke(null, objectText);
+      Object value = type == String.class ? stringText
+          : type.getDeclaredMethod("valueOf", String.class).invoke(null, objectText);
       callback.accept(value);
     } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
       JOptionPane.showMessageDialog(null, String.format(
@@ -89,5 +89,10 @@ final class InterfaceUtils {
     }
     Matcher matcher = PACKAGE_PATTERN.matcher(path);
     return matcher.find() ? matcher.group().replace("/", ".") : "";
+  }
+
+  static File setStartDirectory(String savedPath) {
+    File startDir = new File(savedPath == null ? "." : savedPath).getParentFile();
+    return startDir != null && startDir.exists() ? startDir : null;
   }
 }
