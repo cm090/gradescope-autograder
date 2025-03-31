@@ -71,8 +71,8 @@ public class BuildRunner {
     try {
       FileUtils.copyDirectory(templateDir, compileDir);
     } catch (Exception e) {
-      logOutput.append(
-          String.format(PropertiesLoader.get("templateCopyError"), e.getMessage()) + "\n");
+      logOutput
+          .append(String.format(PropertiesLoader.get("templateCopyError"), e.getMessage()) + "\n");
       return false;
     }
     logOutput.append(PropertiesLoader.get("templateCopied") + "\n");
@@ -80,9 +80,8 @@ public class BuildRunner {
   }
 
   private boolean copyHomeworkTestFiles() {
-    Set<File> homeworkFiles =
-        BuilderData.getTemplateFiles().stream().map(File::new).filter(File::isFile)
-            .collect(Collectors.toSet());
+    Set<File> homeworkFiles = BuilderData.getTemplateFiles().stream().map(File::new)
+        .filter(File::isFile).collect(Collectors.toSet());
     for (File file : homeworkFiles) {
       Path relativePath =
           new File(BuilderData.getStarterCodeDir()).toPath().relativize(file.toPath());
@@ -94,20 +93,20 @@ public class BuildRunner {
             String.format(PropertiesLoader.get("homeworkCopyError"), e.getMessage()) + "\n");
         return false;
       }
-      logOutput.append(
-          String.format(PropertiesLoader.get("homeworkCopied"), file.getName()) + "\n");
+      logOutput
+          .append(String.format(PropertiesLoader.get("homeworkCopied"), file.getName()) + "\n");
     }
     return true;
   }
 
   private boolean updateConfigFile() {
     File runnerFile = new File(compileDir, BuilderData.CONFIG_FILE);
-    try (OutputStreamWriter writer = new OutputStreamWriter(new FileOutputStream(runnerFile),
-        StandardCharsets.UTF_8)) {
+    try (OutputStreamWriter writer =
+        new OutputStreamWriter(new FileOutputStream(runnerFile), StandardCharsets.UTF_8)) {
       writer.write(BuilderData.getConfigOptions().toJSONString().replace("\\/", "/"));
     } catch (Exception e) {
-      logOutput.append(
-          String.format(PropertiesLoader.get("configUpdateError"), e.getMessage()) + "\n");
+      logOutput
+          .append(String.format(PropertiesLoader.get("configUpdateError"), e.getMessage()) + "\n");
       return false;
     }
     logOutput.append(PropertiesLoader.get("configUpdated") + "\n");
@@ -120,7 +119,7 @@ public class BuildRunner {
     Path zipFilePath = new File(compileDir, zipFileName).toPath();
     try {
       try (FileOutputStream fos = new FileOutputStream(zipFilePath.toFile());
-           ZipOutputStream zos = new ZipOutputStream(fos)) {
+          ZipOutputStream zos = new ZipOutputStream(fos)) {
         Files.walkFileTree(folder, new SimpleFileVisitor<>() {
           public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
               throws IOException {
@@ -135,8 +134,8 @@ public class BuildRunner {
         });
       }
     } catch (Exception e) {
-      logOutput.append(
-          String.format(PropertiesLoader.get("compressionError"), e.getMessage()) + "\n");
+      logOutput
+          .append(String.format(PropertiesLoader.get("compressionError"), e.getMessage()) + "\n");
       return false;
     }
     logOutput.append(String.format(PropertiesLoader.get("compressionSuccess"), zipFileName) + "\n");

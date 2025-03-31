@@ -49,8 +49,8 @@ public class BuilderData {
       throw new IllegalStateException("Configuration file does not exist");
     }
 
-    try (InputStreamReader reader = new InputStreamReader(new FileInputStream(configFile),
-        StandardCharsets.UTF_8)) {
+    try (InputStreamReader reader =
+        new InputStreamReader(new FileInputStream(configFile), StandardCharsets.UTF_8)) {
       configOptions = (JSONObject) new JSONParser().parse(reader);
     } catch (ParseException | IOException e) {
       System.err.println(e.getMessage());

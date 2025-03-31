@@ -49,8 +49,8 @@ public class FileTree {
   }
 
   private static boolean shouldIgnoreFile(String fileName) {
-    return fileName.startsWith(".") || fileName.equals(BIN_DIR) ||
-        fileName.endsWith(CLASS_EXTENSION);
+    return fileName.startsWith(".") || fileName.equals(BIN_DIR)
+        || fileName.endsWith(CLASS_EXTENSION);
   }
 
   @Builder
