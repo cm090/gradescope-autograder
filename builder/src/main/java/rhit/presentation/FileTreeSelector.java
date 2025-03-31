@@ -8,6 +8,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 import javax.swing.BorderFactory;
@@ -77,10 +78,19 @@ class FileTreeSelector extends SwingGui {
     fileChooser.setAcceptAllFileFilterUsed(false);
     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
       String path = fileChooser.getSelectedFile().getAbsolutePath();
+      validateSelectedPath(path);
       BuilderData.setStarterCodeDir(path);
       generateCheckboxTree();
     }
     show();
+  }
+
+  private void validateSelectedPath(String path) {
+    Path directory = Path.of(path);
+    if (!directory.resolve("src").toFile().exists()) {
+      JOptionPane.showMessageDialog(frame, PropertiesLoader.get("checkDirectoryWarning"),
+          PropertiesLoader.get("warningTitle"), JOptionPane.WARNING_MESSAGE);
+    }
   }
 
   protected void handleContinue() {
@@ -91,9 +101,8 @@ class FileTreeSelector extends SwingGui {
     }
     InterfaceUtils.hideFrame(panel);
     Arrays.stream(this.checkboxTree.getCheckingPaths()).forEach(path -> {
-      File filePath = new File(BuilderData.getStarterCodeDir(),
-          Arrays.stream(path.getPath()).skip(1).map(String::valueOf)
-              .collect(Collectors.joining(File.separator)));
+      File filePath = new File(BuilderData.getStarterCodeDir(), Arrays.stream(path.getPath())
+          .skip(1).map(String::valueOf).collect(Collectors.joining(File.separator)));
       if (filePath.exists() && filePath.isFile()) {
         BuilderData.addTemplateFile(filePath.getAbsolutePath());
       }
@@ -112,9 +121,9 @@ class FileTreeSelector extends SwingGui {
 
   private void addDirectorySelector(GridBagConstraints gbc, JPanel formPanel) {
     String startingDir = BuilderData.getStarterCodeDir();
-    JButton startingDirectoryButton = new JButton(
-        startingDir == null ? PropertiesLoader.get("selectButtonHint") :
-            startingDir.substring(startingDir.lastIndexOf(File.separator) + 1));
+    JButton startingDirectoryButton =
+        new JButton(startingDir == null ? PropertiesLoader.get("selectButtonHint")
+            : startingDir.substring(startingDir.lastIndexOf(File.separator) + 1));
     startingDirectoryButton.addActionListener(e -> handleSelectStartingDirectory());
 
     JLabel label = new JLabel(PropertiesLoader.get("starterCodeDirPrompt") + ": ");
