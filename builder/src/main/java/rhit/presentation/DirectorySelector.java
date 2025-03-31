@@ -3,6 +3,7 @@ package rhit.presentation;
 import java.awt.BorderLayout;
 import java.awt.GridLayout;
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -83,9 +84,19 @@ public class DirectorySelector extends SwingGui {
     fileChooser.setAcceptAllFileFilterUsed(false);
     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
       String path = fileChooser.getSelectedFile().getAbsolutePath();
-      BuilderData.setTemplateDir(path);
+      validateSelectedTemplate(path);
     }
     show();
+  }
+
+  private void validateSelectedTemplate(String path) {
+    Path directory = Path.of(path);
+    if (!directory.resolve("config.json").toFile().exists()) {
+      JOptionPane.showMessageDialog(frame, PropertiesLoader.get("invalidTemplateError"),
+          PropertiesLoader.get("errorTitle"), JOptionPane.ERROR_MESSAGE);
+    } else {
+      BuilderData.setTemplateDir(path);
+    }
   }
 
   private JButton createOutputButton() {
