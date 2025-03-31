@@ -109,9 +109,9 @@ class ArrayEditorDialog extends JDialog {
 
   @SuppressWarnings("unchecked")
   private void generateEditableObject(JSONObject newItem) {
-    ((JSONObject) array.get(0)).keySet().forEach(
-        key -> InterfaceUtils.invokeClassMethod(((JSONObject) array.get(0)).get(key), (String) key,
-            "", "0", (value) -> newItem.put(key, value)));
+    ((JSONObject) array.get(0)).keySet()
+        .forEach(key -> InterfaceUtils.invokeClassMethod(((JSONObject) array.get(0)).get(key),
+            (String) key, "", "0", (value) -> newItem.put(key, value)));
   }
 
   private JButton getEditButton() {
