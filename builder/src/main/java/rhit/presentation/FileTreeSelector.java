@@ -122,6 +122,9 @@ class FileTreeSelector extends SwingGui {
         new JButton(startingDir == null ? PropertiesLoader.get("selectButtonHint")
             : startingDir.substring(startingDir.lastIndexOf(File.separator) + 1));
     startingDirectoryButton.addActionListener(e -> handleSelectStartingDirectory());
+    if (startingDir != null) {
+      startingDirectoryButton.setToolTipText(startingDir);
+    }
 
     JLabel label = new JLabel(PropertiesLoader.get("starterCodeDirPrompt") + ": ");
     JPanel directorySelectorPanel = new JPanel(new GridLayout(NUM_ROWS, NUM_COLS));

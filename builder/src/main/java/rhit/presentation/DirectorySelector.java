@@ -72,6 +72,9 @@ public class DirectorySelector extends SwingGui {
         new JButton(templateDir == null ? PropertiesLoader.get("selectButtonHint")
             : templateDir.substring(templateDir.lastIndexOf(File.separator) + 1));
     templateButton.addActionListener(e -> handleSelectTemplate());
+    if (templateDir != null) {
+      templateButton.setToolTipText(templateDir);
+    }
     return templateButton;
   }
 
@@ -105,6 +108,9 @@ public class DirectorySelector extends SwingGui {
         new JButton(outputDir == null ? PropertiesLoader.get("selectButtonHint")
             : outputDir.substring(outputDir.lastIndexOf(File.separator) + 1));
     templateButton.addActionListener(e -> handleSelectOutput());
+    if (outputDir != null) {
+      templateButton.setToolTipText(outputDir);
+    }
     return templateButton;
   }
 
