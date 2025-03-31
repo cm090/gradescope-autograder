@@ -11,7 +11,7 @@
     {
       "status": "passed",
       "name": "Import instructions",
-      "output": "![Import to Eclipse](https://raw.githubusercontent.com/cm090/gradescope-autograder/main/templates/exam/import-instructions.png)",
+      "output": "![Import to Eclipse](https://raw.githubusercontent.com/cm090/gradescope-autograder/main/resources/import-instructions.png)",
       "output_format": "md",
       "visibility": "visible"
     },
