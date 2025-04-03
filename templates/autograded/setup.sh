@@ -1,6 +1,6 @@
 # This is what Gradescope runs first. Start by updating system packages and installing jq
 apt update
-apt install jq jo ecj java-wrappers -y
+apt install jq jo ecj java-wrappers openjdk-21-jdk -y
 
 echo "Gradescope Autograder: Autograded Template
 Copyright (C) 2025 Canon Maranda <https://about.canon.click>
