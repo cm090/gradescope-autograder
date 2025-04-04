@@ -1,6 +1,25 @@
 # Gradescope Autograder
 
-This repository contains the tools used to manage Gradescope assignments for CSSE220 at Rose-Hulman Institute of Technology
+## Templates for Java JUnit Tests
+
+This repository contains tools used to create, manage, and process Gradescope Java programming assignments.
+
+Currently used to automate some grading aspects at Rose-Hulman Institute of Technology (CSSE220 - Intro to OOP)
+
+### What This Project Is
+
+- A resource to automate the unit testing process
+  - Support for any assignment with a test suite (graphics included!)
+- Uniformity for submitting homework assignments and exams
+- Near instant scoring and feedback for students
+
+### What This Project *Isn't*
+
+- A replacement for traditional grading processes
+  - It is recommended to read and understand code before assigning a grade
+- A grading tool for every programming language
+  - The `autograded` template only supports Java projects
+  - The `manual` template can be modified to check file existence but will not run further tests
 
 ### Folder Structure
 
