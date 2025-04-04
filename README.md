@@ -19,7 +19,7 @@ Currently used to automate some grading aspects at Rose-Hulman Institute of Tech
   - It is recommended to read and understand code before assigning a grade
 - A grading tool for every programming language
   - The `autograded` template only supports Java projects
-  - The `manual` template can be modified to check file existance but will not run further tests
+  - The `manual` template can be modified to check file existence but will not run further tests
 
 ### Folder Structure
 
