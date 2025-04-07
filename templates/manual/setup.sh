@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 
-# This is what Gradescope runs first. Check for a newer version of the template.
-chmod +x /autograder/source/version_check.sh &>/dev/null
-dos2unix /autograder/source/version_check.sh &>/dev/null
-bash /autograder/source/version_check.sh
-
+# This is what Gradescope runs first
 # Update system packages and install jq
 apt update
 apt install jq -y
+
+# Check for a newer version of the template
+chmod +x /autograder/source/version_check.sh &>/dev/null
+dos2unix /autograder/source/version_check.sh &>/dev/null
+bash /autograder/source/version_check.sh
 
 echo "Gradescope Autograder: Manual Template
 Copyright (C) 2025 Canon Maranda <https://about.canon.click>
