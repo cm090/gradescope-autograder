@@ -15,12 +15,26 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
+      - name: Check if autograded files were changed
+        run: |
+          if git diff --name-only ${{ github.base_ref }} ${{ github.head_ref }} | grep -q '^templates/autograded/'; then
+            echo "autograded_changed=true" >> $GITHUB_ENV
+          else
+            echo "autograded_changed=false" >> $GITHUB_ENV
+          fi
       - name: Update autograded template version
-        if: contains(github.event.pull_request.changed_files, 'templates/autograded')
+        if: env.autograded_changed == 'true'
         run: |
           sed -i "s/\"version\": \".*\"/\"version\": \"$(date +"%Y.%m.%d-%H%M")\"/" templates/autograded/version.json
+      - name: Check if manual files were changed
+        run: |
+          if git diff --name-only ${{ github.base_ref }} ${{ github.head_ref }} | grep -q '^templates/manual/'; then
+            echo "manual_changed=true" >> $GITHUB_ENV
+          else
+            echo "manual_changed=false" >> $GITHUB_ENV
+          fi
       - name: Update manual template version
-        if: contains(github.event.pull_request.changed_files, 'templates/manual')
+        if: env.manual_changed == 'true'
         run: |
           sed -i "s/\"version\": \".*\"/\"version\": \"$(date +"%Y.%m.%d-%H%M")\"/" templates/manual/version.json
       - name: Commit and push changes
@@ -29,6 +43,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add .
           git commit -m "Update template versions"
-          git push origin ${{ github.head_ref }}
+          git push origin $HEAD_REF
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          HEAD_REF: ${{ github.head_ref }}
