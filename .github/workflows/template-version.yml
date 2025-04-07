@@ -1,0 +1,34 @@
+name: Update template version
+
+on:
+  pull_request:
+    paths:
+      - "templates/autograded/**"
+      - "templates/manual/**"
+
+jobs:
+  update-autograded-template:
+    runs-on: ubuntu-latest
+    permissions: write-all
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+      - name: Update autograded template version
+        if: contains(github.event.pull_request.chaned_files, 'templates/autograded')
+        run: |
+          sed -i "s/\"version\": \".*\"/\"version\": \"$(date +"%Y.%m.%d-%H%M")\"/" templates/autograded/version.json
+      - name: Update manual template version
+        if: contains(github.event.pull_request.chaned_files, 'templates/manual')
+        run: |
+          sed -i "s/\"version\": \".*\"/\"version\": \"$(date +"%Y.%m.%d-%H%M")\"/" templates/manual/version.json
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "Update template versions"
+          git push origin ${{ github.head_ref }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
