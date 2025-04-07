@@ -88,6 +88,7 @@ public class DirectorySelector extends SwingGui {
     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
       String path = fileChooser.getSelectedFile().getAbsolutePath();
       validateSelectedTemplate(path);
+      InterfaceUtils.checkTemplateVersion(path);
     }
     show();
   }

@@ -15,6 +15,7 @@ import lombok.Setter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import rhit.domain.PropertiesLoader;
+import rhit.domain.VersionManager;
 
 final class InterfaceUtils {
   private static final String JAVA_EXTENSION = ".java";
@@ -94,5 +95,12 @@ final class InterfaceUtils {
   static File setStartDirectory(String savedPath) {
     File startDir = new File(savedPath == null ? "." : savedPath).getParentFile();
     return startDir != null && startDir.exists() ? startDir : null;
+  }
+
+  static void checkTemplateVersion(String path) {
+    if (!VersionManager.isLatestVersion(path)) {
+      JOptionPane.showMessageDialog(frame, PropertiesLoader.get("templateVersionError"),
+          PropertiesLoader.get("errorTitle"), JOptionPane.ERROR_MESSAGE);
+    }
   }
 }
