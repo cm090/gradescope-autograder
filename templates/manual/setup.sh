@@ -1,4 +1,11 @@
-# This is what Gradescope runs first. Start by updating system packages and installing jq
+#!/usr/bin/env bash
+
+# This is what Gradescope runs first. Check for a newer version of the template.
+chmod +x /autograder/source/version_check.sh &>/dev/null
+dos2unix /autograder/source/version_check.sh &>/dev/null
+bash /autograder/source/version_check.sh
+
+# Update system packages and install jq
 apt update
 apt install jq -y
 

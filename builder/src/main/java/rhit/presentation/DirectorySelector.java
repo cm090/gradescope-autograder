@@ -18,6 +18,7 @@ import javax.swing.JRadioButton;
 import rhit.domain.BuilderData;
 import rhit.domain.PropertiesLoader;
 import rhit.domain.TemplateType;
+import rhit.domain.VersionManager;
 
 public class DirectorySelector extends SwingGui {
   private static final int BORDER_SIZE = 5;
@@ -88,6 +89,7 @@ public class DirectorySelector extends SwingGui {
     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
       String path = fileChooser.getSelectedFile().getAbsolutePath();
       validateSelectedTemplate(path);
+      checkTemplateVersion(path);
     }
     show();
   }
@@ -99,6 +101,13 @@ public class DirectorySelector extends SwingGui {
           PropertiesLoader.get("errorTitle"), JOptionPane.ERROR_MESSAGE);
     } else {
       BuilderData.setTemplateDir(path);
+    }
+  }
+
+  private void checkTemplateVersion(String path) {
+    if (!VersionManager.isLatestVersion(path)) {
+      JOptionPane.showMessageDialog(frame, PropertiesLoader.get("templateVersionError"),
+          PropertiesLoader.get("errorTitle"), JOptionPane.ERROR_MESSAGE);
     }
   }
 
