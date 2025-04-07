@@ -16,11 +16,11 @@ jobs:
         with:
           ref: ${{ github.head_ref }}
       - name: Update autograded template version
-        if: contains(github.event.pull_request.chaned_files, 'templates/autograded')
+        if: contains(github.event.pull_request.changed_files, 'templates/autograded')
         run: |
           sed -i "s/\"version\": \".*\"/\"version\": \"$(date +"%Y.%m.%d-%H%M")\"/" templates/autograded/version.json
       - name: Update manual template version
-        if: contains(github.event.pull_request.chaned_files, 'templates/manual')
+        if: contains(github.event.pull_request.changed_files, 'templates/manual')
         run: |
           sed -i "s/\"version\": \".*\"/\"version\": \"$(date +"%Y.%m.%d-%H%M")\"/" templates/manual/version.json
       - name: Commit and push changes
