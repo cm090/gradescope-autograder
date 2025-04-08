@@ -19,19 +19,17 @@ public class VersionManager {
     try (InputStreamReader reader =
         new InputStreamReader(new FileInputStream(versionFile), StandardCharsets.UTF_8)) {
       JSONObject versionData = (JSONObject) new JSONParser().parse(reader);
-      int version =
-          Integer.parseInt(((String) versionData.get("version")).replaceAll("[^0-9]", ""));
+      long version = Long.parseLong(((String) versionData.get("version")).replaceAll("[^0-9]", ""));
       String updateUrl = (String) versionData.get("update_url");
-      int remoteVersion = getRemoteVersion(updateUrl);
+      long remoteVersion = getRemoteVersion(updateUrl);
       return remoteVersion == -1 || remoteVersion <= version;
-
     } catch (Exception e) {
       System.err.println(e.getMessage());
       return false;
     }
   }
 
-  private static int getRemoteVersion(String updateUrl) {
+  private static long getRemoteVersion(String updateUrl) {
     HttpURLConnection connection = null;
     try {
       URL url = new URL(updateUrl);
@@ -49,7 +47,7 @@ public class VersionManager {
         }
         in.close();
         JSONObject jsonResponse = (JSONObject) new JSONParser().parse(response.toString());
-        return Integer.parseInt(((String) jsonResponse.get("version")).replaceAll("[^0-9]", ""));
+        return Long.parseLong(((String) jsonResponse.get("version")).replaceAll("[^0-9]", ""));
       }
     } catch (Exception e) {
       System.err.println(e.getMessage());
