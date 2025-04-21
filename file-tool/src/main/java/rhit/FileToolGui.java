@@ -24,6 +24,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
+import javax.swing.SwingUtilities;
 
 public class FileToolGui implements ActionListener, Runnable {
   private static final String ELLIPSIS = "...";
@@ -186,7 +187,7 @@ public class FileToolGui implements ActionListener, Runnable {
         e.printStackTrace(ps);
       }
     }
-    outputArea.setText(os.toString(StandardCharsets.UTF_8));
-    startButton.setEnabled(true);
+
+    SwingUtilities.invokeLater(() -> startButton.setEnabled(true));
   }
 }

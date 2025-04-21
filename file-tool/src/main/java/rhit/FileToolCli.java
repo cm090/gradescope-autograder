@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
+import java.time.Instant;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -37,14 +38,14 @@ public final class FileToolCli {
   }
 
   FileToolCli(String[] args) throws IOException {
-    if (args.length != 4) {
+    if (args.length != 3 && args.length != 4) {
       throw new IllegalArgumentException(PropertiesLoader.get("argumentsHint"));
     }
 
     File masterDir = new File(args[0]);
     File studentSubmissionDir = new File(args[1]);
     File outputDir = new File(args[2]);
-    isAnonymous = Boolean.parseBoolean(args[3]);
+    isAnonymous = args.length == 4 ? Boolean.parseBoolean(args[3]) : true;
 
     doGenerate(masterDir, studentSubmissionDir, outputDir, System.out);
   }
@@ -85,68 +86,68 @@ public final class FileToolCli {
 
     AtomicInteger index = new AtomicInteger(0);
     int size = o.size();
-    o.entrySet().stream().sorted((a, b) -> {
-      Date aDate = (Date) castToMap(a.getValue()).get(":created_at");
-      Date bDate = (Date) castToMap(b.getValue()).get(":created_at");
-      return aDate.compareTo(bDate);
-    }).forEach((entry) -> {
-      Map<String, Object> submission = castToMap(entry.getValue());
-      if (submission == null) {
-        output.printf(PropertiesLoader.get("submissionDataNull") + NEW_LINE, entry.getKey());
-        return;
-      }
-      Map<String, Object> userData = castToMap(castToList(submission.get(":submitters")).get(0));
-      if (userData == null) {
-        output.printf(PropertiesLoader.get("submissionMissingUserData") + NEW_LINE, entry.getKey());
-        return;
-      }
-      String name = Normalizer.normalize((String) userData.get(NAME_FIELD), Form.NFD)
-          .replaceAll("\\p{M}", "");
-      if (name.isEmpty()) {
-        output.printf(PropertiesLoader.get("submissionMissingName") + NEW_LINE, entry.getKey());
-        name = DEFAULT_NAME;
-      }
-      String sid = "";
-      if (!isAnonymous) {
-        try {
-          sid = ((String) userData.get(EMAIL_FIELD)).split("@")[0];
-        } catch (Exception e) {
-          output.print(PropertiesLoader.get("anonymousGradingEnabled") + NEW_LINE);
-          isAnonymous = true;
-        }
-      }
-      String[] parts = entry.getKey().split("_");
-      if (parts.length < 2) {
-        output.printf(PropertiesLoader.get("submissionKeyFormatError") + NEW_LINE, entry.getKey());
-        return;
-      }
-      int id;
-      try {
-        id = Integer.parseInt(parts[1]);
-      } catch (NumberFormatException e) {
-        output.printf(PropertiesLoader.get("invalidSubmissionId") + NEW_LINE, parts[1],
-            entry.getKey());
-        return;
-      }
-      Path inputDir = new File(dir, String.format(OUTPUT_DIR_FORMAT, id)).toPath();
-      String outputDirRelative =
-          isAnonymous ? String.format("%d_of_%d", index.incrementAndGet(), size)
-              : String.format("%s_%s_%s", id, sid, name).replaceAll("[^a-zA-Z0-9_\\-]", "_");
-      Path outputDirectory = new File(outputDir, outputDirRelative).toPath();
-      try {
-        boolean useSrc = copier.op(outputDirectory);
-        Path trueOutputDir = outputDirectory;
-        if (useSrc) {
-          trueOutputDir = pathAppend(outputDirectory, "src");
-        }
-        copyDirTree(inputDir, new TreeWithDirCopier(inputDir, trueOutputDir));
-      } catch (IOException e) {
-        output.printf(PropertiesLoader.get("fileCopyError") + NEW_LINE, name);
-        failed.add(name + " (" + id + ")");
-        return;
-      }
-      output.printf(PropertiesLoader.get("fileCopySuccess") + NEW_LINE, id, outputDirRelative);
-    });
+    o.entrySet().stream().sorted((a, b) -> parseDate(castToMap(a.getValue()).get(":created_at"))
+        .compareTo(parseDate(castToMap(b.getValue()).get(":created_at")))).forEach((entry) -> {
+          Map<String, Object> submission = castToMap(entry.getValue());
+          if (submission == null) {
+            output.printf(PropertiesLoader.get("submissionDataNull") + NEW_LINE, entry.getKey());
+            return;
+          }
+          Map<String, Object> userData =
+              castToMap(castToList(submission.get(":submitters")).get(0));
+          if (userData == null) {
+            output.printf(PropertiesLoader.get("submissionMissingUserData") + NEW_LINE,
+                entry.getKey());
+            return;
+          }
+          String name = Normalizer.normalize((String) userData.get(NAME_FIELD), Form.NFD)
+              .replaceAll("\\p{M}", "");
+          if (name.isEmpty()) {
+            output.printf(PropertiesLoader.get("submissionMissingName") + NEW_LINE, entry.getKey());
+            name = DEFAULT_NAME;
+          }
+          String sid = "";
+          if (!isAnonymous) {
+            try {
+              sid = ((String) userData.get(EMAIL_FIELD)).split("@")[0];
+            } catch (Exception e) {
+              output.print(PropertiesLoader.get("anonymousGradingEnabled") + NEW_LINE);
+              isAnonymous = true;
+            }
+          }
+          String[] parts = entry.getKey().split("_");
+          if (parts.length < 2) {
+            output.printf(PropertiesLoader.get("submissionKeyFormatError") + NEW_LINE,
+                entry.getKey());
+            return;
+          }
+          int id;
+          try {
+            id = Integer.parseInt(parts[1]);
+          } catch (NumberFormatException e) {
+            output.printf(PropertiesLoader.get("invalidSubmissionId") + NEW_LINE, parts[1],
+                entry.getKey());
+            return;
+          }
+          Path inputDir = new File(dir, String.format(OUTPUT_DIR_FORMAT, id)).toPath();
+          String outputDirRelative =
+              isAnonymous ? String.format("%d_of_%d", index.incrementAndGet(), size)
+                  : String.format("%s_%s_%s", id, sid, name).replaceAll("[^a-zA-Z0-9_\\-]", "_");
+          Path outputDirectory = new File(outputDir, outputDirRelative).toPath();
+          try {
+            boolean useSrc = copier.op(outputDirectory);
+            Path trueOutputDir = outputDirectory;
+            if (useSrc) {
+              trueOutputDir = pathAppend(outputDirectory, "src");
+            }
+            copyDirTree(inputDir, new TreeWithDirCopier(inputDir, trueOutputDir));
+          } catch (IOException e) {
+            output.printf(PropertiesLoader.get("fileCopyError") + NEW_LINE, name);
+            failed.add(name + " (" + id + ")");
+            return;
+          }
+          output.printf(PropertiesLoader.get("fileCopySuccess") + NEW_LINE, id, outputDirRelative);
+        });
 
     return failed;
   }
@@ -169,8 +170,17 @@ public final class FileToolCli {
     }
   }
 
-  void doRename(File studentSubmissionDir, PrintStream output, File outputDir)
-      throws IOException {
+  private Date parseDate(Object o) {
+    if (o instanceof Date) {
+      return (Date) o;
+    }
+    if (o instanceof String) {
+      return Date.from(Instant.parse((String) o));
+    }
+    throw new RuntimeException();
+  }
+
+  void doRename(File studentSubmissionDir, PrintStream output, File outputDir) throws IOException {
     if (!studentSubmissionDir.exists()) {
       throw new IOException(String.format(PropertiesLoader.get("submissionDirectoryNotFound"),
           studentSubmissionDir.getName()));
@@ -189,8 +199,8 @@ public final class FileToolCli {
     }
   }
 
-  void doGenerate(File masterDir, File studentSubmissionDir, File outputDir,
-      PrintStream output) throws IOException {
+  void doGenerate(File masterDir, File studentSubmissionDir, File outputDir, PrintStream output)
+      throws IOException {
     if (!masterDir.exists()) {
       throw new IOException(
           String.format(PropertiesLoader.get("masterDirectoryNotFound"), masterDir.getName()));
