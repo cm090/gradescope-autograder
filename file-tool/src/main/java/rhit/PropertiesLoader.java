@@ -20,7 +20,7 @@ public final class PropertiesLoader {
     }
   }
 
-  public static String get(String key) {
+  static String get(String key) {
     return instance.getProperty(key);
   }
 
