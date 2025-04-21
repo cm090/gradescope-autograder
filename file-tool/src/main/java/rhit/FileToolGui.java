@@ -37,7 +37,7 @@ public class FileToolGui implements ActionListener, Runnable {
   private final JButton startButton;
   private final FileToolCli fileToolCli;
 
-  public FileToolGui() {
+  FileToolGui() {
     frame = new JFrame(PropertiesLoader.get("frameTitle"));
 
     configPanes = new JPanel();

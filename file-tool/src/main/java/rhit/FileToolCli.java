@@ -169,7 +169,7 @@ public final class FileToolCli {
     }
   }
 
-  public void doRename(File studentSubmissionDir, PrintStream output, File outputDir)
+  void doRename(File studentSubmissionDir, PrintStream output, File outputDir)
       throws IOException {
     if (!studentSubmissionDir.exists()) {
       throw new IOException(String.format(PropertiesLoader.get("submissionDirectoryNotFound"),
@@ -189,7 +189,7 @@ public final class FileToolCli {
     }
   }
 
-  public void doGenerate(File masterDir, File studentSubmissionDir, File outputDir,
+  void doGenerate(File masterDir, File studentSubmissionDir, File outputDir,
       PrintStream output) throws IOException {
     if (!masterDir.exists()) {
       throw new IOException(
