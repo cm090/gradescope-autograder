@@ -11,10 +11,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.Normalizer;
 import java.text.Normalizer.Form;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.yaml.snakeyaml.Yaml;
@@ -86,17 +86,16 @@ public final class FileToolCli {
     AtomicInteger index = new AtomicInteger(0);
     int size = o.size();
     o.entrySet().stream().sorted((a, b) -> {
-      Date aDate = (Date) ((Map<String, Object>) a.getValue()).get(":created_at");
-      Date bDate = (Date) ((Map<String, Object>) b.getValue()).get(":created_at");
+      Date aDate = (Date) castToMap(a.getValue()).get(":created_at");
+      Date bDate = (Date) castToMap(b.getValue()).get(":created_at");
       return aDate.compareTo(bDate);
     }).forEach((entry) -> {
-      Map<String, Object> submission = (Map<String, Object>) entry.getValue();
+      Map<String, Object> submission = castToMap(entry.getValue());
       if (submission == null) {
         output.printf(PropertiesLoader.get("submissionDataNull") + NEW_LINE, entry.getKey());
         return;
       }
-      Map<String, Object> userData =
-          ((Map<String, Object>) ((ArrayList<Object>) submission.get(":submitters")).get(0));
+      Map<String, Object> userData = castToMap(castToList(submission.get(":submitters")).get(0));
       if (userData == null) {
         output.printf(PropertiesLoader.get("submissionMissingUserData") + NEW_LINE, entry.getKey());
         return;
@@ -150,6 +149,24 @@ public final class FileToolCli {
     });
 
     return failed;
+  }
+
+  @SuppressWarnings("unchecked")
+  private Map<String, Object> castToMap(Object o) {
+    if (o instanceof Map) {
+      return (Map<String, Object>) o;
+    } else {
+      throw new RuntimeException();
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  private List<Object> castToList(Object o) {
+    if (o instanceof List) {
+      return (List<Object>) o;
+    } else {
+      throw new RuntimeException();
+    }
   }
 
   public void doRename(File studentSubmissionDir, PrintStream output, File outputDir)
