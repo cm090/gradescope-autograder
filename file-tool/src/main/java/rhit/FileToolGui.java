@@ -17,6 +17,7 @@ import javax.swing.AbstractButton;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -45,29 +46,23 @@ public class FileToolGui implements ActionListener, Runnable {
     masterButton = new JButton();
     studentButton = new JButton();
     outputButton = new JButton();
+    startButton = new JButton();
+    outputArea = new JTextArea();
 
     fileToolCli = new FileToolCli();
 
+    buildGui();
+  }
+
+  private void buildGui() {
     addConfigButton(PropertiesLoader.get("starterCodeDirectoryDescription"), masterButton);
     addConfigButton(PropertiesLoader.get("submissionDirectoryDescription"), studentButton);
     addConfigButton(PropertiesLoader.get("outputDirectoryDescription"), outputButton);
     outputButton.setText(PropertiesLoader.get("defaultOutputLocationHint"));
 
-    JPanel bigButtonPanel = new JPanel();
-    bigButtonPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
-    startButton = new JButton(PropertiesLoader.get("generateButtonText"));
-    startButton.addActionListener(e -> startGenerate());
-    bigButtonPanel.add(startButton);
-    configPanes.add(bigButtonPanel);
-    outputArea = new JTextArea(PropertiesLoader.get("outputAreaStartingMessage"));
-    JScrollPane lowerPanel = new JScrollPane(outputArea);
-
-    frame.add(configPanes, BorderLayout.NORTH);
-    frame.add(lowerPanel, BorderLayout.CENTER);
-
-    frame.setSize(800, 400);
-    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-    frame.setVisible(true);
+    addAnonymousGradingCheckbox();
+    addGenerateButton();
+    prepareFrame();
   }
 
   private void addConfigButton(String description, AbstractButton button) {
@@ -82,6 +77,38 @@ public class FileToolGui implements ActionListener, Runnable {
     button.addActionListener(this);
     panel.add(button);
     configPanes.add(panel);
+  }
+
+  private void addAnonymousGradingCheckbox() {
+    JCheckBox anonymousCheckBox = new JCheckBox(PropertiesLoader.get("anonymousCheckboxText"));
+    anonymousCheckBox.setSelected(true);
+    anonymousCheckBox
+        .addActionListener(e -> fileToolCli.setAnonymous(anonymousCheckBox.isSelected()));
+    JPanel anonymousPanel = new JPanel();
+    anonymousPanel.add(anonymousCheckBox);
+    configPanes.add(anonymousPanel);
+  }
+
+  private void addGenerateButton() {
+    JPanel bigButtonPanel = new JPanel();
+    bigButtonPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+    startButton.setText(PropertiesLoader.get("generateButtonText"));
+    startButton.addActionListener(e -> startGenerate());
+    bigButtonPanel.add(startButton);
+    configPanes.add(bigButtonPanel);
+  }
+
+  private void prepareFrame() {
+    outputArea.setText(PropertiesLoader.get("outputAreaStartingMessage"));
+    outputArea.setEditable(false);
+    JScrollPane lowerPanel = new JScrollPane(outputArea);
+
+    frame.add(configPanes, BorderLayout.NORTH);
+    frame.add(lowerPanel, BorderLayout.CENTER);
+
+    frame.setSize(800, 400);
+    frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+    frame.setVisible(true);
   }
 
   @Override
@@ -133,7 +160,7 @@ public class FileToolGui implements ActionListener, Runnable {
 
     if (Files.exists(output.toPath()) && !output.toPath().equals(master.toPath())) {
       try {
-        //noinspection resource, ResultOfMethodCallIgnored
+        // noinspection resource, ResultOfMethodCallIgnored
         Files.walk(output.toPath()).sorted(Comparator.reverseOrder()).map(Path::toFile)
             .forEach(File::delete);
       } catch (IOException e) {
