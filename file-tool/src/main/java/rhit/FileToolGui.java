@@ -147,7 +147,20 @@ public class FileToolGui implements ActionListener, Runnable {
     PrintStream ps = new PrintStream(os, false, StandardCharsets.UTF_8);
 
     File master = new File(masterButton.getText());
+    File output = setOutputDirectory(ps);
+    File student = new File(studentButton.getText());
 
+    clearOutputDirectory(output, master, ps);
+    if (!output.mkdirs()) {
+      ps.println(PropertiesLoader.get("outputDirectoryCreationError"));
+      return;
+    }
+
+    performFileToolOperation(master, output, student, ps);
+    SwingUtilities.invokeLater(() -> startButton.setEnabled(true));
+  }
+
+  private File setOutputDirectory(PrintStream ps) {
     String outputText;
 
     if (outputButton.getText().equals(PropertiesLoader.get("defaultOutputLocationHint"))) {
@@ -157,9 +170,12 @@ public class FileToolGui implements ActionListener, Runnable {
       outputText = outputButton.getText();
     }
 
-    File output = new File(outputText);
+    return new File(outputText);
+  }
 
+  private void clearOutputDirectory(File output, File master, PrintStream ps) {
     if (Files.exists(output.toPath()) && !output.toPath().equals(master.toPath())) {
+      ps.println(PropertiesLoader.get("clearingOutputDirectoryMessage") + ELLIPSIS);
       try {
         // noinspection resource, ResultOfMethodCallIgnored
         Files.walk(output.toPath()).sorted(Comparator.reverseOrder()).map(Path::toFile)
@@ -167,27 +183,23 @@ public class FileToolGui implements ActionListener, Runnable {
       } catch (IOException e) {
         e.printStackTrace(ps);
       }
-      ps.println(PropertiesLoader.get("clearingOutputDirectoryMessage") + ELLIPSIS);
     }
-    if (!output.mkdirs()) {
-      ps.println(PropertiesLoader.get("outputDirectoryCreationError"));
-    }
+  }
 
-    File student = new File(studentButton.getText());
+  private void performFileToolOperation(File master, File output, File student, PrintStream ps) {
     if (masterButton.getText().equals(PropertiesLoader.get("selectDirectoryHint") + ELLIPSIS)) {
       try {
         fileToolCli.doRename(student, ps, output);
       } catch (Exception e) {
         e.printStackTrace(ps);
       }
-    } else {
-      try {
-        fileToolCli.doGenerate(master, student, output, ps);
-      } catch (Exception e) {
-        e.printStackTrace(ps);
-      }
+      return;
     }
 
-    SwingUtilities.invokeLater(() -> startButton.setEnabled(true));
+    try {
+      fileToolCli.doGenerate(master, student, output, ps);
+    } catch (Exception e) {
+      e.printStackTrace(ps);
+    }
   }
 }

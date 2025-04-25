@@ -43,9 +43,17 @@ class TreeWithDirCopier implements FileVisitor<Path> {
   public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
     // first, read the file to see package info
     String packageName = null;
-    boolean found = false;
-    try (InputStream in = Files.newInputStream(file); BufferedReader reader = new BufferedReader(
-        new InputStreamReader(in, StandardCharsets.UTF_8))) {
+    Boolean found = false;
+
+    findPackageName(file, packageName, found);
+    copyFile(file, packageName, found);
+    return CONTINUE;
+  }
+
+  private void findPackageName(Path file, String packageName, Boolean found) throws IOException {
+    try (InputStream in = Files.newInputStream(file);
+        BufferedReader reader =
+            new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
       String line;
       while ((line = reader.readLine()) != null && !found) {
         if (line.trim().startsWith("package")) {
@@ -56,6 +64,7 @@ class TreeWithDirCopier implements FileVisitor<Path> {
           if (semicolonIndex != -1) {
             packageName = packageName.substring(0, semicolonIndex);
             found = true;
+            break;
           } else {
             reader.close();
             throw new IOException(PropertiesLoader.get("invalidPackageDeclaration") + ": " + file);
@@ -63,7 +72,9 @@ class TreeWithDirCopier implements FileVisitor<Path> {
         }
       }
     }
+  }
 
+  private void copyFile(Path file, String packageName, Boolean found) throws IOException {
     Path p = null;
     Path preamble;
     if (found) {
@@ -93,7 +104,6 @@ class TreeWithDirCopier implements FileVisitor<Path> {
     if (p != null) {
       Files.copy(file, p, StandardCopyOption.REPLACE_EXISTING);
     }
-    return CONTINUE;
   }
 
   @Override

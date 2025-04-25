@@ -17,7 +17,9 @@ import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Stream;
 import org.yaml.snakeyaml.Yaml;
 
 public final class FileToolCli {
@@ -71,6 +73,37 @@ public final class FileToolCli {
       OutputDirectoryHandler copier) throws IOException {
     output.println(PropertiesLoader.get("dataFileFound") + ELLIPSIS);
 
+    Map<String, Object> metadata = parseMetadata(dir);
+    HashSet<String> failed = new HashSet<>();
+    AtomicInteger index = new AtomicInteger(0);
+    int size = metadata.size();
+
+    getSubmissionsStreamByDate(metadata).forEach((entry) -> {
+      Map<String, Object> userData = getUserData(entry, output);
+      if (userData == null) {
+        return;
+      }
+
+      String[] submitterInfo = getSubmitterInfo(userData, entry.getKey(), output);
+      String name = submitterInfo[0];
+      String sid = submitterInfo[1];
+      String id = submitterInfo[2];
+
+      String outputDirRelative = String.format("%d_of_%d", index, size);
+      if (!isAnonymous) {
+        outputDirRelative +=
+            String.format("-%s_%s", sid, name).replaceAll("[^a-zA-Z0-9_\\-]", "_");
+      }
+
+      performCopy(index.getAndIncrement(), dir, outputDirRelative, id, sid, name, outputDir, size,
+          copier, output, failed);
+      output.printf(PropertiesLoader.get("fileCopySuccess") + NEW_LINE, id, outputDirRelative);
+    });
+
+    return failed;
+  }
+
+  private Map<String, Object> parseMetadata(File dir) {
     Yaml yaml = new Yaml();
     File file = new File(dir, GRADESCOPE_METADATA_FILE);
     Map<String, Object> o;
@@ -78,78 +111,43 @@ public final class FileToolCli {
     try (FileInputStream stream = new FileInputStream(file)) {
       o = yaml.load(stream);
       if (o == null) {
-        throw new IOException(PropertiesLoader.get("submissionDataNull"));
+        throw new IOException();
       }
+    } catch (IOException e) {
+      throw new RuntimeException(PropertiesLoader.get("submissionDataNull"));
     }
 
-    HashSet<String> failed = new HashSet<>();
+    return o;
+  }
 
-    AtomicInteger index = new AtomicInteger(0);
-    int size = o.size();
-    o.entrySet().stream().sorted((a, b) -> parseDate(castToMap(a.getValue()).get(":created_at"))
-        .compareTo(parseDate(castToMap(b.getValue()).get(":created_at")))).forEach((entry) -> {
-          Map<String, Object> submission = castToMap(entry.getValue());
-          if (submission == null) {
-            output.printf(PropertiesLoader.get("submissionDataNull") + NEW_LINE, entry.getKey());
-            return;
-          }
-          Map<String, Object> userData =
-              castToMap(castToList(submission.get(":submitters")).get(0));
-          if (userData == null) {
-            output.printf(PropertiesLoader.get("submissionMissingUserData") + NEW_LINE,
-                entry.getKey());
-            return;
-          }
-          String name = Normalizer.normalize((String) userData.get(NAME_FIELD), Form.NFD)
-              .replaceAll("\\p{M}", "");
-          if (name.isEmpty()) {
-            output.printf(PropertiesLoader.get("submissionMissingName") + NEW_LINE, entry.getKey());
-            name = DEFAULT_NAME;
-          }
-          String sid = "";
-          if (!isAnonymous) {
-            try {
-              sid = ((String) userData.get(EMAIL_FIELD)).split("@")[0];
-            } catch (Exception e) {
-              output.print(PropertiesLoader.get("anonymousGradingEnabled") + NEW_LINE);
-              isAnonymous = true;
-            }
-          }
-          String[] parts = entry.getKey().split("_");
-          if (parts.length < 2) {
-            output.printf(PropertiesLoader.get("submissionKeyFormatError") + NEW_LINE,
-                entry.getKey());
-            return;
-          }
-          int id;
-          try {
-            id = Integer.parseInt(parts[1]);
-          } catch (NumberFormatException e) {
-            output.printf(PropertiesLoader.get("invalidSubmissionId") + NEW_LINE, parts[1],
-                entry.getKey());
-            return;
-          }
-          Path inputDir = new File(dir, String.format(OUTPUT_DIR_FORMAT, id)).toPath();
-          String outputDirRelative =
-              isAnonymous ? String.format("%d_of_%d", index.incrementAndGet(), size)
-                  : String.format("%s_%s_%s", id, sid, name).replaceAll("[^a-zA-Z0-9_\\-]", "_");
-          Path outputDirectory = new File(outputDir, outputDirRelative).toPath();
-          try {
-            boolean useSrc = copier.op(outputDirectory);
-            Path trueOutputDir = outputDirectory;
-            if (useSrc) {
-              trueOutputDir = pathAppend(outputDirectory, "src");
-            }
-            copyDirTree(inputDir, new TreeWithDirCopier(inputDir, trueOutputDir));
-          } catch (IOException e) {
-            output.printf(PropertiesLoader.get("fileCopyError") + NEW_LINE, name);
-            failed.add(name + " (" + id + ")");
-            return;
-          }
-          output.printf(PropertiesLoader.get("fileCopySuccess") + NEW_LINE, id, outputDirRelative);
-        });
+  private Stream<Entry<String, Object>> getSubmissionsStreamByDate(Map<String, Object> metadata) {
+    return metadata.entrySet().stream()
+        .sorted((a, b) -> parseDate(castToMap(a.getValue()).get(":created_at"))
+            .compareTo(parseDate(castToMap(b.getValue()).get(":created_at"))));
+  }
 
-    return failed;
+  private Date parseDate(Object o) {
+    if (o instanceof Date) {
+      return (Date) o;
+    }
+    if (o instanceof String) {
+      return Date.from(Instant.parse((String) o));
+    }
+    throw new RuntimeException();
+  }
+
+  private Map<String, Object> getUserData(Entry<String, Object> entry, PrintStream output) {
+    Map<String, Object> submission = castToMap(entry.getValue());
+    if (submission == null) {
+      output.printf(PropertiesLoader.get("submissionDataNull") + NEW_LINE, entry.getKey());
+      return null;
+    }
+    Map<String, Object> userData = castToMap(castToList(submission.get(":submitters")).get(0));
+    if (userData == null) {
+      output.printf(PropertiesLoader.get("submissionMissingUserData") + NEW_LINE, entry.getKey());
+      return null;
+    }
+    return userData;
   }
 
   @SuppressWarnings("unchecked")
@@ -170,21 +168,60 @@ public final class FileToolCli {
     }
   }
 
-  private Date parseDate(Object o) {
-    if (o instanceof Date) {
-      return (Date) o;
+  private String[] getSubmitterInfo(Map<String, Object> userData, String id, PrintStream output) {
+    String name =
+        Normalizer.normalize((String) userData.get(NAME_FIELD), Form.NFD).replaceAll("\\p{M}", "");
+    if (name.isEmpty()) {
+      output.printf(PropertiesLoader.get("submissionMissingName") + NEW_LINE, id);
+      name = DEFAULT_NAME;
     }
-    if (o instanceof String) {
-      return Date.from(Instant.parse((String) o));
+    String sid = "";
+    if (!isAnonymous) {
+      try {
+        sid = ((String) userData.get(EMAIL_FIELD)).split("@")[0];
+      } catch (Exception e) {
+        output.print(PropertiesLoader.get("anonymousGradingEnabled") + NEW_LINE);
+        isAnonymous = true;
+      }
     }
-    throw new RuntimeException();
+    String[] parts = id.split("_");
+    if (parts.length < 2) {
+      output.printf(PropertiesLoader.get("submissionKeyFormatError") + NEW_LINE, id);
+      throw new RuntimeException();
+    }
+    int parsedId;
+    try {
+      parsedId = Integer.parseInt(parts[1]);
+    } catch (NumberFormatException e) {
+      output.printf(PropertiesLoader.get("invalidSubmissionId") + NEW_LINE, parts[1], id);
+      throw new RuntimeException();
+    }
+
+    return new String[] {name, sid, String.valueOf(parsedId)};
+  }
+
+  private boolean performCopy(int index, File dir, String outputDirRelative, String id, String sid,
+      String name, File outputDir, int size, OutputDirectoryHandler copier, PrintStream output,
+      HashSet<String> failed) {
+    Path inputDir = new File(dir, String.format(OUTPUT_DIR_FORMAT, id)).toPath();
+    Path outputDirectory = new File(outputDir, outputDirRelative).toPath();
+    try {
+      boolean useSrc = copier.op(outputDirectory);
+      Path trueOutputDir = outputDirectory;
+      if (useSrc) {
+        trueOutputDir = pathAppend(outputDirectory, "src");
+      }
+      copyDirTree(inputDir, new TreeWithDirCopier(inputDir, trueOutputDir));
+    } catch (IOException e) {
+      output.printf(PropertiesLoader.get("fileCopyError") + NEW_LINE, name);
+      failed.add(name + " (" + id + ")");
+      return false;
+    }
+    return true;
   }
 
   void doRename(File studentSubmissionDir, PrintStream output, File outputDir) throws IOException {
-    if (!studentSubmissionDir.exists()) {
-      throw new IOException(String.format(PropertiesLoader.get("submissionDirectoryNotFound"),
-          studentSubmissionDir.getName()));
-    }
+    checkDirectoryExistence(studentSubmissionDir, "submissionDirectoryNotFound");
 
     if (Files.exists(pathAppend(studentSubmissionDir.toPath(), GRADESCOPE_METADATA_FILE))) {
       HashSet<String> failed = copyFolders(studentSubmissionDir, outputDir, output, (o) -> false);
@@ -201,18 +238,9 @@ public final class FileToolCli {
 
   void doGenerate(File masterDir, File studentSubmissionDir, File outputDir, PrintStream output)
       throws IOException {
-    if (!masterDir.exists()) {
-      throw new IOException(
-          String.format(PropertiesLoader.get("masterDirectoryNotFound"), masterDir.getName()));
-    }
-    if (!studentSubmissionDir.exists()) {
-      throw new IOException(String.format(PropertiesLoader.get("submissionDirectoryNotFound"),
-          studentSubmissionDir.getName()));
-    }
-    if (!outputDir.exists()) {
-      throw new IOException(
-          String.format(PropertiesLoader.get("outputDirectoryNotFound"), outputDir.getName()));
-    }
+    checkDirectoryExistence(masterDir, "masterDirectoryNotFound");
+    checkDirectoryExistence(studentSubmissionDir, "submissionDirectoryNotFound");
+    checkDirectoryExistence(outputDir, "outputDirectoryNotFound");
 
     HashSet<String> failed = new HashSet<>();
     if (Files.exists(pathAppend(studentSubmissionDir.toPath(), GRADESCOPE_METADATA_FILE))) {
@@ -233,6 +261,12 @@ public final class FileToolCli {
       for (String s : failed) {
         output.println(s);
       }
+    }
+  }
+
+  private void checkDirectoryExistence(File dir, String errorKey) {
+    if (!dir.exists()) {
+      throw new RuntimeException(String.format(PropertiesLoader.get(errorKey), dir.getName()));
     }
   }
 
