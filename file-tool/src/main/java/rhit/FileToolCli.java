@@ -24,7 +24,7 @@ import org.yaml.snakeyaml.Yaml;
 
 public final class FileToolCli {
   private static final String GRADESCOPE_METADATA_FILE = "submission_metadata.yml";
-  private static final String OUTPUT_DIR_FORMAT = "submission_%d";
+  private static final String OUTPUT_DIR_FORMAT = "submission_%s";
   private static final String NAME_FIELD = ":name";
   private static final String EMAIL_FIELD = ":email";
   private static final String DEFAULT_NAME = "Unknown";
@@ -39,7 +39,7 @@ public final class FileToolCli {
     isAnonymous = true;
   }
 
-  FileToolCli(String[] args) throws IOException {
+  FileToolCli(String[] args) {
     if (args.length != 3 && args.length != 4) {
       throw new IllegalArgumentException(PropertiesLoader.get("argumentsHint"));
     }
@@ -47,7 +47,7 @@ public final class FileToolCli {
     File masterDir = new File(args[0]);
     File studentSubmissionDir = new File(args[1]);
     File outputDir = new File(args[2]);
-    isAnonymous = args.length == 4 ? Boolean.parseBoolean(args[3]) : true;
+    isAnonymous = args.length != 4 || Boolean.parseBoolean(args[3]);
 
     doGenerate(masterDir, studentSubmissionDir, outputDir, System.out);
   }
@@ -70,7 +70,7 @@ public final class FileToolCli {
    * the folders to the student's name and id
    */
   HashSet<String> copyFolders(File dir, File outputDir, PrintStream output,
-      OutputDirectoryHandler copier) throws IOException {
+      OutputDirectoryHandler copier) {
     output.println(PropertiesLoader.get("dataFileFound") + ELLIPSIS);
 
     Map<String, Object> metadata = parseMetadata(dir);
@@ -89,14 +89,14 @@ public final class FileToolCli {
       String sid = submitterInfo[1];
       String id = submitterInfo[2];
 
-      String outputDirRelative = String.format("%d_of_%d", index, size);
+      String outputDirRelative = String.format("%d_of_%d", index.getAndIncrement(), size);
       if (!isAnonymous) {
-        outputDirRelative +=
-            String.format("-%s_%s", sid, name).replaceAll("[^a-zA-Z0-9_\\-]", "_");
+        outputDirRelative += String.format("-%s_%s", sid, name).replaceAll("[^a-zA-Z0-9_\\-]", "_");
       }
 
-      performCopy(index.getAndIncrement(), dir, outputDirRelative, id, sid, name, outputDir, size,
-          copier, output, failed);
+      if (!performCopy(dir, outputDirRelative, id, name, outputDir, copier, output, failed)) {
+        return;
+      }
       output.printf(PropertiesLoader.get("fileCopySuccess") + NEW_LINE, id, outputDirRelative);
     });
 
@@ -155,7 +155,7 @@ public final class FileToolCli {
     if (o instanceof Map) {
       return (Map<String, Object>) o;
     } else {
-      throw new RuntimeException();
+      return null;
     }
   }
 
@@ -200,9 +200,8 @@ public final class FileToolCli {
     return new String[] {name, sid, String.valueOf(parsedId)};
   }
 
-  private boolean performCopy(int index, File dir, String outputDirRelative, String id, String sid,
-      String name, File outputDir, int size, OutputDirectoryHandler copier, PrintStream output,
-      HashSet<String> failed) {
+  private boolean performCopy(File dir, String outputDirRelative, String id, String name,
+      File outputDir, OutputDirectoryHandler copier, PrintStream output, HashSet<String> failed) {
     Path inputDir = new File(dir, String.format(OUTPUT_DIR_FORMAT, id)).toPath();
     Path outputDirectory = new File(outputDir, outputDirRelative).toPath();
     try {
@@ -220,7 +219,7 @@ public final class FileToolCli {
     return true;
   }
 
-  void doRename(File studentSubmissionDir, PrintStream output, File outputDir) throws IOException {
+  void doRename(File studentSubmissionDir, PrintStream output, File outputDir) {
     checkDirectoryExistence(studentSubmissionDir, "submissionDirectoryNotFound");
 
     if (Files.exists(pathAppend(studentSubmissionDir.toPath(), GRADESCOPE_METADATA_FILE))) {
@@ -236,8 +235,7 @@ public final class FileToolCli {
     }
   }
 
-  void doGenerate(File masterDir, File studentSubmissionDir, File outputDir, PrintStream output)
-      throws IOException {
+  void doGenerate(File masterDir, File studentSubmissionDir, File outputDir, PrintStream output) {
     checkDirectoryExistence(masterDir, "masterDirectoryNotFound");
     checkDirectoryExistence(studentSubmissionDir, "submissionDirectoryNotFound");
     checkDirectoryExistence(outputDir, "outputDirectoryNotFound");

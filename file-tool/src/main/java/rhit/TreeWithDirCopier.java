@@ -42,20 +42,22 @@ class TreeWithDirCopier implements FileVisitor<Path> {
   @Override
   public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
     // first, read the file to see package info
-    String packageName = null;
-    Boolean found = false;
+    String[] packageInfo = findPackageName(file);
+    String packageName = packageInfo[0];
+    Boolean found = Boolean.parseBoolean(packageInfo[1]);
 
-    findPackageName(file, packageName, found);
     copyFile(file, packageName, found);
     return CONTINUE;
   }
 
-  private void findPackageName(Path file, String packageName, Boolean found) throws IOException {
+  private String[] findPackageName(Path file) throws IOException {
+    String packageName = null;
+    boolean found = false;
     try (InputStream in = Files.newInputStream(file);
         BufferedReader reader =
             new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
       String line;
-      while ((line = reader.readLine()) != null && !found) {
+      while ((line = reader.readLine()) != null) {
         if (line.trim().startsWith("package")) {
           line = line.trim();
           int spaceIndex = line.indexOf(" ");
@@ -72,6 +74,7 @@ class TreeWithDirCopier implements FileVisitor<Path> {
         }
       }
     }
+    return new String[] {packageName, String.valueOf(found)};
   }
 
   private void copyFile(Path file, String packageName, Boolean found) throws IOException {
