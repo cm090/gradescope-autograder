@@ -3,6 +3,7 @@
 DOWNLOAD_LINK=$(jq -r '.additional_options.starter_code_download' /autograder/source/config.json)
 
 # If this is the first submission, provide the download link
+shopt -s nocasematch
 prev=$(jq '.previous_submissions' submission_metadata.json)
 type=$(jq -r '.additional_options.type' /autograder/source/config.json)
 if [ "$type" == "exam" ] && [ "$prev" == "[]" ]; then
@@ -20,6 +21,7 @@ if [ "$type" == "exam" ]; then
 else
     cp /autograder/source/homework_results_error_template.json /autograder/results/results.json
 fi
+shopt -u nocasematch
 
 # Move submission files to the root directory
 cd /autograder/submission
