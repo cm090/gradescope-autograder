@@ -24,7 +24,8 @@ done < <(jq -r '.["required-files"][]' /autograder/source/config.json | sort -r)
 mv tmp/* submission/ &>/dev/null
 rmdir tmp &>/dev/null
 
-type=$(jq -r '.additional_options.type' /autograder/source/config.json)
+shopt -s nocasematch
+type=$(jq -r '.type' /autograder/source/config.json)
 if [ ${#missing_files[@]} -gt 0 ]; then
     # Missing files
     prev=$(jq '.previous_submissions' submission_metadata.json)
@@ -55,3 +56,4 @@ else
     # Remove exam-specific outputs
     jq "del(.tests[3], .tests[1], .tests[0])" $RESULTS_TEMPLATE >/autograder/results/results.json
 fi
+shopt -u nocasematch
