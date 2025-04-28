@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -24,7 +23,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
 
 public class FileToolGui implements ActionListener, Runnable {
   private static final String ELLIPSIS = "...";
@@ -143,11 +141,24 @@ public class FileToolGui implements ActionListener, Runnable {
 
   @Override
   public void run() {
-    ByteArrayOutputStream os = new ByteArrayOutputStream();
-    PrintStream ps = new PrintStream(os, false, StandardCharsets.UTF_8);
+    PrintStream ps =
+        new PrintStream(new JTextAreaOutputStream(outputArea), false, StandardCharsets.UTF_8);
 
     File master = new File(masterButton.getText());
+    File output = setOutputDirectory(ps);
+    File student = new File(studentButton.getText());
 
+    clearOutputDirectory(output, master, ps);
+    if (!output.exists() && !output.mkdirs()) {
+      ps.println(PropertiesLoader.get("outputDirectoryCreationError"));
+      return;
+    }
+
+    performFileToolOperation(master, output, student, ps);
+    startButton.setEnabled(true);
+  }
+
+  private File setOutputDirectory(PrintStream ps) {
     String outputText;
 
     if (outputButton.getText().equals(PropertiesLoader.get("defaultOutputLocationHint"))) {
@@ -157,9 +168,12 @@ public class FileToolGui implements ActionListener, Runnable {
       outputText = outputButton.getText();
     }
 
-    File output = new File(outputText);
+    return new File(outputText);
+  }
 
+  private void clearOutputDirectory(File output, File master, PrintStream ps) {
     if (Files.exists(output.toPath()) && !output.toPath().equals(master.toPath())) {
+      ps.println(PropertiesLoader.get("clearingOutputDirectoryMessage") + ELLIPSIS);
       try {
         // noinspection resource, ResultOfMethodCallIgnored
         Files.walk(output.toPath()).sorted(Comparator.reverseOrder()).map(Path::toFile)
@@ -167,27 +181,18 @@ public class FileToolGui implements ActionListener, Runnable {
       } catch (IOException e) {
         e.printStackTrace(ps);
       }
-      ps.println(PropertiesLoader.get("clearingOutputDirectoryMessage") + ELLIPSIS);
     }
-    if (!output.mkdirs()) {
-      ps.println(PropertiesLoader.get("outputDirectoryCreationError"));
-    }
+  }
 
-    File student = new File(studentButton.getText());
-    if (masterButton.getText().equals(PropertiesLoader.get("selectDirectoryHint") + ELLIPSIS)) {
-      try {
+  private void performFileToolOperation(File master, File output, File student, PrintStream ps) {
+    try {
+      if (masterButton.getText().equals(PropertiesLoader.get("selectDirectoryHint") + ELLIPSIS)) {
         fileToolCli.doRename(student, ps, output);
-      } catch (Exception e) {
-        e.printStackTrace(ps);
-      }
-    } else {
-      try {
+      } else {
         fileToolCli.doGenerate(master, student, output, ps);
-      } catch (Exception e) {
-        e.printStackTrace(ps);
       }
+    } catch (Exception e) {
+      e.printStackTrace(ps);
     }
-
-    SwingUtilities.invokeLater(() -> startButton.setEnabled(true));
   }
 }

@@ -42,12 +42,22 @@ class TreeWithDirCopier implements FileVisitor<Path> {
   @Override
   public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
     // first, read the file to see package info
+    String[] packageInfo = findPackageName(file);
+    String packageName = packageInfo[0];
+    Boolean found = Boolean.parseBoolean(packageInfo[1]);
+
+    copyFile(file, packageName, found);
+    return CONTINUE;
+  }
+
+  private String[] findPackageName(Path file) throws IOException {
     String packageName = null;
     boolean found = false;
-    try (InputStream in = Files.newInputStream(file); BufferedReader reader = new BufferedReader(
-        new InputStreamReader(in, StandardCharsets.UTF_8))) {
+    try (InputStream in = Files.newInputStream(file);
+        BufferedReader reader =
+            new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8))) {
       String line;
-      while ((line = reader.readLine()) != null && !found) {
+      while ((line = reader.readLine()) != null) {
         if (line.trim().startsWith("package")) {
           line = line.trim();
           int spaceIndex = line.indexOf(" ");
@@ -56,6 +66,7 @@ class TreeWithDirCopier implements FileVisitor<Path> {
           if (semicolonIndex != -1) {
             packageName = packageName.substring(0, semicolonIndex);
             found = true;
+            break;
           } else {
             reader.close();
             throw new IOException(PropertiesLoader.get("invalidPackageDeclaration") + ": " + file);
@@ -63,7 +74,10 @@ class TreeWithDirCopier implements FileVisitor<Path> {
         }
       }
     }
+    return new String[] {packageName, String.valueOf(found)};
+  }
 
+  private void copyFile(Path file, String packageName, Boolean found) throws IOException {
     Path p = null;
     Path preamble;
     if (found) {
@@ -93,7 +107,6 @@ class TreeWithDirCopier implements FileVisitor<Path> {
     if (p != null) {
       Files.copy(file, p, StandardCopyOption.REPLACE_EXISTING);
     }
-    return CONTINUE;
   }
 
   @Override
