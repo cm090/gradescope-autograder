@@ -75,7 +75,7 @@ public final class FileToolCli {
 
     Map<String, Object> metadata = parseMetadata(dir);
     HashSet<String> failed = new HashSet<>();
-    AtomicInteger index = new AtomicInteger(0);
+    AtomicInteger index = new AtomicInteger(1);
     int size = metadata.size();
 
     getSubmissionsStreamByDate(metadata).forEach((entry) -> {
@@ -91,7 +91,7 @@ public final class FileToolCli {
 
       String outputDirRelative = String.format("%d_of_%d", index.getAndIncrement(), size);
       if (!isAnonymous) {
-        outputDirRelative += String.format("-%s_%s", sid, name).replaceAll("[^a-zA-Z0-9_\\-]", "_");
+        outputDirRelative += String.format("_%s_%s", sid, name).replaceAll("[^a-zA-Z0-9_\\-]", "_");
       }
 
       if (!performCopy(dir, outputDirRelative, id, name, outputDir, copier, output, failed)) {

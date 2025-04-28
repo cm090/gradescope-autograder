@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -24,7 +23,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
-import javax.swing.SwingUtilities;
 
 public class FileToolGui implements ActionListener, Runnable {
   private static final String ELLIPSIS = "...";
@@ -143,8 +141,8 @@ public class FileToolGui implements ActionListener, Runnable {
 
   @Override
   public void run() {
-    ByteArrayOutputStream os = new ByteArrayOutputStream();
-    PrintStream ps = new PrintStream(os, false, StandardCharsets.UTF_8);
+    PrintStream ps =
+        new PrintStream(new JTextAreaOutputStream(outputArea), false, StandardCharsets.UTF_8);
 
     File master = new File(masterButton.getText());
     File output = setOutputDirectory(ps);
@@ -157,7 +155,7 @@ public class FileToolGui implements ActionListener, Runnable {
     }
 
     performFileToolOperation(master, output, student, ps);
-    SwingUtilities.invokeLater(() -> startButton.setEnabled(true));
+    startButton.setEnabled(true);
   }
 
   private File setOutputDirectory(PrintStream ps) {
@@ -187,17 +185,12 @@ public class FileToolGui implements ActionListener, Runnable {
   }
 
   private void performFileToolOperation(File master, File output, File student, PrintStream ps) {
-    if (masterButton.getText().equals(PropertiesLoader.get("selectDirectoryHint") + ELLIPSIS)) {
-      try {
-        fileToolCli.doRename(student, ps, output);
-      } catch (Exception e) {
-        e.printStackTrace(ps);
-      }
-      return;
-    }
-
     try {
-      fileToolCli.doGenerate(master, student, output, ps);
+      if (masterButton.getText().equals(PropertiesLoader.get("selectDirectoryHint") + ELLIPSIS)) {
+        fileToolCli.doRename(student, ps, output);
+      } else {
+        fileToolCli.doGenerate(master, student, output, ps);
+      }
     } catch (Exception e) {
       e.printStackTrace(ps);
     }
