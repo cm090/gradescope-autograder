@@ -149,7 +149,7 @@ public class FileToolGui implements ActionListener, Runnable {
     File student = new File(studentButton.getText());
 
     clearOutputDirectory(output, master, ps);
-    if (!output.mkdirs()) {
+    if (!output.exists() && !output.mkdirs()) {
       ps.println(PropertiesLoader.get("outputDirectoryCreationError"));
       return;
     }

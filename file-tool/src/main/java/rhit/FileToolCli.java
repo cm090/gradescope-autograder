@@ -84,10 +84,9 @@ public final class FileToolCli {
         return;
       }
 
-      String[] submitterInfo = getSubmitterInfo(userData, entry.getKey(), output);
-      String name = submitterInfo[0];
-      String sid = submitterInfo[1];
-      String id = submitterInfo[2];
+      String name = getSubmissionName(userData, entry.getKey(), output);
+      String sid = getStudentId(userData, output);
+      String id = getSubmissionId(entry.getKey(), output);
 
       String outputDirRelative = String.format("%d_of_%d", index.getAndIncrement(), size);
       if (!isAnonymous) {
@@ -168,36 +167,39 @@ public final class FileToolCli {
     }
   }
 
-  private String[] getSubmitterInfo(Map<String, Object> userData, String id, PrintStream output) {
-    String name =
-        Normalizer.normalize((String) userData.get(NAME_FIELD), Form.NFD).replaceAll("\\p{M}", "");
-    if (name.isEmpty()) {
+  private String getSubmissionName(Map<String, Object> userData, String id, PrintStream output) {
+    String rawName = (String) userData.get(NAME_FIELD);
+    if (rawName == null) {
       output.printf(PropertiesLoader.get("submissionMissingName") + NEW_LINE, id);
-      name = DEFAULT_NAME;
+      return DEFAULT_NAME;
     }
-    String sid = "";
+    return Normalizer.normalize(rawName, Form.NFD).replaceAll("\\p{M}", "");
+  }
+
+  private String getStudentId(Map<String, Object> userData, PrintStream output) {
     if (!isAnonymous) {
       try {
-        sid = ((String) userData.get(EMAIL_FIELD)).split("@")[0];
+        return ((String) userData.get(EMAIL_FIELD)).split("@")[0];
       } catch (Exception e) {
         output.print(PropertiesLoader.get("anonymousGradingEnabled") + NEW_LINE);
         isAnonymous = true;
       }
     }
+    return "";
+  }
+
+  private String getSubmissionId(String id, PrintStream output) {
     String[] parts = id.split("_");
     if (parts.length < 2) {
       output.printf(PropertiesLoader.get("submissionKeyFormatError") + NEW_LINE, id);
       throw new RuntimeException();
     }
-    int parsedId;
     try {
-      parsedId = Integer.parseInt(parts[1]);
+      return String.valueOf(Integer.parseInt(parts[1]));
     } catch (NumberFormatException e) {
       output.printf(PropertiesLoader.get("invalidSubmissionId") + NEW_LINE, parts[1], id);
       throw new RuntimeException();
     }
-
-    return new String[] {name, sid, String.valueOf(parsedId)};
   }
 
   private boolean performCopy(File dir, String outputDirRelative, String id, String name,
@@ -263,7 +265,7 @@ public final class FileToolCli {
   }
 
   private void checkDirectoryExistence(File dir, String errorKey) {
-    if (!dir.exists()) {
+    if (!dir.exists() || !dir.isDirectory()) {
       throw new RuntimeException(String.format(PropertiesLoader.get(errorKey), dir.getName()));
     }
   }
