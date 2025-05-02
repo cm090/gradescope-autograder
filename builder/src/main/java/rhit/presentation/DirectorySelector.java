@@ -88,20 +88,22 @@ public class DirectorySelector extends SwingGui {
     fileChooser.setAcceptAllFileFilterUsed(false);
     if (fileChooser.showOpenDialog(frame) == JFileChooser.APPROVE_OPTION) {
       String path = fileChooser.getSelectedFile().getAbsolutePath();
-      validateSelectedTemplate(path);
-      checkTemplateVersion(path);
+      if (validateSelectedTemplate(path)) {
+        checkTemplateVersion(path);
+      }
     }
     show();
   }
 
-  private void validateSelectedTemplate(String path) {
+  private boolean validateSelectedTemplate(String path) {
     Path directory = Path.of(path);
     if (!directory.resolve("config.json").toFile().exists()) {
       JOptionPane.showMessageDialog(frame, PropertiesLoader.get("invalidTemplateError"),
           PropertiesLoader.get("errorTitle"), JOptionPane.ERROR_MESSAGE);
-    } else {
-      BuilderData.setTemplateDir(path);
+      return false;
     }
+    BuilderData.setTemplateDir(path);
+    return true;
   }
 
   private void checkTemplateVersion(String path) {
