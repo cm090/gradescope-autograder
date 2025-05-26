@@ -75,7 +75,7 @@ public final class FileToolCli {
 
     Map<String, Object> metadata = parseMetadata(dir);
     HashSet<String> failed = new HashSet<>();
-    AtomicInteger index = new AtomicInteger(1);
+    AtomicInteger index = new AtomicInteger(0);
     int size = metadata.size();
 
     getSubmissionsStreamByDate(metadata).forEach((entry) -> {
@@ -87,11 +87,8 @@ public final class FileToolCli {
       String name = getSubmissionName(userData, entry.getKey(), output);
       String sid = getStudentId(userData, output);
       String id = getSubmissionId(entry.getKey(), output);
-
-      String outputDirRelative = String.format("%d_of_%d", index.getAndIncrement(), size);
-      if (!isAnonymous) {
-        outputDirRelative += String.format("_%s_%s", sid, name).replaceAll("[^a-zA-Z0-9_\\-]", "_");
-      }
+      String outputDirRelative =
+          generateOutputDirName(index.incrementAndGet(), size, id, sid, name);
 
       if (!performCopy(dir, outputDirRelative, id, name, outputDir, copier, output, failed)) {
         return;
@@ -200,6 +197,16 @@ public final class FileToolCli {
       output.printf(PropertiesLoader.get("invalidSubmissionId") + NEW_LINE, parts[1], id);
       throw new RuntimeException();
     }
+  }
+
+  private String generateOutputDirName(int index, int size, String submissionId, String sid,
+      String name) {
+    StringBuilder outputDir = new StringBuilder();
+    outputDir.append(index).append("_of_").append(size).append('_').append(submissionId);
+    if (!isAnonymous) {
+      outputDir.append('_').append(sid).append('_').append(name);
+    }
+    return outputDir.toString().replaceAll("[^a-zA-Z0-9_\\-]", "_").replaceAll("_+", "_");
   }
 
   private boolean performCopy(File dir, String outputDirRelative, String id, String name,
